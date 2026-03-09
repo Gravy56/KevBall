@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Scoreboard — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --clay: #c4622d;
+    --clay-light: #d4794a;
+    --gold: #d4a843;
+    --green: #2d5a27;
+    --white: #fafaf8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--white); display:flex; flex-direction:column; }
+
+  /* TOP BAR */
+  .top-bar {
+    background:rgba(0,0,0,0.5); border-bottom:3px solid var(--clay);
+    padding:14px 32px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+  }
+  .tb-logo { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:3px; color:var(--white); text-decoration:none; }
+  .tb-logo span { color:var(--gold); }
+  .tb-live { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; }
+  .live-dot { width:10px; height:10px; border-radius:50%; background:var(--clay); animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+  .tb-time { font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; color:rgba(255,255,255,0.4); }
+
+  /* MAIN AREA */
+  .board { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; position:relative; }
+
+  /* IDLE STATE */
+  .idle-screen { text-align:center; }
+  .idle-screen .idle-icon { font-size:80px; display:block; margin-bottom:20px; opacity:0.4; }
+  .idle-screen h2 { font-family:'Black Ops One',cursive; font-size:clamp(28px,5vw,52px); letter-spacing:3px; color:rgba(255,255,255,0.25); margin-bottom:12px; }
+  .idle-screen p { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.15); text-transform:uppercase; }
+
+  /* LIVE SCORE */
+  .live-screen { width:100%; max-width:1100px; display:none; }
+
+  .match-title {
+    text-align:center; font-family:'Space Mono',monospace; font-size:clamp(10px,1.5vw,14px);
+    letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:clamp(16px,3vh,32px);
+  }
+
+  .scores-row { display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(16px,3vw,40px); align-items:center; margin-bottom:clamp(20px,4vh,40px); }
+
+  .player-panel { text-align:center; position:relative; }
+  .player-panel.winning .player-name { color:var(--gold); }
+  .player-panel.match-won .player-name { color:var(--green); }
+
+  .player-name {
+    font-family:'Black Ops One',cursive; font-size:clamp(22px,4vw,52px);
+    letter-spacing:2px; color:var(--white); margin-bottom:clamp(8px,2vh,20px);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    transition:color 0.4s;
+  }
+
+  .big-score {
+    font-family:'Black Ops One',cursive; font-size:clamp(100px,22vw,260px);
+    line-height:0.9; color:var(--white); transition:transform 0.15s, color 0.4s;
+    text-shadow:0 0 80px rgba(196,98,45,0.15);
+  }
+  .player-panel.winning .big-score { color:var(--gold); text-shadow:0 0 80px rgba(212,168,67,0.3); }
+  .player-panel.match-won .big-score { color:var(--green); text-shadow:0 0 80px rgba(45,90,39,0.4); }
+
+  @keyframes scorePop { 0%{transform:scale(1)} 30%{transform:scale(1.18)} 100%{transform:scale(1)} }
+  .score-pop { animation:scorePop 0.3s cubic-bezier(0.16,1,0.3,1); }
+
+  .vs-divider { text-align:center; }
+  .vs-text { font-family:'Black Ops One',cursive; font-size:clamp(24px,4vw,52px); color:rgba(255,255,255,0.12); display:block; }
+  .score-dash { display:block; width:2px; height:clamp(60px,10vw,120px); background:rgba(255,255,255,0.06); margin:12px auto; }
+
+  /* WINNER BANNER */
+  .winner-banner {
+    text-align:center; padding:clamp(12px,2vh,24px);
+    background:linear-gradient(135deg,rgba(45,90,39,0.3),rgba(45,90,39,0.1));
+    border:2px solid var(--green); margin-bottom:clamp(12px,2vh,24px);
+    display:none;
+  }
+  .winner-banner.show { display:block; }
+  .winner-banner h3 { font-family:'Black Ops One',cursive; font-size:clamp(18px,3vw,36px); letter-spacing:3px; color:var(--green); }
+
+  /* TARGET / REF INFO */
+  .info-row {
+    display:flex; justify-content:center; gap:32px; flex-wrap:wrap;
+  }
+  .info-chip { font-family:'Space Mono',monospace; font-size:clamp(9px,1.2vw,12px); letter-spacing:2px; color:rgba(255,255,255,0.25); text-transform:uppercase; }
+  .info-chip span { color:rgba(255,255,255,0.5); }
+
+  /* RECENT EVENTS TICKER */
+  .event-ticker {
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(0,0,0,0.6); border-top:2px solid rgba(255,255,255,0.06);
+    padding:10px 32px; display:flex; align-items:center; gap:16px; flex-shrink:0;
+  }
+  .ticker-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px; color:var(--clay); text-transform:uppercase; flex-shrink:0; }
+  .ticker-content { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* STRIPE ACCENT */
+  .stripe-accent {
+    position:absolute; bottom:60px; left:0; right:0; height:4px;
+    background:repeating-linear-gradient(90deg,var(--clay) 0,var(--clay) 20px,transparent 20px,transparent 40px);
+    opacity:0.15; pointer-events:none;
+  }
+
+  /* TIMER */
+  .match-timer { font-family:'Space Mono',monospace; font-size:clamp(11px,1.8vw,18px); letter-spacing:3px; color:rgba(255,255,255,0.3); text-align:center; margin-bottom:8px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="index.html" class="tb-logo">KEV<span>●</span>BALL</a>
+  <div class="tb-live">
+    <div class="live-dot"></div>
+    <span>Live Scoreboard</span>
+  </div>
+  <div class="tb-time" id="clockDisplay">--:--</div>
+</div>
+
+<div class="board">
+  <div class="stripe-accent"></div>
+
+  <!-- IDLE -->
+  <div class="idle-screen" id="idleScreen">
+    <span class="idle-icon">🎾</span>
+    <h2>No Match In Progress</h2>
+    <p>Waiting for referee to start a match</p>
+  </div>
+
+  <!-- LIVE -->
+  <div class="live-screen" id="liveScreen">
+    <div class="match-title" id="sbMatchTitle">Match</div>
+    <div class="match-timer" id="sbTimer">00:00</div>
+
+    <div class="winner-banner" id="winnerBanner">
+      <h3 id="winnerBannerText">🏆 Winner!</h3>
+    </div>
+
+    <div class="scores-row">
+      <div class="player-panel" id="sbP1Panel">
+        <div class="player-name" id="sbP1Name">Player 1</div>
+        <div class="big-score" id="sbP1Score">0</div>
+      </div>
+      <div class="vs-divider">
+        <span class="vs-text">VS</span>
+        <span class="score-dash"></span>
+      </div>
+      <div class="player-panel" id="sbP2Panel">
+        <div class="player-name" id="sbP2Name">Player 2</div>
+        <div class="big-score" id="sbP2Score">0</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-chip">First to <span id="sbTarget">21</span></div>
+      <div class="info-chip">Referee: <span id="sbReferee">—</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="event-ticker">
+  <div class="ticker-label">Events</div>
+  <div class="ticker-content" id="tickerContent">No events yet</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let prevScore1 = 0, prevScore2 = 0;
+let matchStartTime = null;
+let timerInterval = null;
+
+// Real-time clock
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent =
+    now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}, 1000);
+
+// Listen to liveMatch/current in real time
+onSnapshot(doc(db, 'liveMatch', 'current'), snap => {
+  if (!snap.exists()) { showIdle(); return; }
+  const d = snap.data();
+  if (!d.active) { showIdle(); return; }
+  showLive(d);
+});
+
+function showIdle() {
+  document.getElementById('idleScreen').style.display = 'block';
+  document.getElementById('liveScreen').style.display = 'none';
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function showLive(d) {
+  document.getElementById('idleScreen').style.display = 'none';
+  document.getElementById('liveScreen').style.display = 'block';
+
+  // Names & target
+  document.getElementById('sbP1Name').textContent = d.p1;
+  document.getElementById('sbP2Name').textContent = d.p2;
+  document.getElementById('sbTarget').textContent = d.target || 21;
+  document.getElementById('sbReferee').textContent = d.referee || '—';
+  document.getElementById('sbMatchTitle').textContent = `${d.p1}  ·  vs  ·  ${d.p2}`;
+
+  // Scores with pop animation
+  const s1El = document.getElementById('sbP1Score');
+  const s2El = document.getElementById('sbP2Score');
+  if (d.score1 !== prevScore1) { animatePop(s1El); prevScore1 = d.score1; }
+  if (d.score2 !== prevScore2) { animatePop(s2El); prevScore2 = d.score2; }
+  s1El.textContent = d.score1;
+  s2El.textContent = d.score2;
+
+  // Leading classes
+  const p1Panel = document.getElementById('sbP1Panel');
+  const p2Panel = document.getElementById('sbP2Panel');
+  p1Panel.className = 'player-panel';
+  p2Panel.className = 'player-panel';
+  const target = d.target || 21;
+
+  if (d.score1 >= target || (d.score1 > d.score2 && !d.active)) {
+    p1Panel.classList.add('match-won');
+    showWinnerBanner(d.p1);
+  } else if (d.score2 >= target || (d.score2 > d.score1 && !d.active)) {
+    p2Panel.classList.add('match-won');
+    showWinnerBanner(d.p2);
+  } else {
+    document.getElementById('winnerBanner').classList.remove('show');
+    if (d.score1 > d.score2) p1Panel.classList.add('winning');
+    else if (d.score2 > d.score1) p2Panel.classList.add('winning');
+  }
+
+  // Timer
+  if (d.startedAt && !timerInterval) {
+    matchStartTime = d.startedAt.toMillis ? d.startedAt.toMillis() : Date.now();
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      document.getElementById('sbTimer').textContent = `${m}:${s}`;
+    }, 1000);
+  }
+
+  // Events ticker
+  const events = d.events || [];
+  if (events.length) {
+    const last3 = events.slice(-3).reverse().map(e => `${e.icon} ${e.text} (${e.time})`).join('  ·  ');
+    document.getElementById('tickerContent').textContent = last3;
+  }
+}
+
+function showWinnerBanner(name) {
+  const b = document.getElementById('winnerBanner');
+  document.getElementById('winnerBannerText').textContent = `🏆 ${name} Wins!`;
+  b.classList.add('show');
+}
+
+function animatePop(el) {
+  el.classList.remove('score-pop');
+  void el.offsetWidth;
+  el.classList.add('score-pop');
+  setTimeout(() => el.classList.remove('score-pop'), 400);
+}
+</script>
+</body>
+</html>
