@@ -7,209 +7,135 @@
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1a1a18;
-    --clay: #c4622d;
-    --clay-light: #d4794a;
-    --clay-dark: #8b3a1a;
-    --clay-bg: #f5e6d3;
-    --gold: #d4a843;
-    --green: #2d5a27;
-    --white: #fafaf8;
-    --red: #c0392b;
+    --ink: #1a1a18; --clay: #c4622d; --clay-light: #d4794a;
+    --clay-dark: #8b3a1a; --clay-bg: #f5e6d3; --gold: #d4a843;
+    --green: #2d5a27; --white: #fafaf8; --red: #c0392b;
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; }
   body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--white); overflow-x:hidden; }
 
-  /* AUTH GATE */
-  #authGate {
-    position:fixed; inset:0; background:var(--ink); z-index:999;
-    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;
-  }
+  #authGate { position:fixed; inset:0; background:var(--ink); z-index:999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
   #authGate.hidden { display:none; }
-  #authGate .gate-logo { font-family:'Black Ops One',cursive; font-size:36px; letter-spacing:3px; color:var(--white); }
+  #authGate .gate-logo { font-family:'Black Ops One',cursive; font-size:36px; letter-spacing:3px; }
   #authGate .gate-logo span { color:var(--gold); }
   #authGate p { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
-  #authGate .gate-denied { color:var(--red); font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; text-align:center; padding:0 40px; display:none; }
-  #authGate .gate-link { color:var(--gold); text-decoration:none; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; margin-top:8px; }
+  .gate-denied { color:var(--red); font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; text-align:center; padding:0 40px; display:none; line-height:2; }
+  .gate-link { color:var(--gold); text-decoration:none; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; }
 
-  /* NAV */
-  nav {
-    background:rgba(0,0,0,0.4); border-bottom:2px solid var(--clay);
-    padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
-  }
+  nav { background:rgba(0,0,0,0.4); border-bottom:2px solid var(--clay); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
   .logo { font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; color:var(--white); text-decoration:none; }
   .logo span { color:var(--gold); }
-  .nav-right { display:flex; align-items:center; gap:12px; }
   .ref-badge { background:var(--clay); color:#fff; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:5px 12px; text-transform:uppercase; }
   .signout-btn { background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:6px 12px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
   .signout-btn:hover { border-color:var(--red); color:var(--red); }
 
-  /* MAIN */
-  .main { max-width:700px; margin:0 auto; padding:24px 16px 80px; }
-
-  /* PHASE SCREENS */
+  .main { max-width:720px; margin:0 auto; padding:24px 16px 100px; }
   .phase { display:none; }
   .phase.active { display:block; }
 
-  /* SECTION CARD */
-  .card {
-    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
-    border-radius:2px; padding:24px; margin-bottom:20px;
-  }
-  .card-title { font-family:'Black Ops One',cursive; font-size:16px; letter-spacing:2px; color:var(--gold); margin-bottom:16px; text-transform:uppercase; }
+  .card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:22px; margin-bottom:18px; }
+  .card-title { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:2px; color:var(--gold); margin-bottom:16px; text-transform:uppercase; }
 
-  /* MATCH SELECTOR */
-  .match-list { display:flex; flex-direction:column; gap:10px; }
-  .match-opt {
-    background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.08);
-    padding:16px 20px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:space-between;
-  }
-  .match-opt:hover { border-color:var(--clay); background:rgba(196,98,45,0.08); }
-  .match-opt.selected { border-color:var(--gold); background:rgba(212,168,67,0.1); }
-  .match-opt-names { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; }
-  .match-opt-week { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-top:4px; }
-  .match-opt-status { font-family:'Space Mono',monospace; font-size:9px; color:var(--green); letter-spacing:1px; }
-  .match-opt.played .match-opt-status { color:rgba(255,255,255,0.3); }
+  .match-list { display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto; }
+  .match-opt { background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.08); padding:14px 18px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:space-between; }
+  .match-opt:hover { border-color:var(--clay); }
+  .match-opt.selected { border-color:var(--gold); background:rgba(212,168,67,0.08); }
+  .match-opt-names { font-family:'Black Ops One',cursive; font-size:14px; letter-spacing:1px; }
+  .match-opt-meta { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.35); text-transform:uppercase; margin-top:3px; }
+  .match-opt-status { font-family:'Space Mono',monospace; font-size:9px; color:var(--green); letter-spacing:1px; flex-shrink:0; }
+  .match-opt.played .match-opt-status { color:rgba(255,255,255,0.25); }
 
-  /* CUSTOM MATCH */
-  .custom-match { margin-top:16px; border-top:1px solid rgba(255,255,255,0.08); padding-top:16px; }
-  .custom-match-title { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:12px; }
-  .input-row { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin-bottom:12px; }
-  .vs-label { font-family:'Black Ops One',cursive; font-size:14px; color:var(--clay); text-align:center; }
-  input[type=text], select {
-    background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
-    color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px;
-    padding:10px 14px; width:100%; outline:none; transition:border-color 0.2s;
-  }
-  input[type=text]:focus, select:focus { border-color:var(--clay); }
-  input[type=text]::placeholder { color:rgba(255,255,255,0.25); }
-  select option { background:var(--ink); }
+  .format-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .fmt-btn { font-family:'Black Ops One',cursive; font-size:14px; letter-spacing:1px; padding:10px 18px; border:2px solid rgba(255,255,255,0.12); background:transparent; color:rgba(255,255,255,0.4); cursor:pointer; transition:all 0.2s; }
+  .fmt-btn:hover { border-color:var(--clay); color:var(--white); }
+  .fmt-btn.active { border-color:var(--gold); background:rgba(212,168,67,0.1); color:var(--gold); }
 
-  /* GAME TARGET */
-  .target-row { display:flex; gap:10px; align-items:center; }
-  .target-row label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.5); text-transform:uppercase; white-space:nowrap; }
-  .target-row select { max-width:100px; }
+  .teams-grid { display:grid; grid-template-columns:1fr 40px 1fr; gap:10px; align-items:start; }
+  .team-label { font-family:'Black Ops One',cursive; font-size:13px; letter-spacing:2px; margin-bottom:10px; padding:6px 12px; text-align:center; }
+  .team-label.t1 { background:rgba(196,98,45,0.2); color:var(--clay); }
+  .team-label.t2 { background:rgba(45,90,39,0.2); color:#5aaa52; }
+  .vs-col { display:flex; align-items:center; justify-content:center; padding-top:36px; }
+  .vs-mid { font-family:'Black Ops One',cursive; font-size:18px; color:rgba(255,255,255,0.15); }
 
-  /* START BTN */
-  .start-btn {
-    width:100%; background:var(--clay); color:#fff; border:none; padding:16px;
-    font-family:'Black Ops One',cursive; font-size:18px; letter-spacing:3px;
-    cursor:pointer; transition:all 0.2s; margin-top:8px;
-    clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
-  }
+  .player-slot { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .player-slot select { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--white); font-family:'DM Sans',sans-serif; font-size:13px; padding:9px 12px; outline:none; transition:border-color 0.2s; }
+  .player-slot select:focus { border-color:var(--clay); }
+  .player-slot select option { background:var(--ink); }
+  .slot-num { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:1px; width:16px; flex-shrink:0; text-align:right; }
+
+  .randomize-btn { width:100%; background:rgba(212,168,67,0.1); border:1px solid rgba(212,168,67,0.3); color:var(--gold); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; padding:10px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; margin-top:6px; }
+  .randomize-btn:hover { background:rgba(212,168,67,0.2); border-color:var(--gold); }
+
+  .settings-row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .settings-row label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; white-space:nowrap; }
+  select.setting-sel { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; padding:9px 14px; outline:none; }
+
+  .start-btn { width:100%; background:var(--clay); color:#fff; border:none; padding:16px; font-family:'Black Ops One',cursive; font-size:18px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%); }
   .start-btn:hover { background:var(--clay-light); transform:translateY(-2px); }
   .start-btn:disabled { background:#444; cursor:not-allowed; transform:none; }
 
-  /* ===== SCOREBOARD PHASE ===== */
-  .score-header { text-align:center; margin-bottom:24px; }
-  .score-header .match-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:6px; }
-  .score-header .target-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.35); }
+  .score-header { text-align:center; margin-bottom:20px; }
+  .score-match-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); margin-bottom:4px; }
+  .score-timer { font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; color:rgba(255,255,255,0.35); margin-bottom:4px; }
+  .score-target { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.25); }
 
-  .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
-
-  .player-score-card {
-    background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.08);
-    padding:20px 16px; text-align:center; position:relative; transition:border-color 0.3s;
-  }
-  .player-score-card.leading { border-color:var(--gold); }
-  .player-score-card.won { border-color:var(--green); background:rgba(45,90,39,0.15); }
-
-  .player-name-sc { font-family:'Black Ops One',cursive; font-size:16px; letter-spacing:1px; color:var(--white); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .score-display {
-    font-family:'Black Ops One',cursive; font-size:80px; line-height:1;
-    color:var(--white); margin:12px 0; transition:transform 0.15s, color 0.3s;
-  }
-  .score-display.bump { transform:scale(1.25); color:var(--gold); }
-  .player-score-card.won .score-display { color:var(--green); }
-
-  .score-btn {
-    width:100%; padding:16px; border:none; cursor:pointer;
-    font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:2px;
-    transition:all 0.15s; margin-bottom:8px;
-    clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
-  }
+  .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+  .team-score-card { background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.08); padding:18px 14px; text-align:center; position:relative; transition:border-color 0.3s; }
+  .team-score-card.leading { border-color:var(--gold); }
+  .team-score-card.won { border-color:var(--green); background:rgba(45,90,39,0.12); }
+  .team-name-sc { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; color:var(--white); margin-bottom:4px; }
+  .team-members-sc { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:10px; line-height:1.8; white-space:pre-line; }
+  .big-score-sc { font-family:'Black Ops One',cursive; font-size:72px; line-height:1; color:var(--white); margin:8px 0; transition:color 0.3s; }
+  .team-score-card.leading .big-score-sc { color:var(--gold); }
+  .team-score-card.won .big-score-sc { color:var(--green); }
+  .score-bump { animation:bump 0.25s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+  .won-badge { display:none; position:absolute; top:-1px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:3px 10px; text-transform:uppercase; white-space:nowrap; }
+  .team-score-card.won .won-badge { display:block; }
+  .score-btn { width:100%; padding:14px; border:none; cursor:pointer; font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; transition:all 0.15s; margin-bottom:6px; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
   .score-btn.plus { background:var(--clay); color:#fff; }
   .score-btn.plus:hover { background:var(--clay-light); }
   .score-btn.plus:active { transform:scale(0.96); }
-  .score-btn.minus { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.5); font-size:16px; }
-  .score-btn.minus:hover { background:rgba(255,255,255,0.12); }
+  .score-btn.minus { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); font-size:13px; }
+  .score-btn.minus:hover { background:rgba(255,255,255,0.1); }
 
-  .won-badge {
-    position:absolute; top:-1px; left:50%; transform:translateX(-50%);
-    background:var(--green); color:#fff; font-family:'Space Mono',monospace;
-    font-size:9px; letter-spacing:2px; padding:4px 12px; text-transform:uppercase;
-    display:none;
-  }
-  .player-score-card.won .won-badge { display:block; }
-
-  /* EVENTS */
   .events-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-  .event-btn {
-    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-    color:rgba(255,255,255,0.7); font-family:'Space Mono',monospace; font-size:10px;
-    letter-spacing:1px; padding:10px 8px; cursor:pointer; text-transform:uppercase;
-    transition:all 0.2s; text-align:center;
-  }
+  .event-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.65); font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; padding:10px 8px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; text-align:center; }
   .event-btn:hover { background:rgba(196,98,45,0.15); border-color:var(--clay); color:#fff; }
   .event-btn:active { transform:scale(0.97); }
 
-  /* EVENT LOG */
-  .event-log { max-height:160px; overflow-y:auto; }
-  .event-log-entry {
-    display:flex; align-items:center; gap:10px; padding:8px 0;
-    border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px;
-  }
-  .event-log-entry:last-child { border-bottom:none; }
-  .event-time { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); flex-shrink:0; }
-  .event-text { color:rgba(255,255,255,0.7); flex:1; }
-  .event-icon { flex-shrink:0; font-size:14px; }
-  .log-empty { font-family:'Space Mono',monospace; font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:2px; padding:12px 0; text-transform:uppercase; }
+  .event-log { max-height:150px; overflow-y:auto; }
+  .event-entry { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px; }
+  .event-entry:last-child { border-bottom:none; }
+  .ev-time { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.25); flex-shrink:0; }
+  .ev-text { color:rgba(255,255,255,0.65); flex:1; }
+  .ev-icon { flex-shrink:0; }
+  .log-empty { font-family:'Space Mono',monospace; font-size:10px; color:rgba(255,255,255,0.2); letter-spacing:2px; padding:10px 0; text-transform:uppercase; }
 
-  /* END MATCH */
-  .end-btn {
-    width:100%; background:var(--red); color:#fff; border:none; padding:16px;
-    font-family:'Black Ops One',cursive; font-size:18px; letter-spacing:3px;
-    cursor:pointer; transition:all 0.2s;
-    clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
-  }
+  .end-btn { width:100%; background:var(--red); color:#fff; border:none; padding:15px; font-family:'Black Ops One',cursive; font-size:17px; letter-spacing:3px; cursor:pointer; transition:background 0.2s; clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%); }
   .end-btn:hover { background:#e74c3c; }
 
-  /* MATCH COMPLETE PHASE */
-  .complete-screen { text-align:center; padding:40px 20px; }
-  .complete-icon { font-size:72px; display:block; margin-bottom:16px; animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1); }
+  .complete-screen { text-align:center; padding:40px 16px; }
+  .complete-icon { font-size:64px; display:block; margin-bottom:16px; animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1); }
   @keyframes popIn { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
-  .complete-title { font-family:'Black Ops One',cursive; font-size:32px; letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
-  .complete-winner { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:3px; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:32px; }
-  .final-score-row { display:flex; justify-content:center; gap:32px; margin-bottom:40px; }
-  .final-score-block { text-align:center; }
-  .final-score-block .fn { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; color:rgba(255,255,255,0.6); }
-  .final-score-block .fs { font-family:'Black Ops One',cursive; font-size:56px; color:var(--white); line-height:1; }
-  .final-score-block.winner-block .fs { color:var(--gold); }
-  .new-match-btn {
-    background:var(--clay); color:#fff; border:none; padding:14px 40px;
-    font-family:'Black Ops One',cursive; font-size:16px; letter-spacing:2px;
-    cursor:pointer; transition:all 0.2s;
-    clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
-  }
+  .complete-title { font-family:'Black Ops One',cursive; font-size:30px; letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
+  .complete-sub { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:28px; }
+  .final-score-row { display:flex; justify-content:center; gap:28px; margin-bottom:36px; flex-wrap:wrap; }
+  .fsb { text-align:center; }
+  .fsb .fn { font-family:'Black Ops One',cursive; font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
+  .fsb .fp { font-family:'Space Mono',monospace; font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; margin-bottom:6px; line-height:1.6; }
+  .fsb .fs { font-family:'Black Ops One',cursive; font-size:52px; color:var(--white); line-height:1; }
+  .fsb.winner-block .fs { color:var(--gold); }
+  .new-match-btn { background:var(--clay); color:#fff; border:none; padding:14px 40px; font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); }
   .new-match-btn:hover { background:var(--clay-light); }
 
-  /* TOAST */
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:#fff; padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; z-index:1000; border-left:4px solid var(--gold); opacity:0; transition:all 0.3s; white-space:nowrap; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(26,26,24,0.98); color:#fff; padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; z-index:1000; border-left:4px solid var(--gold); opacity:0; transition:all 0.3s; white-space:nowrap; }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-
-  /* TIMER */
-  .timer-display { font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-align:center; margin-bottom:16px; }
-
-  @media(max-width:500px) {
-    .score-display { font-size:64px; }
-    .score-btn.plus { font-size:18px; }
-  }
 </style>
 </head>
 <body>
 
-<!-- AUTH GATE -->
 <div id="authGate">
   <div class="gate-logo">KEV<span>●</span>BALL</div>
   <p>Checking referee access...</p>
@@ -219,10 +145,9 @@
   </div>
 </div>
 
-<!-- NAV -->
 <nav>
   <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
-  <div class="nav-right">
+  <div style="display:flex;align-items:center;gap:12px">
     <span class="ref-badge">🎾 Referee</span>
     <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
   </div>
@@ -230,63 +155,65 @@
 
 <div class="main">
 
-  <!-- PHASE 1: SELECT MATCH -->
+  <!-- PHASE 1: SETUP -->
   <div class="phase active" id="phaseSelect">
     <div class="card">
-      <div class="card-title">Select Match</div>
+      <div class="card-title">Scheduled Matches</div>
       <div class="match-list" id="matchList">
-        <p style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:2px">Loading matches...</p>
+        <p style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px">Loading...</p>
       </div>
+    </div>
 
-      <div class="custom-match">
-        <div class="custom-match-title">Or enter a custom match</div>
-        <div class="input-row">
-          <input type="text" id="customP1" placeholder="Player 1" list="playerSuggestions"/>
-          <div class="vs-label">VS</div>
-          <input type="text" id="customP2" placeholder="Player 2" list="playerSuggestions"/>
-        </div>
-        <datalist id="playerSuggestions"></datalist>
+    <div class="card">
+      <div class="card-title">Format</div>
+      <div class="format-row">
+        <button class="fmt-btn active" onclick="setFormat(1,this)">1v1</button>
+        <button class="fmt-btn" onclick="setFormat(2,this)">2v2</button>
+        <button class="fmt-btn" onclick="setFormat(3,this)">3v3</button>
+        <button class="fmt-btn" onclick="setFormat(4,this)">4v4</button>
       </div>
+      <div class="teams-grid" id="teamsGrid"></div>
+      <button class="randomize-btn" onclick="randomizeTeams()">🎲 Randomize Teams</button>
     </div>
 
     <div class="card">
       <div class="card-title">Game Settings</div>
-      <div class="target-row">
+      <div class="settings-row">
         <label>Win at</label>
-        <select id="targetScore">
+        <select class="setting-sel" id="targetScore">
+          <option value="7">7 pts</option>
           <option value="11">11 pts</option>
           <option value="21" selected>21 pts</option>
           <option value="15">15 pts</option>
-          <option value="7">7 pts</option>
         </select>
       </div>
     </div>
 
-    <button class="start-btn" id="startBtn" onclick="startMatch()">🎾 Start Match</button>
+    <button class="start-btn" onclick="startMatch()">🎾 Start Match</button>
   </div>
 
-  <!-- PHASE 2: LIVE SCORING -->
+  <!-- PHASE 2: SCORING -->
   <div class="phase" id="phaseScore">
     <div class="score-header">
-      <div class="match-label" id="scoreLiveLabel">Live Match</div>
-      <div class="timer-display" id="timerDisplay">00:00</div>
-      <div class="target-label" id="targetLabel">First to 21 wins</div>
+      <div class="score-match-label" id="scoreLiveLabel">Live Match</div>
+      <div class="score-timer" id="timerDisplay">00:00</div>
+      <div class="score-target" id="targetLabel">First to 21 wins</div>
     </div>
 
     <div class="scoreboard-grid">
-      <!-- P1 -->
-      <div class="player-score-card" id="p1Card">
-        <div class="won-badge">Winner!</div>
-        <div class="player-name-sc" id="p1NameSc">Player 1</div>
-        <div class="score-display" id="p1Score">0</div>
+      <div class="team-score-card" id="t1Card">
+        <div class="won-badge">Winners!</div>
+        <div class="team-name-sc">TEAM 1</div>
+        <div class="team-members-sc" id="t1Members"></div>
+        <div class="big-score-sc" id="t1Score">0</div>
         <button class="score-btn plus" onclick="addPoint(1)">+1</button>
         <button class="score-btn minus" onclick="removePoint(1)">undo</button>
       </div>
-      <!-- P2 -->
-      <div class="player-score-card" id="p2Card">
-        <div class="won-badge">Winner!</div>
-        <div class="player-name-sc" id="p2NameSc">Player 2</div>
-        <div class="score-display" id="p2Score">0</div>
+      <div class="team-score-card" id="t2Card">
+        <div class="won-badge">Winners!</div>
+        <div class="team-name-sc">TEAM 2</div>
+        <div class="team-members-sc" id="t2Members"></div>
+        <div class="big-score-sc" id="t2Score">0</div>
         <button class="score-btn plus" onclick="addPoint(2)">+1</button>
         <button class="score-btn minus" onclick="removePoint(2)">undo</button>
       </div>
@@ -297,8 +224,8 @@
       <div class="events-grid">
         <button class="event-btn" onclick="logEvent('⚠️','Foul')">⚠️ Foul</button>
         <button class="event-btn" onclick="logEvent('🟡','Warning')">🟡 Warning</button>
-        <button class="event-btn" onclick="logEvent('🔴','Penalty Point', 1)">🔴 Penalty (+1 P1)</button>
-        <button class="event-btn" onclick="logEvent('🔴','Penalty Point', 2)">🔴 Penalty (+1 P2)</button>
+        <button class="event-btn" onclick="logEvent('🔴','Penalty +1 Team 1',1)">🔴 Penalty → T1</button>
+        <button class="event-btn" onclick="logEvent('🔴','Penalty +1 Team 2',2)">🔴 Penalty → T2</button>
         <button class="event-btn" onclick="logEvent('⏸️','Timeout')">⏸️ Timeout</button>
         <button class="event-btn" onclick="logEvent('🔄','Score Disputed')">🔄 Disputed</button>
       </div>
@@ -306,9 +233,7 @@
 
     <div class="card">
       <div class="card-title">Match Events</div>
-      <div class="event-log" id="eventLog">
-        <div class="log-empty">No events yet</div>
-      </div>
+      <div class="event-log" id="eventLog"><div class="log-empty">No events yet</div></div>
     </div>
 
     <button class="end-btn" onclick="confirmEndMatch()">⏹ End Match & Save Score</button>
@@ -319,7 +244,7 @@
     <div class="complete-screen">
       <span class="complete-icon">🏆</span>
       <div class="complete-title">Match Complete</div>
-      <div class="complete-winner" id="completeWinner"></div>
+      <div class="complete-sub" id="completeWinner"></div>
       <div class="final-score-row" id="finalScoreRow"></div>
       <button class="new-match-btn" onclick="resetToSelect()">Start New Match</button>
     </div>
@@ -332,7 +257,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -342,26 +267,24 @@ const firebaseConfig = {
   messagingSenderId: "625931758016",
   appId: "1:625931758016:web:21091bceb2adedca418025"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ── STATE ──────────────────────────────────────────────────
 let currentUser = null;
-let matchState = {
-  p1: '', p2: '', score1: 0, score2: 0,
-  target: 21, events: [],
-  weekId: null, matchId: null,  // if from schedule
-  startTime: null, timerInterval: null
-};
-let weeksCache = [];
 let playersCache = [];
+let weeksCache = [];
+let teamSize = 1;
+let matchState = {
+  team1:[], team2:[], score1:0, score2:0,
+  target:21, events:[], weekId:null, matchId:null,
+  startTime:null, timerInterval:null
+};
 
 // ── AUTH GATE ──────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
   if (!user) { showDenied(); return; }
-  const snap = await getDoc(doc(db, 'users', user.uid));
+  const snap = await getDoc(doc(db,'users',user.uid));
   const data = snap.exists() ? snap.data() : {};
   if (!data.isReferee && !data.isAdmin) { showDenied(); return; }
   currentUser = data;
@@ -373,306 +296,299 @@ function showDenied() {
   document.getElementById('authGate').querySelector('p').style.display = 'none';
   document.getElementById('gateDenied').style.display = 'block';
 }
-
 window.doSignOut = async () => { await signOut(auth); location.href = 'login.html'; };
 
-// ── INIT ───────────────────────────────────────────────────
 async function init() {
-  await Promise.all([loadWeeks(), loadPlayers()]);
+  await Promise.all([loadPlayers(), loadWeeks()]);
+  renderTeamsGrid();
   renderMatchList();
 }
 
-async function loadWeeks() {
-  const snap = await getDocs(query(collection(db, 'weeks'), orderBy('order', 'asc')));
-  weeksCache = [];
-  snap.forEach(d => weeksCache.push({ ...d.data(), _id: d.id }));
-}
-
 async function loadPlayers() {
-  const snap = await getDocs(query(collection(db, 'players'), orderBy('points', 'desc')));
+  const snap = await getDocs(query(collection(db,'players'), orderBy('points','desc')));
   playersCache = [];
-  snap.forEach(d => playersCache.push({ ...d.data(), _id: d.id }));
-  // Populate datalist
-  document.getElementById('playerSuggestions').innerHTML =
-    playersCache.map(p => `<option value="${p.name}">`).join('');
+  snap.forEach(d => playersCache.push({...d.data(), _id:d.id}));
 }
 
-function renderMatchList() {
-  const list = document.getElementById('matchList');
-  const allMatches = [];
-  weeksCache.forEach(week => {
-    (week.matches || []).forEach(m => {
-      if (m.p1 && m.p2) allMatches.push({ ...m, weekId: week._id, weekLabel: week.label });
-    });
-  });
-  if (!allMatches.length) {
-    list.innerHTML = '<p style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:2px">No scheduled matches found.</p>';
-    return;
-  }
-  list.innerHTML = allMatches.map(m => `
-    <div class="match-opt ${m.played ? 'played' : ''}" onclick="selectScheduledMatch('${m.weekId}','${m.id}','${m.p1}','${m.p2}')" id="mo-${m.id}">
-      <div>
-        <div class="match-opt-names">${m.p1} vs ${m.p2}</div>
-        <div class="match-opt-week">${m.weekLabel}</div>
-      </div>
-      <div class="match-opt-status">${m.played ? 'Played' : '● Upcoming'}</div>
-    </div>`).join('');
+async function loadWeeks() {
+  const snap = await getDocs(query(collection(db,'weeks'), orderBy('order','asc')));
+  weeksCache = [];
+  snap.forEach(d => weeksCache.push({...d.data(), _id:d.id}));
 }
 
-window.selectScheduledMatch = function(weekId, matchId, p1, p2) {
+// ── FORMAT ─────────────────────────────────────────────────
+window.setFormat = function(n, btn) {
+  teamSize = n;
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTeamsGrid();
+  matchState.weekId = null; matchState.matchId = null;
   document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
-  document.getElementById(`mo-${matchId}`)?.classList.add('selected');
-  matchState.weekId = weekId;
-  matchState.matchId = matchId;
-  document.getElementById('customP1').value = p1;
-  document.getElementById('customP2').value = p2;
 };
 
-// ── START MATCH ────────────────────────────────────────────
+function renderTeamsGrid() {
+  const opts = `<option value="">— Select player —</option>` +
+    playersCache.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+  const makeSlots = (team) => Array.from({length:teamSize}, (_,i) => `
+    <div class="player-slot">
+      <span class="slot-num">${i+1}</span>
+      <select id="${team}p${i}">${opts}</select>
+    </div>`).join('');
+
+  document.getElementById('teamsGrid').innerHTML = `
+    <div>
+      <div class="team-label t1">Team 1</div>
+      ${makeSlots('t1')}
+    </div>
+    <div class="vs-col"><div class="vs-mid">VS</div></div>
+    <div>
+      <div class="team-label t2">Team 2</div>
+      ${makeSlots('t2')}
+    </div>`;
+}
+
+function getTeam(team) {
+  return Array.from({length:teamSize}, (_,i) => {
+    const el = document.getElementById(`${team}p${i}`);
+    return el ? el.value.trim() : '';
+  }).filter(Boolean);
+}
+
+// ── RANDOMIZE ──────────────────────────────────────────────
+window.randomizeTeams = function() {
+  const needed = teamSize * 2;
+  if (playersCache.length < needed) { toast(`Need at least ${needed} players to randomize!`); return; }
+  const shuffled = [...playersCache].sort(() => Math.random() - 0.5).slice(0, needed);
+  shuffled.slice(0, teamSize).forEach((p,i) => { const el = document.getElementById(`t1p${i}`); if(el) el.value = p.name; });
+  shuffled.slice(teamSize).forEach((p,i) => { const el = document.getElementById(`t2p${i}`); if(el) el.value = p.name; });
+  toast('Teams randomized! 🎲');
+};
+
+// ── MATCH LIST ─────────────────────────────────────────────
+function renderMatchList() {
+  const list = document.getElementById('matchList');
+  const all = [];
+  weeksCache.forEach(week => {
+    (week.matches||[]).forEach(m => {
+      if (m.p1||m.team1) all.push({...m, weekId:week._id, weekLabel:week.label});
+    });
+  });
+  if (!all.length) {
+    list.innerHTML = '<p style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px">No scheduled matches.</p>';
+    return;
+  }
+  list.innerHTML = all.map(m => {
+    const t1 = Array.isArray(m.team1) ? m.team1.join(', ') : (m.p1||'');
+    const t2 = Array.isArray(m.team2) ? m.team2.join(', ') : (m.p2||'');
+    return `<div class="match-opt ${m.played?'played':''}" onclick="selectScheduledMatch('${m.weekId}','${m.id}')" id="mo-${m.id}">
+      <div>
+        <div class="match-opt-names">${t1} vs ${t2}</div>
+        <div class="match-opt-meta">${m.weekLabel}${m.format?' · '+m.format:''}</div>
+      </div>
+      <div class="match-opt-status">${m.played?'Played':'● Upcoming'}</div>
+    </div>`;
+  }).join('');
+}
+
+window.selectScheduledMatch = function(weekId, matchId) {
+  const week = weeksCache.find(w => w._id===weekId);
+  const m = week && (week.matches||[]).find(x => x.id===matchId);
+  if (!m) return;
+  document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`mo-${matchId}`)?.classList.add('selected');
+  matchState.weekId = weekId; matchState.matchId = matchId;
+
+  const t1 = Array.isArray(m.team1) ? m.team1 : [m.p1].filter(Boolean);
+  const t2 = Array.isArray(m.team2) ? m.team2 : [m.p2].filter(Boolean);
+  const newSize = Math.max(t1.length, t2.length, 1);
+  teamSize = newSize;
+  document.querySelectorAll('.fmt-btn').forEach((b,i) => b.classList.toggle('active', i===newSize-1));
+  renderTeamsGrid();
+  t1.forEach((name,i) => { const el=document.getElementById(`t1p${i}`); if(el) el.value=name; });
+  t2.forEach((name,i) => { const el=document.getElementById(`t2p${i}`); if(el) el.value=name; });
+  toast('Match loaded! ✓');
+};
+
+// ── START ──────────────────────────────────────────────────
 window.startMatch = async function() {
-  const p1 = document.getElementById('customP1').value.trim();
-  const p2 = document.getElementById('customP2').value.trim();
-  if (!p1 || !p2) { toast('Enter both player names!'); return; }
-  if (p1.toLowerCase() === p2.toLowerCase()) { toast('Players must be different!'); return; }
+  const team1 = getTeam('t1');
+  const team2 = getTeam('t2');
+  if (team1.length < teamSize) { toast(`Select all ${teamSize} players for Team 1!`); return; }
+  if (team2.length < teamSize) { toast(`Select all ${teamSize} players for Team 2!`); return; }
+  const all = [...team1,...team2].map(n=>n.toLowerCase());
+  if (new Set(all).size < all.length) { toast("Same player can't be on both teams!"); return; }
 
-  matchState.p1 = p1;
-  matchState.p2 = p2;
-  matchState.score1 = 0;
-  matchState.score2 = 0;
-  matchState.target = parseInt(document.getElementById('targetScore').value);
-  matchState.events = [];
-  matchState.startTime = Date.now();
+  matchState = {...matchState, team1, team2, score1:0, score2:0, events:[],
+    target: parseInt(document.getElementById('targetScore').value),
+    startTime: Date.now(), timerInterval: null
+  };
+  const fmt = teamSize===1 ? '1v1' : `${teamSize}v${teamSize}`;
 
-  // Write live match to Firestore so scoreboard can pick it up
-  await setDoc(doc(db, 'liveMatch', 'current'), {
-    p1, p2, score1: 0, score2: 0,
-    target: matchState.target,
-    active: true,
-    startedAt: serverTimestamp(),
-    referee: currentUser.displayName || currentUser.firstName || 'Referee',
-    events: []
+  await setDoc(doc(db,'liveMatch','current'), {
+    team1, team2, score1:0, score2:0, target:matchState.target,
+    format:fmt, active:true, startedAt:serverTimestamp(),
+    referee: currentUser.displayName||currentUser.firstName||'Referee', events:[]
   });
 
-  // Update UI
-  document.getElementById('p1NameSc').textContent = p1;
-  document.getElementById('p2NameSc').textContent = p2;
-  document.getElementById('p1Score').textContent = '0';
-  document.getElementById('p2Score').textContent = '0';
-  document.getElementById('scoreLiveLabel').textContent = `${p1}  vs  ${p2}`;
-  document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins`;
+  document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
+  document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins · ${fmt}`;
+  document.getElementById('t1Members').textContent = team1.join('\n');
+  document.getElementById('t2Members').textContent = team2.join('\n');
+  document.getElementById('t1Score').textContent = '0';
+  document.getElementById('t2Score').textContent = '0';
   document.getElementById('eventLog').innerHTML = '<div class="log-empty">No events yet</div>';
-  document.getElementById('p1Card').className = 'player-score-card';
-  document.getElementById('p2Card').className = 'player-score-card';
+  document.getElementById('t1Card').className = 'team-score-card';
+  document.getElementById('t2Card').className = 'team-score-card';
 
   startTimer();
   showPhase('phaseScore');
-  toast('Match started! 🎾');
+  toast(`${fmt} match started! 🎾`);
 };
 
-// ── TIMER ──────────────────────────────────────────────────
 function startTimer() {
   if (matchState.timerInterval) clearInterval(matchState.timerInterval);
   matchState.timerInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - matchState.startTime) / 1000);
-    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-    const s = String(elapsed % 60).padStart(2, '0');
-    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    const e = Math.floor((Date.now()-matchState.startTime)/1000);
+    document.getElementById('timerDisplay').textContent =
+      `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
   }, 1000);
 }
 
-// ── SCORING ────────────────────────────────────────────────
-window.addPoint = async function(player) {
-  if (matchState.score1 >= matchState.target || matchState.score2 >= matchState.target) return;
-  if (player === 1) matchState.score1++;
-  else matchState.score2++;
-  await pushScoreUpdate();
-  checkWin();
+window.addPoint = async function(team) {
+  if (matchState.score1>=matchState.target||matchState.score2>=matchState.target) return;
+  if (team===1) matchState.score1++; else matchState.score2++;
+  await pushScore(); checkWin();
 };
 
-window.removePoint = async function(player) {
-  if (player === 1 && matchState.score1 > 0) matchState.score1--;
-  else if (player === 2 && matchState.score2 > 0) matchState.score2--;
-  await pushScoreUpdate();
-  updateScoreCards();
+window.removePoint = async function(team) {
+  if (team===1 && matchState.score1>0) matchState.score1--;
+  else if (team===2 && matchState.score2>0) matchState.score2--;
+  await pushScore(); updateScoreUI();
 };
 
-async function pushScoreUpdate() {
-  updateScoreCards();
-  await updateDoc(doc(db, 'liveMatch', 'current'), {
-    score1: matchState.score1,
-    score2: matchState.score2
-  });
+async function pushScore() {
+  updateScoreUI();
+  await updateDoc(doc(db,'liveMatch','current'),{score1:matchState.score1,score2:matchState.score2});
 }
 
-function updateScoreCards() {
-  const s1 = matchState.score1, s2 = matchState.score2;
-  const el1 = document.getElementById('p1Score');
-  const el2 = document.getElementById('p2Score');
-  el1.textContent = s1;
-  el2.textContent = s2;
-
-  // Bump animation
-  el1.classList.remove('bump'); el2.classList.remove('bump');
-  void el1.offsetWidth; void el2.offsetWidth; // reflow
-  el1.classList.add('bump'); el2.classList.add('bump');
-  setTimeout(() => { el1.classList.remove('bump'); el2.classList.remove('bump'); }, 300);
-
-  // Leading indicator
-  const c1 = document.getElementById('p1Card');
-  const c2 = document.getElementById('p2Card');
-  c1.classList.toggle('leading', s1 > s2);
-  c2.classList.toggle('leading', s2 > s1);
+function updateScoreUI() {
+  const el1=document.getElementById('t1Score'), el2=document.getElementById('t2Score');
+  el1.textContent=matchState.score1; el2.textContent=matchState.score2;
+  [el1,el2].forEach(el=>{el.classList.remove('score-bump');void el.offsetWidth;el.classList.add('score-bump');setTimeout(()=>el.classList.remove('score-bump'),300);});
+  document.getElementById('t1Card').classList.toggle('leading',matchState.score1>matchState.score2);
+  document.getElementById('t2Card').classList.toggle('leading',matchState.score2>matchState.score1);
 }
 
 function checkWin() {
-  const { score1, score2, target } = matchState;
-  if (score1 >= target) declareWinner(1);
-  else if (score2 >= target) declareWinner(2);
+  if (matchState.score1>=matchState.target) declareWinner(1);
+  else if (matchState.score2>=matchState.target) declareWinner(2);
 }
 
-function declareWinner(player) {
-  const c1 = document.getElementById('p1Card');
-  const c2 = document.getElementById('p2Card');
-  if (player === 1) { c1.classList.add('won'); c2.classList.remove('won'); }
-  else { c2.classList.add('won'); c1.classList.remove('won'); }
-  toast(`${player === 1 ? matchState.p1 : matchState.p2} wins! 🏆`);
+function declareWinner(team) {
+  document.getElementById('t1Card').classList.toggle('won',team===1);
+  document.getElementById('t2Card').classList.toggle('won',team===2);
+  toast(`${(team===1?matchState.team1:matchState.team2).join(' & ')} win! 🏆`);
 }
 
-// ── EVENTS ────────────────────────────────────────────────
-window.logEvent = async function(icon, label, penaltyPlayer) {
-  const time = (() => {
-    const elapsed = Math.floor((Date.now() - matchState.startTime) / 1000);
-    return `${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`;
-  })();
-
-  let text = label;
-  if (penaltyPlayer) {
-    const name = penaltyPlayer === 1 ? matchState.p1 : matchState.p2;
-    text = `${label} — +1 to ${name}`;
-    if (penaltyPlayer === 1) matchState.score1++;
-    else matchState.score2++;
-    await pushScoreUpdate();
-    checkWin();
+window.logEvent = async function(icon, label, penaltyTeam) {
+  const e=Math.floor((Date.now()-matchState.startTime)/1000);
+  const time=`${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+  if (penaltyTeam) {
+    if (penaltyTeam===1) matchState.score1++; else matchState.score2++;
+    await pushScore(); checkWin();
   }
-
-  const entry = { icon, text, time };
-  matchState.events.push(entry);
+  matchState.events.push({icon,text:label,time});
   renderEventLog();
-
-  // Push events to Firestore
-  await updateDoc(doc(db, 'liveMatch', 'current'), { events: matchState.events });
+  await updateDoc(doc(db,'liveMatch','current'),{events:matchState.events});
 };
 
 function renderEventLog() {
-  const log = document.getElementById('eventLog');
-  if (!matchState.events.length) {
-    log.innerHTML = '<div class="log-empty">No events yet</div>';
-    return;
-  }
-  log.innerHTML = [...matchState.events].reverse().map(e => `
-    <div class="event-log-entry">
-      <span class="event-icon">${e.icon}</span>
-      <span class="event-text">${e.text}</span>
-      <span class="event-time">${e.time}</span>
-    </div>`).join('');
+  const log=document.getElementById('eventLog');
+  if (!matchState.events.length){log.innerHTML='<div class="log-empty">No events yet</div>';return;}
+  log.innerHTML=[...matchState.events].reverse().map(e=>
+    `<div class="event-entry"><span class="ev-icon">${e.icon}</span><span class="ev-text">${e.text}</span><span class="ev-time">${e.time}</span></div>`
+  ).join('');
 }
 
-// ── END MATCH ─────────────────────────────────────────────
 window.confirmEndMatch = function() {
-  const { p1, p2, score1, score2 } = matchState;
-  if (!confirm(`End match?\n${p1}: ${score1}  —  ${p2}: ${score2}\n\nThis will save to Firestore and update player stats.`)) return;
+  const {team1,team2,score1,score2}=matchState;
+  if (!confirm(`End match?\n${team1.join(' & ')}: ${score1}\n${team2.join(' & ')}: ${score2}\n\nSave and update player stats?`)) return;
   endMatch();
 };
 
 async function endMatch() {
   clearInterval(matchState.timerInterval);
-  const { p1, p2, score1, score2, weekId, matchId } = matchState;
-  const winner = score1 >= matchState.target || score1 > score2 ? 1 : 2;
+  const {team1,team2,score1,score2,target,weekId,matchId}=matchState;
+  const winTeam = score1>=target||score1>score2 ? 1 : 2;
+  const winners = winTeam===1?team1:team2;
+  const losers  = winTeam===1?team2:team1;
 
-  // Mark liveMatch as inactive
-  await updateDoc(doc(db, 'liveMatch', 'current'), {
-    active: false, score1, score2,
-    winner: winner === 1 ? p1 : p2,
-    endedAt: serverTimestamp()
-  });
+  await updateDoc(doc(db,'liveMatch','current'),{active:false,score1,score2,winner:winners.join(' & '),endedAt:serverTimestamp()});
 
-  // If from schedule — update the week's match score
-  if (weekId && matchId) {
-    const weekSnap = await getDoc(doc(db, 'weeks', weekId));
-    if (weekSnap.exists()) {
-      const weekData = weekSnap.data();
-      const matches = (weekData.matches || []).map(m => {
-        if (m.id === matchId) return { ...m, score1, score2, played: true };
-        return m;
-      });
-      await updateDoc(doc(db, 'weeks', weekId), { matches });
+  if (weekId&&matchId) {
+    const ws=await getDoc(doc(db,'weeks',weekId));
+    if (ws.exists()) {
+      const matches=(ws.data().matches||[]).map(m=>m.id===matchId?{...m,score1,score2,played:true}:m);
+      await updateDoc(doc(db,'weeks',weekId),{matches});
     }
   }
 
-  // Update player stats in players collection
-  const p1doc = playersCache.find(p => p.name.toLowerCase() === p1.toLowerCase());
-  const p2doc = playersCache.find(p => p.name.toLowerCase() === p2.toLowerCase());
-  if (p1doc) {
-    const w = (p1doc.wins || 0) + (winner === 1 ? 1 : 0);
-    const l = (p1doc.losses || 0) + (winner === 2 ? 1 : 0);
-    await updateDoc(doc(db, 'players', p1doc._id), { wins: w, losses: l, points: w * 3 - l });
+  for (const name of winners) {
+    const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(p){const w=(p.wins||0)+1,l=p.losses||0;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
   }
-  if (p2doc) {
-    const w = (p2doc.wins || 0) + (winner === 2 ? 1 : 0);
-    const l = (p2doc.losses || 0) + (winner === 1 ? 1 : 0);
-    await updateDoc(doc(db, 'players', p2doc._id), { wins: w, losses: l, points: w * 3 - l });
+  for (const name of losers) {
+    const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(p){const w=p.wins||0,l=(p.losses||0)+1;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
   }
 
-  // Save full match record to matchHistory
-  await setDoc(doc(collection(db, 'matchHistory')), {
-    p1, p2, score1, score2,
-    winner: winner === 1 ? p1 : p2,
-    target: matchState.target,
-    events: matchState.events,
-    referee: currentUser.displayName || currentUser.firstName || 'Referee',
-    playedAt: serverTimestamp()
+  await setDoc(doc(collection(db,'matchHistory')),{
+    team1,team2,score1,score2,format:`${teamSize}v${teamSize}`,
+    winner:winners.join(' & '),target,events:matchState.events,
+    referee:currentUser.displayName||currentUser.firstName||'Referee',
+    playedAt:serverTimestamp()
   });
 
-  showCompleteScreen(winner);
+  showCompleteScreen(winTeam);
 }
 
-function showCompleteScreen(winner) {
-  const { p1, p2, score1, score2 } = matchState;
-  const winnerName = winner === 1 ? p1 : p2;
-  document.getElementById('completeWinner').textContent = `${winnerName} wins!`;
-  document.getElementById('finalScoreRow').innerHTML = `
-    <div class="final-score-block ${winner===1?'winner-block':''}">
-      <div class="fn">${p1}</div>
+function showCompleteScreen(winTeam) {
+  const {team1,team2,score1,score2}=matchState;
+  document.getElementById('completeWinner').textContent=`${(winTeam===1?team1:team2).join(' & ')} win!`;
+  document.getElementById('finalScoreRow').innerHTML=`
+    <div class="fsb ${winTeam===1?'winner-block':''}">
+      <div class="fn">Team 1</div>
+      <div class="fp">${team1.join('<br>')}</div>
       <div class="fs">${score1}</div>
     </div>
-    <div style="font-family:'Black Ops One',cursive;font-size:28px;color:rgba(255,255,255,0.2);align-self:center">—</div>
-    <div class="final-score-block ${winner===2?'winner-block':''}">
-      <div class="fn">${p2}</div>
+    <div style="font-family:'Black Ops One',cursive;font-size:24px;color:rgba(255,255,255,0.15);align-self:center;padding-top:32px">—</div>
+    <div class="fsb ${winTeam===2?'winner-block':''}">
+      <div class="fn">Team 2</div>
+      <div class="fp">${team2.join('<br>')}</div>
       <div class="fs">${score2}</div>
     </div>`;
   showPhase('phaseComplete');
 }
 
 window.resetToSelect = async function() {
-  matchState = { p1:'', p2:'', score1:0, score2:0, target:21, events:[], weekId:null, matchId:null, startTime:null, timerInterval:null };
-  document.getElementById('customP1').value = '';
-  document.getElementById('customP2').value = '';
-  document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
-  await loadWeeks();
+  matchState={team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null};
+  document.querySelectorAll('.match-opt').forEach(el=>el.classList.remove('selected'));
+  await Promise.all([loadPlayers(),loadWeeks()]);
+  renderTeamsGrid();
   renderMatchList();
   showPhase('phaseSelect');
 };
 
-// ── UTILS ─────────────────────────────────────────────────
 function showPhase(id) {
-  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
 function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
 }
 </script>
 </body>
