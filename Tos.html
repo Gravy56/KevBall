@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --clay: #c4622d;
+    --clay-bg: #f5e6d3;
+    --gold: #d4a843;
+    --paper: #faf7f2;
+    --rule: rgba(196,98,45,0.15);
+    --muted: #888;
+    --green: #2d5a27;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--paper); color:var(--ink); font-family:'Libre Baskerville',Georgia,serif; }
+
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 48px;
+    background:rgba(26,26,24,0.95);
+    backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--clay);
+  }
+  .logo { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:3px; color:#fff; text-decoration:none; }
+  .logo span { color:var(--gold); }
+  .nav-links { display:flex; gap:24px; align-items:center; }
+  .nav-links a { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); text-decoration:none; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-links .active { color:var(--clay); }
+
+  .doc-hero {
+    background:var(--green); padding:120px 48px 60px;
+    border-bottom:4px solid var(--clay);
+    position:relative; overflow:hidden;
+  }
+  .doc-hero::before {
+    content:'TERMS'; position:absolute; right:-20px; top:50%; transform:translateY(-50%);
+    font-family:'Black Ops One',cursive; font-size:clamp(80px,15vw,180px);
+    color:rgba(255,255,255,0.04); pointer-events:none; letter-spacing:-4px; line-height:1;
+  }
+  .doc-hero-inner { max-width:780px; margin:0 auto; position:relative; z-index:1; }
+  .doc-eyebrow { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:block; }
+  .doc-title { font-family:'Black Ops One',cursive; font-size:clamp(36px,7vw,72px); color:#fff; line-height:1; letter-spacing:1px; margin-bottom:16px; }
+  .doc-meta { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.35); }
+  .doc-meta span { color:var(--gold); }
+
+  .doc-layout {
+    max-width:1060px; margin:0 auto; padding:64px 48px;
+    display:grid; grid-template-columns:220px 1fr; gap:60px; align-items:start;
+  }
+
+  .toc { position:sticky; top:90px; }
+  .toc-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:16px; }
+  .toc ul { list-style:none; border-left:2px solid var(--rule); }
+  .toc ul li a {
+    display:block; padding:8px 0 8px 16px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px;
+    color:var(--muted); text-decoration:none; transition:all 0.2s; line-height:1.4;
+  }
+  .toc ul li a:hover { color:var(--clay); border-left:2px solid var(--clay); margin-left:-2px; padding-left:18px; }
+  .toc ul li a.active { color:var(--clay); font-weight:700; }
+
+  .doc-content { min-width:0; }
+  .doc-section { margin-bottom:56px; padding-bottom:56px; border-bottom:1px solid var(--rule); }
+  .doc-section:last-child { border-bottom:none; }
+
+  .section-num { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); margin-bottom:10px; display:block; }
+  h2 { font-family:'Black Ops One',cursive; font-size:28px; letter-spacing:1px; color:var(--ink); margin-bottom:20px; line-height:1.1; }
+  p { font-size:15px; line-height:1.85; color:#444; margin-bottom:16px; }
+  p:last-child { margin-bottom:0; }
+
+  ul.doc-list { margin:16px 0; padding-left:0; list-style:none; }
+  ul.doc-list li {
+    font-size:15px; line-height:1.75; color:#444; padding:8px 0 8px 24px;
+    position:relative; border-bottom:1px solid var(--rule);
+  }
+  ul.doc-list li:last-child { border-bottom:none; }
+  ul.doc-list li::before { content:'—'; position:absolute; left:0; color:var(--clay); font-weight:700; }
+
+  .highlight-box {
+    background:var(--clay-bg); border-left:4px solid var(--clay);
+    padding:18px 22px; margin:20px 0;
+  }
+  .highlight-box p { font-size:14px; color:var(--ink); margin:0; font-style:italic; }
+
+  /* Special AJ rule box */
+  .aj-box {
+    background:var(--ink); border:2px solid var(--clay);
+    padding:22px 28px; margin:20px 0; position:relative; overflow:hidden;
+  }
+  .aj-box::after {
+    content:'🚫'; position:absolute; right:20px; top:50%; transform:translateY(-50%);
+    font-size:48px; opacity:0.15;
+  }
+  .aj-box p { color:rgba(255,255,255,0.7); font-size:14px; margin:0; }
+  .aj-box strong { color:var(--clay); font-family:'Black Ops One',cursive; letter-spacing:1px; font-style:normal; }
+
+  .contact-block {
+    background:var(--ink); color:#fff; padding:28px 32px; margin-top:24px;
+  }
+  .contact-block p { color:rgba(255,255,255,0.6); font-size:14px; }
+  .contact-block a { color:var(--gold); text-decoration:none; }
+  .contact-block a:hover { text-decoration:underline; }
+
+  footer {
+    background:var(--ink); color:rgba(255,255,255,0.3);
+    text-align:center; padding:40px 48px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
+  }
+  footer a { color:var(--clay); text-decoration:none; }
+  footer a:hover { color:var(--gold); }
+  footer strong { color:rgba(255,255,255,0.6); }
+
+  .reveal { opacity:0; transform:translateY(20px); transition:opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity:1; transform:none; }
+
+  @media(max-width:800px) {
+    nav { padding:14px 20px; }
+    .doc-hero { padding:100px 20px 48px; }
+    .doc-layout { grid-template-columns:1fr; padding:40px 20px; gap:0; }
+    .toc { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="tos.html" class="active">Terms</a>
+  </div>
+</nav>
+
+<div class="doc-hero">
+  <div class="doc-hero-inner">
+    <span class="doc-eyebrow">Legal Documents</span>
+    <h1 class="doc-title">Terms of Service</h1>
+    <div class="doc-meta">Last updated: <span>March 2026</span> &nbsp;·&nbsp; Kevball &nbsp;·&nbsp; kevball.online</div>
+  </div>
+</div>
+
+<div class="doc-layout">
+
+  <aside class="toc">
+    <div class="toc-label">Contents</div>
+    <ul>
+      <li><a href="#acceptance">Acceptance</a></li>
+      <li><a href="#platform">The Platform</a></li>
+      <li><a href="#accounts">Accounts</a></li>
+      <li><a href="#conduct">Conduct</a></li>
+      <li><a href="#aj-rule">The AJ Rule</a></li>
+      <li><a href="#content">Your Content</a></li>
+      <li><a href="#shop">Shop & Pre-Orders</a></li>
+      <li><a href="#admin">Admin Powers</a></li>
+      <li><a href="#disclaimer">Disclaimers</a></li>
+      <li><a href="#termination">Termination</a></li>
+      <li><a href="#changes">Changes</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </aside>
+
+  <main class="doc-content">
+
+    <div class="doc-section reveal" id="acceptance">
+      <span class="section-num">01 — Acceptance</span>
+      <h2>Agreement to These Terms</h2>
+      <div class="highlight-box">
+        <p>By accessing kevball.online or creating an account, you agree to these Terms of Service. If you don't agree, don't use the platform.</p>
+      </div>
+      <p>These Terms of Service ("Terms") govern your use of kevball.online and all related services operated by Kevball ("we," "us," "our"). These terms apply to all visitors, registered players, and anyone who interacts with the platform in any way.</p>
+    </div>
+
+    <div class="doc-section reveal" id="platform">
+      <span class="section-num">02 — The Platform</span>
+      <h2>What Kevball Is</h2>
+      <p>Kevball is a community sports platform for tracking games, rankings, player profiles, match schedules, and merchandise for the sport of Kevball — a hybrid sport invented by Kevin Orellana combining elements of handball and tennis.</p>
+      <p>The platform is provided for recreational and community purposes. It is not a professional sports organization, gambling platform, or commercial enterprise.</p>
+      <p>We reserve the right to modify, suspend, or discontinue any part of the platform at any time without notice.</p>
+    </div>
+
+    <div class="doc-section reveal" id="accounts">
+      <span class="section-num">03 — Accounts</span>
+      <h2>User Accounts</h2>
+      <p>You may use parts of the site without an account, but full participation (editing your profile, submitting pre-orders, etc.) requires registration.</p>
+      <ul class="doc-list">
+        <li>You must provide accurate, current information when creating an account</li>
+        <li>You are responsible for maintaining the security of your account and password</li>
+        <li>You may not create accounts for other people without their consent</li>
+        <li>One account per person — duplicate accounts may be removed</li>
+        <li>You must be at least 13 years old to create an account</li>
+        <li>You are responsible for all activity that occurs under your account</li>
+      </ul>
+      <p>Notify us immediately at kgravy56@gmail.com if you suspect unauthorized access to your account.</p>
+    </div>
+
+    <div class="doc-section reveal" id="conduct">
+      <span class="section-num">04 — Conduct</span>
+      <h2>Acceptable Use</h2>
+      <p>You agree to use Kevball in a manner consistent with its purpose as a community sports platform. You may not:</p>
+      <ul class="doc-list">
+        <li>Post false, misleading, or defamatory content about other players</li>
+        <li>Harass, threaten, or intimidate other users</li>
+        <li>Attempt to manipulate rankings, scores, or match outcomes fraudulently</li>
+        <li>Upload malicious code or attempt to compromise the platform's security</li>
+        <li>Use the platform for any commercial purpose without prior written consent</li>
+        <li>Impersonate another player, admin, or real person</li>
+        <li>Attempt to access another user's account or private information</li>
+      </ul>
+      <p>Violations may result in immediate account suspension or removal from the platform at our sole discretion.</p>
+    </div>
+
+    <div class="doc-section reveal" id="aj-rule">
+      <span class="section-num">05 — The AJ Rule</span>
+      <h2>Rule 10: The AJ Provision</h2>
+      <div class="aj-box">
+        <p><strong>Rule 10 is binding and non-negotiable.</strong> AJ (the security guard) is permanently and unconditionally banned from Kevball in all forms — including but not limited to: playing, spectating, commenting, creating an account, submitting pre-orders, or otherwise participating in any Kevball activity. This ban is retroactive, perpetual, and survives any future amendments to these Terms.</p>
+      </div>
+      <p>Any account reasonably determined to belong to or be operated on behalf of AJ will be immediately and permanently terminated without notice, refund, or appeal. Pre-orders submitted by AJ are automatically void. AJ's name shall not appear in the rankings.</p>
+      <p>This provision is incorporated by reference into all sections of these Terms and the Privacy Policy.</p>
+    </div>
+
+    <div class="doc-section reveal" id="content">
+      <span class="section-num">06 — Your Content</span>
+      <h2>Content You Submit</h2>
+      <p>When you submit content to Kevball — including player bios, profile photos, nicknames, and trash talk — you grant us a non-exclusive, royalty-free license to display that content on the platform.</p>
+      <p>You retain ownership of your content. We will not sell it or use it outside the platform. You can update or delete your content at any time through your profile settings, or by contacting us.</p>
+      <p>You are responsible for ensuring any content you submit does not infringe on third-party rights or violate applicable law. Don't upload photos of people without their consent.</p>
+    </div>
+
+    <div class="doc-section reveal" id="shop">
+      <span class="section-num">07 — Shop & Pre-Orders</span>
+      <h2>Merch Pre-Orders</h2>
+      <p>The Kevball shop operates on a pre-order model. Submitting a pre-order does not constitute a purchase or guarantee that the item will be produced.</p>
+      <ul class="doc-list">
+        <li>Pre-orders are expressions of interest, not confirmed purchases</li>
+        <li>Payment is collected separately after a sufficient number of pre-orders are received</li>
+        <li>We will contact you via the email you provided before any payment is requested</li>
+        <li>You may withdraw your pre-order at any time before payment is collected by contacting us</li>
+        <li>We reserve the right to cancel a pre-order campaign if minimum quantities are not met</li>
+        <li>Pricing is estimated and may change before the final order is placed</li>
+      </ul>
+      <p>We are not responsible for any losses resulting from a cancelled or unfulfilled pre-order campaign.</p>
+    </div>
+
+    <div class="doc-section reveal" id="admin">
+      <span class="section-num">08 — Admin Powers</span>
+      <h2>Administrative Authority</h2>
+      <p>Platform administrators have the authority to manage all content, rankings, and user accounts. Admin actions include but are not limited to:</p>
+      <ul class="doc-list">
+        <li>Adding, editing, or removing player stats and rankings</li>
+        <li>Removing player bios or profiles that violate these Terms</li>
+        <li>Managing match schedules and score records</li>
+        <li>Accessing and managing pre-order data</li>
+        <li>Suspending or banning accounts</li>
+      </ul>
+      <p>Admin decisions are final. If you believe an admin action was taken in error, contact us at kgravy56@gmail.com and we will review it.</p>
+    </div>
+
+    <div class="doc-section reveal" id="disclaimer">
+      <span class="section-num">09 — Disclaimers</span>
+      <h2>Disclaimers & Limitation of Liability</h2>
+      <p>Kevball is provided "as is" without any warranty of any kind, express or implied. We make no guarantees that the platform will be available at all times, error-free, or free from security vulnerabilities.</p>
+      <p>We are not liable for any damages arising from your use of the platform, including but not limited to: loss of data, ranking disputes, failed pre-orders, or any physical injuries sustained while playing the sport of Kevball.</p>
+      <p>Kevball is a recreational community platform. Nothing on this site constitutes legal, financial, or medical advice.</p>
+    </div>
+
+    <div class="doc-section reveal" id="termination">
+      <span class="section-num">10 — Termination</span>
+      <h2>Account Termination</h2>
+      <p>You may delete your account at any time by contacting us. Upon deletion, your profile, stats, and personal data will be removed from the platform.</p>
+      <p>We may suspend or terminate your account at any time if we determine you have violated these Terms, without prior notice or liability. Grounds for termination include (but are not limited to) the prohibited conduct in Section 04, and, always, being AJ.</p>
+    </div>
+
+    <div class="doc-section reveal" id="changes">
+      <span class="section-num">11 — Changes</span>
+      <h2>Changes to These Terms</h2>
+      <p>We may update these Terms at any time. Changes take effect when posted to this page. The "Last updated" date at the top reflects the most recent revision.</p>
+      <p>Continued use of Kevball after changes are posted constitutes your acceptance of the updated Terms. If you disagree with a change, stop using the platform and contact us to delete your account.</p>
+      <p>Rule 10 (The AJ Provision) may never be weakened, suspended, or removed by any future amendment.</p>
+    </div>
+
+    <div class="doc-section reveal" id="contact">
+      <span class="section-num">12 — Contact</span>
+      <h2>Contact Us</h2>
+      <p>Questions about these Terms? Disputes? Want to delete your account?</p>
+      <div class="contact-block">
+        <p><strong style="color:#fff;font-family:'Black Ops One',cursive;letter-spacing:1px">KEVBALL</strong></p>
+        <p style="margin-top:8px">Email: <a href="mailto:kgravy56@gmail.com">kgravy56@gmail.com</a></p>
+        <p>Website: <a href="https://kevball.online">kevball.online</a></p>
+        <p style="margin-top:12px;font-size:12px">We typically respond within 7 business days.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <p style="margin-bottom:10px;font-family:'Black Ops One',cursive;font-size:18px;color:#fff">KEV<span style="color:var(--gold)">●</span>BALL</p>
+  <p><a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="tos.html">Terms of Service</a> &nbsp;·&nbsp; <a href="index.html">Home</a></p>
+  <p style="margin-top:10px">© 2026 Kevball · Invented by <strong>Kevin Orellana</strong></p>
+</footer>
+
+<script>
+  const sections = document.querySelectorAll('.doc-section');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if(link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin:'-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>
