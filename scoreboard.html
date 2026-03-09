@@ -145,6 +145,7 @@
     <div class="scores-row">
       <div class="player-panel" id="sbP1Panel">
         <div class="player-name" id="sbP1Name">Player 1</div>
+        <div id="sbP1Sub" style="font-family:Space Mono,monospace;font-size:clamp(9px,1.2vw,13px);letter-spacing:2px;color:rgba(255,255,255,0.3);margin-bottom:8px;"></div>
         <div class="big-score" id="sbP1Score">0</div>
       </div>
       <div class="vs-divider">
@@ -153,6 +154,7 @@
       </div>
       <div class="player-panel" id="sbP2Panel">
         <div class="player-name" id="sbP2Name">Player 2</div>
+        <div id="sbP2Sub" style="font-family:Space Mono,monospace;font-size:clamp(9px,1.2vw,13px);letter-spacing:2px;color:rgba(255,255,255,0.3);margin-bottom:8px;"></div>
         <div class="big-score" id="sbP2Score">0</div>
       </div>
     </div>
@@ -213,12 +215,22 @@ function showLive(d) {
   document.getElementById('idleScreen').style.display = 'none';
   document.getElementById('liveScreen').style.display = 'block';
 
-  // Names & target
-  document.getElementById('sbP1Name').textContent = d.p1;
-  document.getElementById('sbP2Name').textContent = d.p2;
+  // Names & target — support both old p1/p2 and new team1/team2 arrays
+  const t1name = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1||'Team 1');
+  const t2name = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2||'Team 2');
+  const t1sub  = Array.isArray(d.team1) && d.team1.length>1 ? d.team1.join(' · ') : '';
+  const t2sub  = Array.isArray(d.team2) && d.team2.length>1 ? d.team2.join(' · ') : '';
+  document.getElementById('sbP1Name').textContent = t1name;
+  document.getElementById('sbP2Name').textContent = t2name;
+  // Show sub-names for team matches
+  let subEl1 = document.getElementById('sbP1Sub');
+  let subEl2 = document.getElementById('sbP2Sub');
+  if(subEl1) subEl1.textContent = t1sub;
+  if(subEl2) subEl2.textContent = t2sub;
   document.getElementById('sbTarget').textContent = d.target || 21;
   document.getElementById('sbReferee').textContent = d.referee || '—';
-  document.getElementById('sbMatchTitle').textContent = `${d.p1}  ·  vs  ·  ${d.p2}`;
+  document.getElementById('sbMatchTitle').textContent = `${t1name}  ·  vs  ·  ${t2name}`;
+  if(d.format) document.getElementById('sbMatchTitle').textContent += `  ·  ${d.format}`;
 
   // Scores with pop animation
   const s1El = document.getElementById('sbP1Score');
@@ -237,10 +249,10 @@ function showLive(d) {
 
   if (d.score1 >= target || (d.score1 > d.score2 && !d.active)) {
     p1Panel.classList.add('match-won');
-    showWinnerBanner(d.p1);
+    showWinnerBanner(t1name);
   } else if (d.score2 >= target || (d.score2 > d.score1 && !d.active)) {
     p2Panel.classList.add('match-won');
-    showWinnerBanner(d.p2);
+    showWinnerBanner(t2name);
   } else {
     document.getElementById('winnerBanner').classList.remove('show');
     if (d.score1 > d.score2) p1Panel.classList.add('winning');
