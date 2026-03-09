@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEVBALL — Official Merch</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --court-green: #2d5a27;
+    --clay: #c4622d;
+    --clay-light: #d4794a;
+    --clay-dark: #8b3a1a;
+    --clay-bg: #f5e6d3;
+    --ink: #1a1a18;
+    --gold: #d4a843;
+    --white: #fafaf8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family:'DM Sans',sans-serif; background:var(--clay-bg); color:var(--ink); overflow-x:hidden; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 48px;
+    background:rgba(26,26,24,0.92);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .logo { font-family:'Black Ops One',cursive; font-size:24px; letter-spacing:3px; color:var(--white); text-decoration:none; }
+  .logo span { color:var(--gold); }
+  nav ul { list-style:none; display:flex; gap:28px; }
+  nav ul li a { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.55); text-decoration:none; transition:color 0.2s; }
+  nav ul li a:hover { color:var(--gold); }
+  .cart-btn {
+    background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.7);
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; padding:8px 16px;
+    cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; text-transform:uppercase;
+  }
+  .cart-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .cart-count {
+    background:var(--clay); color:#fff; border-radius:50%; width:18px; height:18px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; line-height:1;
+  }
+
+  /* HERO */
+  .shop-hero {
+    min-height:100vh; background:var(--ink); display:flex; align-items:center;
+    position:relative; overflow:hidden; padding-top:80px;
+  }
+  .hero-bg-pattern {
+    position:absolute; inset:0; opacity:0.04;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.5) 40px, rgba(255,255,255,0.5) 41px),
+                      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.5) 40px, rgba(255,255,255,0.5) 41px);
+  }
+  .hero-accent {
+    position:absolute; right:-60px; top:50%; transform:translateY(-50%);
+    font-family:'Black Ops One',cursive; font-size:clamp(200px,28vw,380px);
+    color:rgba(196,98,45,0.06); line-height:1; pointer-events:none; user-select:none;
+    letter-spacing:-10px;
+  }
+  .hero-inner {
+    max-width:1300px; margin:0 auto; padding:80px 48px;
+    display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;
+    position:relative; z-index:2;
+  }
+  .hero-eyebrow {
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:6px;
+    text-transform:uppercase; color:var(--clay); margin-bottom:20px; display:block;
+  }
+  .hero-title {
+    font-family:'Black Ops One',cursive; font-size:clamp(52px,8vw,96px);
+    color:var(--white); line-height:0.92; letter-spacing:2px; margin-bottom:24px;
+  }
+  .hero-title span { color:var(--gold); display:block; }
+  .hero-desc {
+    font-size:17px; line-height:1.65; color:rgba(255,255,255,0.45);
+    max-width:420px; margin-bottom:40px;
+  }
+  .hero-cta {
+    display:inline-flex; align-items:center; gap:12px;
+    background:var(--gold); color:var(--ink);
+    font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; font-weight:700;
+    text-transform:uppercase; padding:16px 36px; text-decoration:none;
+    clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+    transition:all 0.2s;
+  }
+  .hero-cta:hover { background:#e8b84d; transform:translateY(-2px); }
+  .hero-featured-product {
+    position:relative; display:flex; align-items:center; justify-content:center;
+  }
+  .featured-card {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    padding:48px; text-align:center; position:relative; overflow:hidden;
+    animation:float 4s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .featured-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--clay),var(--gold),var(--clay));
+  }
+  .featured-emoji { font-size:96px; display:block; margin-bottom:20px; }
+  .featured-name { font-family:'Black Ops One',cursive; font-size:22px; color:var(--white); letter-spacing:2px; }
+  .featured-price { font-family:'Space Mono',monospace; font-size:14px; color:var(--gold); margin-top:8px; }
+  .featured-badge {
+    position:absolute; top:20px; right:20px;
+    background:var(--clay); color:#fff;
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px;
+    padding:5px 12px; text-transform:uppercase;
+  }
+
+  /* STRIPE DIVIDER */
+  .stripe-bar {
+    height:8px;
+    background:repeating-linear-gradient(90deg, var(--clay) 0, var(--clay) 20px, var(--clay-light) 20px, var(--clay-light) 40px);
+  }
+
+  /* PRODUCTS SECTION */
+  .products-section { padding:100px 48px; max-width:1300px; margin:0 auto; }
+  .section-header { text-align:center; margin-bottom:64px; }
+  .section-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; color:var(--clay); display:block; margin-bottom:12px; }
+  .section-title { font-family:'Black Ops One',cursive; font-size:clamp(36px,6vw,68px); color:var(--ink); line-height:1; }
+  .section-title span { color:var(--clay); }
+
+  /* FILTER TABS */
+  .filter-row { display:flex; justify-content:center; gap:8px; margin-bottom:48px; flex-wrap:wrap; }
+  .filter-btn {
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    padding:9px 20px; border:2px solid rgba(0,0,0,0.12); background:transparent;
+    color:rgba(0,0,0,0.4); cursor:pointer; transition:all 0.2s;
+  }
+  .filter-btn.active, .filter-btn:hover { background:var(--clay); border-color:var(--clay); color:#fff; }
+
+  /* PRODUCT GRID */
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; }
+
+  .product-card {
+    background:#fff; cursor:pointer; position:relative; overflow:hidden;
+    transition:transform 0.3s, box-shadow 0.3s;
+    border-bottom:4px solid transparent;
+  }
+  .product-card:hover { transform:translateY(-6px); box-shadow:0 20px 60px rgba(196,98,45,0.18); border-bottom-color:var(--clay); }
+  .product-card.hidden { display:none; }
+
+  .product-img {
+    height:280px; background:linear-gradient(135deg,var(--ink) 0%,#2a2a28 100%);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .product-img::after {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 60% 40%,rgba(196,98,45,0.15),transparent 60%);
+  }
+  .product-emoji { font-size:80px; transition:transform 0.4s; position:relative; z-index:1; }
+  .product-card:hover .product-emoji { transform:scale(1.15) rotate(-5deg); }
+
+  .sold-out-overlay {
+    position:absolute; inset:0; background:rgba(0,0,0,0.6);
+    display:flex; align-items:center; justify-content:center; z-index:2;
+  }
+  .sold-out-tag {
+    font-family:'Black Ops One',cursive; font-size:24px; letter-spacing:4px; color:#fff;
+    border:3px solid #fff; padding:10px 24px; transform:rotate(-12deg);
+  }
+
+  .product-info { padding:24px 26px 28px; }
+  .product-category { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px; color:var(--clay); text-transform:uppercase; margin-bottom:8px; }
+  .product-name { font-family:'Black Ops One',cursive; font-size:21px; color:var(--ink); letter-spacing:1px; margin-bottom:8px; }
+  .product-desc { font-size:13.5px; color:#777; line-height:1.6; margin-bottom:18px; }
+  .product-footer { display:flex; align-items:center; justify-content:space-between; }
+  .product-price { font-family:'Black Ops One',cursive; font-size:24px; color:var(--clay); }
+  .product-price .cents { font-size:14px; color:#aaa; font-family:'Space Mono',monospace; }
+  .add-btn {
+    background:var(--ink); color:var(--gold); border:none;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
+    padding:10px 18px; cursor:pointer; text-transform:uppercase;
+    transition:all 0.2s; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+  }
+  .add-btn:hover { background:var(--clay); color:#fff; }
+  .add-btn:disabled { background:#ccc; color:#fff; cursor:not-allowed; }
+
+  /* SIZE SELECTOR */
+  .size-row { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .size-btn {
+    font-family:'Space Mono',monospace; font-size:10px; padding:5px 10px;
+    border:1.5px solid #ddd; background:transparent; cursor:pointer; transition:all 0.15s;
+    color:#999;
+  }
+  .size-btn.selected { border-color:var(--clay); background:var(--clay); color:#fff; }
+  .size-btn:hover:not(.selected) { border-color:var(--clay); color:var(--clay); }
+
+  /* COLOR DOTS */
+  .color-row { display:flex; gap:8px; margin-bottom:16px; }
+  .color-dot {
+    width:20px; height:20px; border-radius:50%; cursor:pointer;
+    border:2px solid transparent; transition:all 0.15s;
+  }
+  .color-dot.selected { border-color:var(--clay); transform:scale(1.2); }
+
+  /* CART SIDEBAR */
+  .cart-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .cart-overlay.open { opacity:1; pointer-events:all; }
+  .cart-sidebar {
+    position:fixed; top:0; right:0; bottom:0; width:420px; max-width:100%;
+    background:#fff; z-index:501; transform:translateX(100%);
+    transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .cart-overlay.open .cart-sidebar { transform:translateX(0); }
+  .cart-head {
+    background:var(--ink); padding:24px 28px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:3px solid var(--clay); flex-shrink:0;
+  }
+  .cart-head h2 { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:2px; color:var(--gold); }
+  .cart-close { background:none; border:none; color:rgba(255,255,255,0.5); font-size:22px; cursor:pointer; transition:color 0.2s; }
+  .cart-close:hover { color:#fff; }
+  .cart-items { flex:1; overflow-y:auto; padding:20px 28px; }
+  .cart-empty { text-align:center; padding:60px 20px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:#ccc; text-transform:uppercase; }
+  .cart-empty .empty-emoji { font-size:48px; display:block; margin-bottom:16px; }
+  .cart-item { display:flex; gap:16px; padding:16px 0; border-bottom:1px solid #f0e4d2; align-items:center; }
+  .cart-item-emoji { font-size:36px; flex-shrink:0; width:52px; text-align:center; }
+  .cart-item-info { flex:1; min-width:0; }
+  .cart-item-name { font-family:'Black Ops One',cursive; font-size:15px; color:var(--ink); letter-spacing:1px; }
+  .cart-item-meta { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:#aaa; text-transform:uppercase; margin-top:3px; }
+  .cart-item-price { font-family:'Black Ops One',cursive; font-size:17px; color:var(--clay); flex-shrink:0; }
+  .cart-item-remove { background:none; border:none; color:#ddd; cursor:pointer; font-size:16px; padding:4px; transition:color 0.2s; flex-shrink:0; }
+  .cart-item-remove:hover { color:#e74c3c; }
+  .cart-qty { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .qty-btn { background:var(--clay-bg); border:none; width:22px; height:22px; cursor:pointer; font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:var(--clay); transition:background 0.15s; display:flex; align-items:center; justify-content:center; }
+  .qty-btn:hover { background:var(--clay); color:#fff; }
+  .qty-val { font-family:'Space Mono',monospace; font-size:12px; font-weight:700; min-width:20px; text-align:center; }
+
+  .cart-footer { padding:24px 28px; border-top:2px solid #f0e4d2; flex-shrink:0; }
+  .cart-subtotal { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .cart-subtotal-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:#999; }
+  .cart-subtotal-val { font-family:'Black Ops One',cursive; font-size:28px; color:var(--clay); }
+  .cart-note { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; color:#bbb; margin-bottom:20px; }
+  .checkout-btn {
+    width:100%; background:var(--clay); color:#fff; border:none; padding:16px;
+    font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; font-weight:700;
+    text-transform:uppercase; cursor:pointer; transition:background 0.2s;
+    clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  }
+  .checkout-btn:hover { background:var(--clay-dark); }
+  .checkout-btn:disabled { background:#ccc; cursor:not-allowed; }
+
+  /* CHECKOUT MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:600;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal {
+    background:var(--clay-bg); width:100%; max-width:540px;
+    border-top:5px solid var(--clay); max-height:90vh; overflow-y:auto;
+    transform:translateY(40px); opacity:0; transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  .modal-overlay.open .modal { transform:translateY(0); opacity:1; }
+  .modal-head { background:var(--ink); padding:24px 32px; display:flex; align-items:center; justify-content:space-between; }
+  .modal-head h2 { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:2px; color:var(--gold); }
+  .modal-close-btn { background:none; border:none; color:rgba(255,255,255,0.5); font-size:22px; cursor:pointer; }
+  .modal-close-btn:hover { color:#fff; }
+  .modal-body { padding:32px; }
+  .form-section { margin-bottom:28px; }
+  .form-section-title { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:3px; color:var(--clay); margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid rgba(196,98,45,0.2); }
+  .form-row { margin-bottom:16px; }
+  .form-row label { display:block; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--clay-dark); margin-bottom:7px; }
+  .form-row input, .form-row select { width:100%; padding:12px 16px; border:1.5px solid #d4c4b0; background:#fff; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--ink); outline:none; transition:border-color 0.2s; }
+  .form-row input:focus, .form-row select:focus { border-color:var(--clay); }
+  .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .order-summary { background:#fff; padding:20px; margin-bottom:24px; border-left:4px solid var(--clay); }
+  .order-summary-title { font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:3px; color:var(--clay); margin-bottom:12px; }
+  .order-line { display:flex; justify-content:space-between; font-size:14px; padding:5px 0; border-bottom:1px solid #f0e8e0; }
+  .order-line:last-child { border-bottom:none; font-weight:700; color:var(--clay); }
+  .place-order-btn {
+    width:100%; background:var(--clay); color:#fff; border:none; padding:16px;
+    font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; font-weight:700;
+    text-transform:uppercase; cursor:pointer; transition:background 0.2s;
+    clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  }
+  .place-order-btn:hover { background:var(--clay-dark); }
+
+  /* SUCCESS SCREEN */
+  .success-screen { text-align:center; padding:60px 32px; display:none; }
+  .success-screen.show { display:block; }
+  .success-icon { font-size:72px; display:block; margin-bottom:20px; animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .success-title { font-family:'Black Ops One',cursive; font-size:32px; color:var(--clay); letter-spacing:2px; margin-bottom:12px; }
+  .success-sub { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:#999; text-transform:uppercase; line-height:1.8; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:28px; right:28px; background:var(--ink); color:#fff; padding:13px 22px; font-family:'Space Mono',monospace; font-size:12px; letter-spacing:1px; z-index:1000; transform:translateY(80px); opacity:0; transition:all 0.3s; border-left:4px solid var(--gold); }
+  .toast.show { transform:translateY(0); opacity:1; }
+
+  /* FOOTER */
+  footer { background:var(--ink); color:rgba(255,255,255,0.4); text-align:center; padding:48px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; }
+  footer strong { color:var(--gold); }
+
+  /* REVEAL */
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.6s ease,transform 0.6s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  @media(max-width:900px) {
+    nav { padding:14px 20px; }
+    nav ul { display:none; }
+    .hero-inner { grid-template-columns:1fr; gap:40px; padding:60px 20px; }
+    .hero-featured-product { order:-1; }
+    .featured-card { padding:32px; }
+    .featured-emoji { font-size:72px; }
+    .products-section { padding:60px 20px; }
+    .cart-sidebar { width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#rules">Rules</a></li>
+    <li><a href="index.html#rankings">Rankings</a></li>
+    <li><a href="login.html">Sign In</a></li>
+  </ul>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Cart <span class="cart-count" id="cartCount">0</span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="shop-hero">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-accent">SHOP</div>
+  <div class="hero-inner">
+    <div>
+      <span class="hero-eyebrow">Official Kevball Merchandise</span>
+      <h1 class="hero-title">REP THE<span>COURT.</span></h1>
+      <p class="hero-desc">Limited drops. Authentic gear. AJ-proof designs. Wear your Kevball pride wherever you go — except near AJ.</p>
+      <a href="#products" class="hero-cta">Shop All Drops →</a>
+    </div>
+    <div class="hero-featured-product">
+      <div class="featured-card">
+        <span class="featured-badge">Most Popular</span>
+        <span class="featured-emoji">👕</span>
+        <div class="featured-name">KEV●BALL TEE</div>
+        <div class="featured-price">$28.00</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stripe-bar"></div>
+
+<!-- PRODUCTS -->
+<div id="products">
+<section class="products-section">
+  <div class="section-header reveal">
+    <span class="section-label">Official Drops</span>
+    <h2 class="section-title">THE <span>COLLECTION</span></h2>
+  </div>
+
+  <div class="filter-row reveal">
+    <button class="filter-btn active" onclick="filterProducts('all', this)">All</button>
+    <button class="filter-btn" onclick="filterProducts('apparel', this)">Apparel</button>
+    <button class="filter-btn" onclick="filterProducts('headwear', this)">Headwear</button>
+    <button class="filter-btn" onclick="filterProducts('accessories', this)">Accessories</button>
+  </div>
+
+  <div class="product-grid" id="productGrid"></div>
+</section>
+</div>
+
+<footer>
+  <p style="margin-bottom:8px;font-size:20px;font-family:'Black Ops One',cursive;color:#fff">KEV<span style="color:var(--gold)">●</span>BALL SHOP</p>
+  <p>OFFICIAL MERCHANDISE · INVENTED BY <strong>KEVIN ORELLANA</strong></p>
+  <p style="margin-top:8px;opacity:0.4">Rule 10: AJ cannot purchase merch.</p>
+</footer>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()">
+  <div class="cart-sidebar">
+    <div class="cart-head">
+      <h2>YOUR CART</h2>
+      <button class="cart-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-subtotal">
+        <span class="cart-subtotal-label">Subtotal</span>
+        <span class="cart-subtotal-val" id="cartTotal">$0.00</span>
+      </div>
+      <div class="cart-note">Shipping calculated at checkout · Free over $50</div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()" disabled>Proceed to Checkout →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutModal" onclick="if(event.target===this)closeCheckout()">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>CHECKOUT</h2>
+      <button class="modal-close-btn" onclick="closeCheckout()">✕</button>
+    </div>
+    <div class="modal-body" id="checkoutBody">
+      <div class="order-summary">
+        <div class="order-summary-title">Order Summary</div>
+        <div id="orderSummaryLines"></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">Contact Info</div>
+        <div class="form-row"><label>Full Name *</label><input type="text" id="coName" placeholder="Kevin Orellana"/></div>
+        <div class="form-row"><label>Email *</label><input type="email" id="coEmail" placeholder="kevin@kevball.online"/></div>
+        <div class="form-row"><label>Phone</label><input type="tel" id="coPhone" placeholder="(555) 000-0000"/></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">Shipping Address</div>
+        <div class="form-row"><label>Street Address *</label><input type="text" id="coStreet" placeholder="123 Court Ave"/></div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>City *</label><input type="text" id="coCity" placeholder="New York"/></div>
+          <div class="form-row" style="margin:0"><label>State</label><input type="text" id="coState" placeholder="NY"/></div>
+        </div>
+        <div class="form-row-2" style="margin-top:14px">
+          <div class="form-row" style="margin:0"><label>ZIP *</label><input type="text" id="coZip" placeholder="10001"/></div>
+          <div class="form-row" style="margin:0">
+            <label>Country</label>
+            <select id="coCountry"><option>United States</option><option>Canada</option><option>United Kingdom</option><option>Other</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">Payment</div>
+        <div class="form-row"><label>Card Number *</label><input type="text" id="coCard" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="formatCard(this)"/></div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>Expiry *</label><input type="text" id="coExpiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/></div>
+          <div class="form-row" style="margin:0"><label>CVV *</label><input type="text" id="coCvv" placeholder="•••" maxlength="4"/></div>
+        </div>
+      </div>
+      <button class="place-order-btn" onclick="placeOrder()">🎾 Place Order</button>
+    </div>
+    <!-- SUCCESS -->
+    <div class="success-screen" id="successScreen">
+      <span class="success-icon">🎾</span>
+      <div class="success-title">ORDER CONFIRMED!</div>
+      <div class="success-sub" id="successMsg"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// PRODUCTS DATA
+// ============================================================
+const PRODUCTS = [
+  {
+    id: 1, name: "Kev●Ball Classic Tee", category: "apparel", emoji: "👕",
+    price: 28, desc: "100% cotton, screen-printed Kev●Ball logo. The one everyone's wearing at Court 4.",
+    sizes: ["XS","S","M","L","XL","2XL"], colors: ["#1a1a18","#c4622d","#d4a843"],
+    soldOut: false
+  },
+  {
+    id: 2, name: "Kev●Ball Shorts", category: "apparel", emoji: "🩳",
+    price: 34, desc: "Lightweight performance shorts. Gold side stripe. Built for the court, fine everywhere else.",
+    sizes: ["S","M","L","XL","2XL"], colors: ["#1a1a18","#2d5a27"],
+    soldOut: false
+  },
+  {
+    id: 3, name: "Commissioner Cap", category: "headwear", emoji: "🧢",
+    price: 32, desc: "Structured snapback. Gold embroidered Kev●Ball logo. Designed by Kevin, for the culture.",
+    sizes: ["One Size"], colors: ["#1a1a18","#2d5a27","#c4622d"],
+    soldOut: false
+  },
+  {
+    id: 4, name: "Court Shades", category: "accessories", emoji: "🕶️",
+    price: 22, desc: "UV400 protection. Retro court aesthetic. AJ will be jealous. Good.",
+    sizes: ["One Size"], colors: ["#1a1a18","#8b3a1a"],
+    soldOut: false
+  },
+  {
+    id: 5, name: "Kev●Ball Sticker Pack", category: "accessories", emoji: "🎾",
+    price: 8, desc: "5 holographic stickers. Logo, AJ Banned, Court 4 drop. Laptop-ready.",
+    sizes: ["One Pack","Two Packs","Five Packs"], colors: [],
+    soldOut: false
+  },
+  {
+    id: 6, name: "AJ Is Banned Tee", category: "apparel", emoji: "🚫",
+    price: 28, desc: "Rule 10 in wearable form. Bold. Clear. Non-negotiable.",
+    sizes: ["S","M","L","XL","2XL"], colors: ["#1a1a18","#c4622d"],
+    soldOut: false
+  },
+  {
+    id: 7, name: "Rule 10 Snapback", category: "headwear", emoji: "⛔",
+    price: 30, desc: "AJ BANNED embroidered on the front panel. Limited run. Non-negotiable.",
+    sizes: ["One Size"], colors: ["#1a1a18","#fff"],
+    soldOut: false
+  },
+  {
+    id: 8, name: "Court 4 Hoodie", category: "apparel", emoji: "🧥",
+    price: 54, desc: "Heavy fleece. Embroidered Court 4 crest on chest. Seasonal drop.",
+    sizes: ["XS","S","M","L","XL","2XL"], colors: ["#1a1a18","#2d5a27"],
+    soldOut: false
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let cart = []; // [{productId, name, emoji, price, size, color, qty}]
+let selectedSizes = {};   // productId -> size
+let selectedColors = {};  // productId -> color index
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ============================================================
+// RENDER PRODUCTS
+// ============================================================
+function renderProducts(filter = 'all') {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = PRODUCTS.map(p => {
+    const visible = filter === 'all' || p.category === filter;
+    const hasColors = p.colors.length > 0;
+    const colorIdx = selectedColors[p.id] !== undefined ? selectedColors[p.id] : 0;
+
+    const colorDots = hasColors ? `
+      <div class="color-row">
+        ${p.colors.map((c,i) => `
+          <div class="color-dot ${i===colorIdx?'selected':''}"
+            style="background:${c};border:2px solid ${i===colorIdx?'var(--clay)':'transparent'}"
+            onclick="selectColor(${p.id},${i})" title="Color ${i+1}">
+          </div>`).join('')}
+      </div>` : '';
+
+    const selSize = selectedSizes[p.id];
+    const sizeRow = `
+      <div class="size-row">
+        ${p.sizes.map(s => `
+          <button class="size-btn ${selSize===s?'selected':''}"
+            onclick="selectSize(${p.id},'${s}')">${s}</button>`).join('')}
+      </div>`;
+
+    return `<div class="product-card ${visible?'':'hidden'}" id="pc-${p.id}">
+      <div class="product-img">
+        <span class="product-emoji">${p.emoji}</span>
+        ${p.soldOut ? `<div class="sold-out-overlay"><div class="sold-out-tag">SOLD OUT</div></div>` : ''}
+      </div>
+      <div class="product-info">
+        <div class="product-category">${p.category}</div>
+        <div class="product-name">${p.name}</div>
+        <p class="product-desc">${p.desc}</p>
+        ${colorDots}
+        ${sizeRow}
+        <div class="product-footer">
+          <div class="product-price">$${p.price}<span class="cents">.00</span></div>
+          <button class="add-btn" onclick="addToCart(${p.id})" ${p.soldOut?'disabled':''}>
+            ${p.soldOut ? 'Sold Out' : '+ Add'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterProducts(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.product-card').forEach(card => {
+    const id = parseInt(card.id.replace('pc-',''));
+    const p = PRODUCTS.find(p=>p.id===id);
+    card.classList.toggle('hidden', cat !== 'all' && p.category !== cat);
+  });
+}
+
+function selectSize(productId, size) {
+  selectedSizes[productId] = size;
+  renderProducts(document.querySelector('.filter-btn.active')?.textContent.toLowerCase() || 'all');
+}
+
+function selectColor(productId, idx) {
+  selectedColors[productId] = idx;
+  renderProducts(document.querySelector('.filter-btn.active')?.textContent.toLowerCase() || 'all');
+}
+
+// ============================================================
+// CART LOGIC
+// ============================================================
+function addToCart(productId) {
+  const p = PRODUCTS.find(x => x.id === productId);
+  if(!p || p.soldOut) return;
+  const size = selectedSizes[productId];
+  if(p.sizes.length > 1 && !size) { toast('Please select a size first!'); return; }
+  const colorIdx = selectedColors[productId] || 0;
+  const color = p.colors.length ? p.colors[colorIdx] : null;
+  const key = `${productId}-${size||'one'}-${colorIdx}`;
+  const existing = cart.find(i => i.key === key);
+  if(existing) {
+    existing.qty++;
+  } else {
+    cart.push({ key, productId, name:p.name, emoji:p.emoji, price:p.price, size:size||null, color, qty:1 });
+  }
+  updateCartUI();
+  toast(`${p.name} added to cart! 🎾`);
+}
+
+function removeFromCart(key) {
+  cart = cart.filter(i => i.key !== key);
+  updateCartUI();
+  renderCartItems();
+}
+
+function changeQty(key, delta) {
+  const item = cart.find(i => i.key === key);
+  if(!item) return;
+  item.qty = Math.max(1, item.qty + delta);
+  updateCartUI();
+  renderCartItems();
+}
+
+function updateCartUI() {
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('checkoutBtn').disabled = cart.length === 0;
+}
+
+function renderCartItems() {
+  const el = document.getElementById('cartItems');
+  if(!cart.length) {
+    el.innerHTML = `<div class="cart-empty"><span class="empty-emoji">🛒</span>Your cart is empty</div>`;
+    return;
+  }
+  el.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <span class="cart-item-emoji">${item.emoji}</span>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">
+          ${item.size ? item.size : ''}
+          ${item.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color};margin-left:6px;vertical-align:middle;"></span>` : ''}
+        </div>
+        <div class="cart-qty">
+          <button class="qty-btn" onclick="changeQty('${item.key}',-1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.key}',1)">+</button>
+        </div>
+      </div>
+      <span class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.key}')" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ============================================================
+// CHECKOUT
+// ============================================================
+function openCheckout() {
+  if(!cart.length) return;
+  closeCart();
+  // Populate order summary
+  const lines = document.getElementById('orderSummaryLines');
+  const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
+  const shipping = subtotal >= 50 ? 0 : 5.99;
+  lines.innerHTML = cart.map(i => `
+    <div class="order-line">
+      <span>${i.emoji} ${i.name} ${i.size?'('+i.size+')':''} × ${i.qty}</span>
+      <span>$${(i.price*i.qty).toFixed(2)}</span>
+    </div>`).join('') +
+    `<div class="order-line"><span>Shipping</span><span>${shipping===0?'FREE':'$'+shipping.toFixed(2)}</span></div>` +
+    `<div class="order-line"><span>Total</span><span>$${(subtotal+shipping).toFixed(2)}</span></div>`;
+
+  document.getElementById('checkoutBody').style.display = 'block';
+  document.getElementById('successScreen').classList.remove('show');
+  document.getElementById('checkoutModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCheckout() {
+  document.getElementById('checkoutModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if(v.length >= 2) v = v.substring(0,2)+' / '+v.substring(2);
+  input.value = v;
+}
+
+function placeOrder() {
+  const name = document.getElementById('coName').value.trim();
+  const email = document.getElementById('coEmail').value.trim();
+  const street = document.getElementById('coStreet').value.trim();
+  const city = document.getElementById('coCity').value.trim();
+  const zip = document.getElementById('coZip').value.trim();
+  const card = document.getElementById('coCard').value.trim();
+  const expiry = document.getElementById('coExpiry').value.trim();
+  const cvv = document.getElementById('coCvv').value.trim();
+
+  if(!name||!email||!street||!city||!zip){toast('Please fill in your contact and address info.');return;}
+  if(!card||card.replace(/\s/g,'').length<16){toast('Please enter a valid card number.');return;}
+  if(!expiry||!cvv){toast('Please enter your card expiry and CVV.');return;}
+
+  // In production you'd send this to a payment processor (Stripe, etc.)
+  // For now, show success screen
+  document.getElementById('checkoutBody').style.display = 'none';
+  const successScreen = document.getElementById('successScreen');
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const shipping = subtotal >= 50 ? 0 : 5.99;
+  document.getElementById('successMsg').innerHTML = `
+    Thanks, ${name}!<br>
+    Order total: $${(subtotal+shipping).toFixed(2)}<br>
+    Confirmation sent to ${email}<br><br>
+    Ships within 3–5 business days.<br>
+    AJ will not receive your package.`;
+  successScreen.classList.add('show');
+  cart = [];
+  updateCartUI();
+}
+
+// ============================================================
+// REVEAL OBSERVER
+// ============================================================
+function initReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderProducts();
+initReveal();
+</script>
+</body>
+</html>
