@@ -128,9 +128,16 @@
   .week-tabs { display:flex; gap:4px; margin-bottom:28px; flex-wrap:wrap; }
   .week-tab { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; padding:10px 20px; border:2px solid var(--clay); background:transparent; color:var(--clay); cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
   .week-tab.active,.week-tab:hover { background:var(--clay); color:#fff; }
-  .add-match-bar { background:#fff; padding:18px; border-top:4px solid var(--clay); display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap; }
-  .add-match-bar input { flex:1; min-width:120px; font-family:'DM Sans',sans-serif; padding:10px 14px; border:1px solid #ddd; font-size:14px; outline:none; }
-  .add-match-bar input:focus { border-color:var(--clay); }
+  .add-match-bar { background:#fff; padding:18px; border-top:4px solid var(--clay); margin-bottom:20px; }
+  .add-match-bar input, .add-match-bar select { font-family:'DM Sans',sans-serif; padding:9px 12px; border:1px solid #ddd; font-size:13px; outline:none; background:#fff; color:var(--ink); width:100%; }
+  .add-match-bar input:focus, .add-match-bar select:focus { border-color:var(--clay); }
+  .amb-fmt-row { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .amb-fmt-btn { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; padding:7px 14px; border:2px solid var(--clay); background:transparent; color:var(--clay); cursor:pointer; transition:all 0.2s; }
+  .amb-fmt-btn.active,.amb-fmt-btn:hover { background:var(--clay); color:#fff; }
+  .amb-teams { display:grid; grid-template-columns:1fr 40px 1fr; gap:8px; align-items:start; margin-bottom:12px; }
+  .amb-team-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--clay); margin-bottom:6px; font-weight:700; }
+  .amb-vs { display:flex; align-items:center; justify-content:center; padding-top:22px; font-family:'Black Ops One',cursive; font-size:14px; color:#ccc; }
+  .amb-slot { margin-bottom:6px; }
   .vs-lbl { font-family:'Black Ops One',cursive; font-size:18px; color:var(--clay); }
   .add-match-bar button { background:var(--clay); color:#fff; border:none; padding:10px 20px; font-family:'Space Mono',monospace; font-size:11px; cursor:pointer; white-space:nowrap; }
   .matchup-list { display:flex; flex-direction:column; gap:6px; }
@@ -541,12 +548,16 @@
   </div>
   <div class="sched-container">
     <div class="week-tabs reveal" id="weekTabs"></div>
-    <div class="add-match-bar reveal admin-only">
-      <input type="text" id="matchP1" placeholder="Player 1" list="playerList"/>
-      <span class="vs-lbl">VS</span>
-      <input type="text" id="matchP2" placeholder="Player 2" list="playerList"/>
+    <div class="add-match-bar reveal admin-only" id="addMatchBar">
+      <div class="amb-fmt-row" id="ambFmtRow">
+        <button class="amb-fmt-btn active" onclick="setMatchFormat(1,this)">1v1</button>
+        <button class="amb-fmt-btn" onclick="setMatchFormat(2,this)">2v2</button>
+        <button class="amb-fmt-btn" onclick="setMatchFormat(3,this)">3v3</button>
+        <button class="amb-fmt-btn" onclick="setMatchFormat(4,this)">4v4</button>
+      </div>
+      <div class="amb-teams" id="ambTeams"><!-- rendered by JS --></div>
       <datalist id="playerList"></datalist>
-      <button onclick="addMatch()">ADD MATCH</button>
+      <button onclick="addMatch()" style="background:var(--clay);color:#fff;border:none;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;width:100%;letter-spacing:2px;">ADD MATCH</button>
     </div>
     <div id="matchupList" class="matchup-list reveal"></div>
     <div class="reveal admin-only"><button class="add-week-btn" onclick="addWeek()">+ ADD WEEK</button></div>
@@ -792,7 +803,7 @@ onAuthStateChanged(auth, async (user) => {
   }
   applyAdminState();
   // Re-render anything that depends on admin state
-  renderRankings(); renderMatchups(); renderBios(); renderCourts();
+  renderRankings(); renderMatchups(); renderBios(); renderCourts(); renderAddMatchSlots();
 });
 
 // ── LIVE SCORE BANNER ──────────────────────────────────────
@@ -999,7 +1010,7 @@ async function loadWeeks(){
 }
 
 function updateDatalist(){
-  document.getElementById('playerList').innerHTML=playersCache.map(p=>`<option value="${p.name}">`).join('');
+  // playerList refreshed in renderAddMatchSlots()
 }
 
 function renderWeekTabs(){
@@ -1018,19 +1029,68 @@ window.addWeek = async function(){
   renderWeekTabs(); renderMatchups();
 };
 
+// ── MATCH FORMAT STATE ────────────────────────────────────
+let schedMatchSize = 1;
+
+window.setMatchFormat = function(n, btn) {
+  schedMatchSize = n;
+  document.querySelectorAll('.amb-fmt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAddMatchSlots();
+};
+
+function renderAddMatchSlots() {
+  const opts = playersCache.map(p => `<option value="${p.name}">`).join('');
+  const makeSlots = (team) => Array.from({length:schedMatchSize}, (_,i) => `
+    <div class="amb-slot">
+      <input type="text" id="amb_${team}${i}" placeholder="Player ${i+1}" list="playerList" autocomplete="off"/>
+    </div>`).join('');
+  document.getElementById('ambTeams').innerHTML = `
+    <div>
+      <div class="amb-team-label">Team 1</div>
+      ${makeSlots('t1')}
+    </div>
+    <div class="amb-vs">VS</div>
+    <div>
+      <div class="amb-team-label">Team 2</div>
+      ${makeSlots('t2')}
+    </div>`;
+  document.getElementById('playerList').innerHTML = opts;
+}
+
+function getAmbTeam(team) {
+  return Array.from({length:schedMatchSize}, (_,i) => {
+    const el = document.getElementById(`amb_${team}${i}`);
+    return el ? el.value.trim() : '';
+  }).filter(Boolean);
+}
+
 window.addMatch = async function(){
   if(!isAdmin()) return;
-  const p1=document.getElementById('matchP1').value.trim();
-  const p2=document.getElementById('matchP2').value.trim();
-  if(!p1||!p2){toast('Enter both player names!');return;}
-  if(p1.toLowerCase()===p2.toLowerCase()){toast('Players must be different!');return;}
-  const week=weeksCache[currentWeekIdx];
-  const newMatch={id:Date.now(),p1,p2,score1:null,score2:null,played:false};
-  const matches=[...(week.matches||[]),newMatch];
+  const team1 = getAmbTeam('t1');
+  const team2 = getAmbTeam('t2');
+  if(team1.length < schedMatchSize || team2.length < schedMatchSize){toast(`Fill all ${schedMatchSize} players per team!`);return;}
+  const all = [...team1,...team2].map(n=>n.toLowerCase());
+  if(new Set(all).size < all.length){toast('Duplicate player across teams!');return;}
+  const week = weeksCache[currentWeekIdx];
+  const fmt = schedMatchSize===1?'1v1':`${schedMatchSize}v${schedMatchSize}`;
+  // Store both legacy p1/p2 (for 1v1 compat) and team arrays
+  const newMatch = {
+    id: Date.now(),
+    team1, team2,
+    p1: team1.join(' & '), p2: team2.join(' & '),
+    format: fmt,
+    score1: null, score2: null, played: false
+  };
+  const matches = [...(week.matches||[]), newMatch];
   await updateDoc(doc(db,'weeks',week._id),{matches});
-  week.matches=matches;
-  document.getElementById('matchP1').value='';document.getElementById('matchP2').value='';
-  renderMatchups(); toast(`${p1} vs ${p2} added!`);
+  week.matches = matches;
+  // Clear inputs
+  for(let i=0;i<schedMatchSize;i++){
+    const e1=document.getElementById(`amb_t1${i}`), e2=document.getElementById(`amb_t2${i}`);
+    if(e1) e1.value=''; if(e2) e2.value='';
+  }
+  renderMatchups(); toast(`${fmt} match added!`);
 };
 
 window.saveScore = async function(mid){
@@ -1044,15 +1104,18 @@ window.saveScore = async function(mid){
   m.score1=s1;m.score2=s2;m.played=true;
   await updateDoc(doc(db,'weeks',week._id),{matches});
   week.matches=matches;
-  // Update player W/L
-  const p1o=playersCache.find(p=>p.name.toLowerCase()===m.p1.toLowerCase());
-  const p2o=playersCache.find(p=>p.name.toLowerCase()===m.p2.toLowerCase());
-  if(s1>s2){
-    if(p1o){const w=(p1o.wins||0)+1,l=p1o.losses||0;await updateDoc(doc(db,'players',p1o._id),{wins:w,points:w*3-l});}
-    if(p2o){const w=p2o.wins||0,l=(p2o.losses||0)+1;await updateDoc(doc(db,'players',p2o._id),{losses:l,points:w*3-l});}
-  } else if(s2>s1){
-    if(p2o){const w=(p2o.wins||0)+1,l=p2o.losses||0;await updateDoc(doc(db,'players',p2o._id),{wins:w,points:w*3-l});}
-    if(p1o){const w=p1o.wins||0,l=(p1o.losses||0)+1;await updateDoc(doc(db,'players',p1o._id),{losses:l,points:w*3-l});}
+  // Update W/L for all players on each team
+  const winners = s1>s2 ? (m.team1||[m.p1]) : (m.team2||[m.p2]);
+  const losers  = s1>s2 ? (m.team2||[m.p2]) : (m.team1||[m.p1]);
+  if(s1!==s2){
+    for(const name of winners){
+      const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+      if(p){const w=(p.wins||0)+1,l=p.losses||0;await updateDoc(doc(db,'players',p._id),{wins:w,points:w*3-l});}
+    }
+    for(const name of losers){
+      const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+      if(p){const w=p.wins||0,l=(p.losses||0)+1;await updateDoc(doc(db,'players',p._id),{losses:l,points:w*3-l});}
+    }
   }
   await loadPlayers();
   renderMatchups(); toast('Score saved! Rankings updated.');
@@ -1072,17 +1135,30 @@ function renderMatchups(){
     list.innerHTML=`<div class="empty-state"><span class="empty-icon">🎾</span>NO MATCHES — ADD SOME ABOVE</div>`;return;
   }
   list.innerHTML=week.matches.map(m=>{
-    const w1=m.played&&m.score1>m.score2,w2=m.played&&m.score2>m.score1;
-    return`<div class="matchup-card ${m.played?'played':''}">
-      <div class="mp ${w1?'winner':''}">${w1?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}${m.p1}</div>
-      <div class="mc">
+    const w1=m.played&&m.score1>m.score2, w2=m.played&&m.score2>m.score1;
+    // Support legacy p1/p2 strings and new team arrays
+    const t1names = Array.isArray(m.team1) ? m.team1 : [m.p1];
+    const t2names = Array.isArray(m.team2) ? m.team2 : [m.p2];
+    const t1disp = t1names.join('<br>');
+    const t2disp = t2names.join('<br>');
+    const fmtBadge = m.format ? `<span style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.5);display:block;margin-bottom:2px">${m.format}</span>` : '';
+    return`<div class="matchup-card ${m.played?'played':''}" style="position:relative">
+      <div class="matchup-player matchup-p1 mp ${w1?'winner':''}">
+        ${fmtBadge}
+        ${w1?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}
+        ${t1disp}
+      </div>
+      <div class="matchup-vs matchup-score mc">
         ${m.played
           ?`<span class="score-disp">${m.score1} — ${m.score2}</span><span class="mstatus">FINAL</span>`
-          :`<div class="score-inp">${isAdmin()?`<input type="number" id="s1_${m.id}" min="0" max="21" placeholder="0"/><span class="score-dash">—</span><input type="number" id="s2_${m.id}" min="0" max="21" placeholder="0"/>`:''}</div>${isAdmin()?`<button class="save-btn" onclick="saveScore(${m.id})">SAVE SCORE</button>`:''}<span class="mstatus">UPCOMING</span>`
+          :`<div class="score-inp">${isAdmin()?`<input type="number" id="s1_${m.id}" min="0" max="99" placeholder="0"/><span class="score-dash">—</span><input type="number" id="s2_${m.id}" min="0" max="99" placeholder="0"/>`:''}</div>${isAdmin()?`<button class="save-btn" onclick="saveScore(${m.id})">SAVE</button>`:''}<span class="mstatus">UPCOMING</span>`
         }
       </div>
-      <div class="mp right ${w2?'winner':''}">${m.p2}${w2?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}</div>
-      <button class="del-btn" onclick="deleteMatch(${m.id})" title="Delete" style="${isAdmin()?'':'display:none'}">✕</button>
+      <div class="matchup-player matchup-p2 mp right ${w2?'winner':''}">
+        ${t2disp}
+        ${w2?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}
+      </div>
+      <button class="del-btn matchup-del" onclick="deleteMatch(${m.id})" title="Delete" style="${isAdmin()?'':'display:none'}">✕</button>
     </div>`;
   }).join('');
 }
