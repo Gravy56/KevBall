@@ -244,6 +244,7 @@
   .bio-name-block{flex:1;min-width:0;}
   .bio-name{font-family:'Black Ops One',cursive;font-size:18px;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .bio-position{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.65);text-transform:uppercase;margin-top:3px;}
+  .bio-nick{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--gold);margin-top:4px;font-style:italic;}
   .bio-body{padding:18px 22px;flex:1;}
   .bio-stat-row{display:flex;gap:12px;margin-bottom:14px;}
   .bio-stat{flex:1;text-align:center;background:#fdf5ec;padding:10px 4px;}
@@ -1403,18 +1404,19 @@ function renderBios(){
   });
   if(!allBios.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">👤</span>NO PLAYERS SIGNED UP YET — BE THE FIRST</div>`;return;}
   grid.innerHTML=allBios.map(b=>{
-    // Sync stats from playersCache
+    // Sync stats AND avatar from playersCache (avatar stored on players doc)
     const rp=playersCache.find(p=>p.name?.toLowerCase()===b.name?.toLowerCase());
     const wins=rp?rp.wins||0:b.wins||0;
     const losses=rp?rp.losses||0:b.losses||0;
+    const avatar=b.avatar||rp?.avatar||null;
     const initials=(b.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const avatarHtml=b.avatar?`<img class="bio-avatar" src="${b.avatar}" alt="${b.name}"/>`:`<div class="bio-initials">${initials}</div>`;
+    const avatarHtml=avatar?`<img class="bio-avatar" src="${avatar}" alt="${b.name}"/>`:`<div class="bio-initials">${initials}</div>`;
     return`<div class="bio-card">
       <div class="bio-card-top">
         ${avatarHtml}
         <div class="bio-name-block">
           <div class="bio-name">${b.name||''}</div>
-          ${b.nick?`<div class="bio-position">"${b.nick}"</div>`:''}
+          ${b.nick?`<div class="bio-nick">"${b.nick}"</div>`:''}
           <div class="bio-position">${b.level||'Player'}</div>
         </div>
         ${isAdmin()?`<button class="bio-del" onclick="deleteBio('${b._bioId||b._id}','${b._playerId||''}')" title="Remove">✕</button>`:''}
@@ -1427,8 +1429,8 @@ function renderBios(){
         </div>
         ${b.bio?`<p class="bio-blurb">"${b.bio}"</p>`:''}
         <div class="bio-meta">
-          ${b.style?`<span class="bio-tag">${b.style}</span>`:''}
-          ${b.court?`<span class="bio-tag">${b.court}</span>`:''}
+          ${b.style?`<span class="bio-tag style-tag">🎾 ${b.style}</span>`:''}
+          ${b.court?`<span class="bio-tag court-tag">📍 ${b.court}</span>`:''}
         </div>
       </div>
     </div>`;
