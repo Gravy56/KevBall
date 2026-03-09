@@ -1100,10 +1100,25 @@ window.submitSignup = async function(){
   const level=document.getElementById('signupLevel').value;
   const bio=document.getElementById('signupBio').value.trim();
   const court=document.getElementById('signupCourt').value;
-  // Add to players
-  const pRef = await addDoc(collection(db,'players'),{name,wins:0,losses:0,points:0,avatar:signupAvatarData||null});
-  // Add a lightweight bio doc (not a full user account — just a roster entry)
-  await addDoc(collection(db,'bios'),{name,nick,style,level,bio,court,avatar:signupAvatarData||null,playerId:pRef.id,wins:0,losses:0,points:0});
+  // Check if a players doc with this name already exists (prevent duplicate)
+  const normName = name.trim().toLowerCase();
+  let existingPlayer = playersCache.find(p => p.name.trim().toLowerCase() === normName);
+  let pId;
+  if(existingPlayer) {
+    pId = existingPlayer._id;
+    // Update avatar on existing player doc if we have one
+    if(signupAvatarData) await updateDoc(doc(db,'players',pId),{avatar:signupAvatarData});
+  } else {
+    const pRef = await addDoc(collection(db,'players'),{name,wins:0,losses:0,points:0,avatar:signupAvatarData||null});
+    pId = pRef.id;
+  }
+  // Check if bio already exists for this player — update instead of duplicating
+  const existingBio = biosCache.find(b => b.playerId === pId || b.name.trim().toLowerCase() === normName);
+  if(existingBio) {
+    await updateDoc(doc(db,'bios',existingBio._id),{nick,style,level,bio,court,avatar:signupAvatarData||null});
+  } else {
+    await addDoc(collection(db,'bios'),{name,nick,style,level,bio,court,avatar:signupAvatarData||null,playerId:pId,wins:0,losses:0,points:0});
+  }
   await loadPlayers(); await loadBios();
   closeSignup();
   // Reset
@@ -1116,20 +1131,49 @@ window.submitSignup = async function(){
   toast(name+' joined the roster!');
 };
 
-window.deleteBio = async function(id){
+window.deleteBio = async function(bioId, playerId){
   if(!isAdmin()){toast('Admin access required.');return;}
-  await deleteDoc(doc(db,'bios',id));
-  await loadBios(); toast('Player removed from bios.');
+  if(!confirm('Remove this player from the roster?')) return;
+  // Delete bio doc if it exists in bios collection
+  try { await deleteDoc(doc(db,'bios',bioId)); } catch(e){}
+  // Also delete their players doc (could be the only record if added via rankings)
+  if(playerId){
+    try { await deleteDoc(doc(db,'players',playerId)); } catch(e){}
+  }
+  await loadPlayers(); await loadBios();
+  toast('Player removed from roster.');
 };
 
 function renderBios(){
   const grid=document.getElementById('biosGrid');
-  // Merge user accounts + standalone bios
-  const allBios = [
-    ...biosCache,
-    ...playersCache.filter(p => !biosCache.find(b=>b.name?.toLowerCase()===p.name?.toLowerCase()) && !biosCache.find(b=>b.playerId===p._id))
-      .map(p=>({_id:p._id,name:p.name,avatar:p.avatar,wins:p.wins,losses:p.losses,points:p.points,level:'',nick:'',bio:'',style:'',court:''}))
-  ];
+  // Merge bios + players, deduplicating so each real person shows once.
+  // Priority: bios entries (have extra profile info) beat bare players entries.
+  // A players entry is suppressed if any bio already covers it via playerId OR name match.
+  const seenNames = new Set();
+  const seenPlayerIds = new Set();
+  const allBios = [];
+
+  // First pass: all bio docs (these carry the richest data)
+  biosCache.forEach(b => {
+    const normName = (b.name||'').trim().toLowerCase();
+    seenNames.add(normName);
+    if(b.playerId) seenPlayerIds.add(b.playerId);
+    // Attach _bioId and _playerId separately so delete knows where to look
+    allBios.push({...b, _bioId: b._id, _playerId: b.playerId || null});
+  });
+
+  // Second pass: players entries not already covered by a bio
+  playersCache.forEach(p => {
+    const normName = (p.name||'').trim().toLowerCase();
+    if(seenPlayerIds.has(p._id)) return;   // bio already has this player linked
+    if(seenNames.has(normName)) return;     // bio already has same name
+    seenNames.add(normName);
+    allBios.push({
+      _id: p._id, _bioId: null, _playerId: p._id,
+      name:p.name, avatar:p.avatar, wins:p.wins, losses:p.losses, points:p.points,
+      level:'', nick:'', bio:'', style:'', court:''
+    });
+  });
   if(!allBios.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">👤</span>NO PLAYERS SIGNED UP YET — BE THE FIRST</div>`;return;}
   grid.innerHTML=allBios.map(b=>{
     // Sync stats from playersCache
@@ -1146,7 +1190,7 @@ function renderBios(){
           ${b.nick?`<div class="bio-position">"${b.nick}"</div>`:''}
           <div class="bio-position">${b.level||'Player'}</div>
         </div>
-        ${b._id&&isAdmin()?`<button class="bio-del" onclick="deleteBio('${b._id}')" title="Remove">✕</button>`:''}
+        ${isAdmin()?`<button class="bio-del" onclick="deleteBio('${b._bioId||b._id}','${b._playerId||''}')" title="Remove">✕</button>`:''}
       </div>
       <div class="bio-body">
         <div class="bio-stat-row">
