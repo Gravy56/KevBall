@@ -181,17 +181,23 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
 function hideErr(id){document.getElementById(id).classList.remove('show');}
 
+// Guard flag — set to true as soon as a sign-in button is clicked.
+// Prevents authStateReady from double-redirecting on the same page load.
+let isRedirecting = false;
+
 async function redirectUser(uid){
+  if(isRedirecting) return;
+  isRedirecting = true;
+  showLoading('Loading...');
   const snap = await getDoc(doc(db,'users',uid));
   const data = snap.exists() ? snap.data() : {};
   location.href = data.isAdmin ? 'index.html' : 'profile.html';
 }
 
-// Wait for Firebase to fully resolve auth state before deciding to redirect.
-// Using authStateReady() avoids the flicker where auth is briefly null on load.
+// Only auto-redirect if the user was already logged in before arriving at this page.
 auth.authStateReady().then(async () => {
   const user = auth.currentUser;
-  if(user){ showLoading('Loading...'); await redirectUser(user.uid); }
+  if(user && !isRedirecting) await redirectUser(user.uid);
 });
 
 window.switchTab = function(tab){
@@ -242,12 +248,13 @@ async function ensureUserDoc(user, extraData={}){
 }
 
 window.doGoogleAuth = async function(){
+  isRedirecting = true;
   showLoading('Opening Google sign-in...');
   try {
     const result = await signInWithPopup(auth, googleProvider);
     await ensureUserDoc(result.user);
     toast('Signed in with Google! 🎾');
-    setTimeout(()=>redirectUser(result.user.uid), 600);
+    await redirectUser(result.user.uid);
   } catch(e){
     hideLoading();
     if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
@@ -265,6 +272,7 @@ window.doSignup = async function(){
   if(!first||!last){showErr('signupError','Please enter your full name.');return;}
   if(!email){showErr('signupError','Please enter your email.');return;}
   if(password.length<6){showErr('signupError','Password must be at least 6 characters.');return;}
+  isRedirecting = true;
   const btn=document.getElementById('signupBtn');
   btn.disabled=true; showLoading('Creating your account...');
   try {
@@ -272,7 +280,7 @@ window.doSignup = async function(){
     await updateProfile(cred.user, {displayName: first+' '+last});
     const data = await ensureUserDoc(cred.user, {firstName:first, lastName:last, nick, style, avatar:suAvatarData||null});
     toast('Welcome to Kevball, '+first+'! 🎾');
-    setTimeout(()=>location.href = data.isAdmin ? 'index.html' : 'profile.html', 800);
+    await redirectUser(cred.user.uid);
   } catch(e){
     hideLoading(); btn.disabled=false;
     showErr('signupError', e.code==='auth/email-already-in-use' ? 'That email is already registered.' : e.message);
@@ -284,6 +292,7 @@ window.doSignin = async function(){
   const email=document.getElementById('siEmail').value.trim();
   const password=document.getElementById('siPassword').value;
   if(!email||!password){showErr('signinError','Please enter your email and password.');return;}
+  isRedirecting = true;
   const btn=document.getElementById('signinBtn');
   btn.disabled=true; showLoading('Signing in...');
   try {
@@ -291,7 +300,7 @@ window.doSignin = async function(){
     const snap = await getDoc(doc(db,'users',cred.user.uid));
     const data = snap.exists() ? snap.data() : {};
     toast(`Welcome back, ${data.firstName||'player'}! 🎾`);
-    setTimeout(()=>location.href = data.isAdmin ? 'index.html' : 'profile.html', 600);
+    await redirectUser(cred.user.uid);
   } catch(e){
     hideLoading(); btn.disabled=false;
     showErr('signinError','Incorrect email or password.');
