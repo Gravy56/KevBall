@@ -362,6 +362,7 @@
     <li><a href="#bracket">Bracket</a></li>
     <li><a href="#courts">Courts</a></li>
     <li><a href="shop.html" style="color:var(--gold)">Shop</a></li>
+    <li><a href="referee.html" id="refNavLink" style="display:none;color:var(--clay)">Referee</a></li>
   </ul>
   <button class="admin-btn" id="adminNavBtn" onclick="openAdminModal()">
     <span class="lock-icon" id="adminLockIcon">🔒</span>
@@ -722,6 +723,8 @@ function applyAdminState(){
   if(currentUser){
     authBtn.href = 'profile.html';
     authLabel.textContent = 'My Profile';
+    const refLink = document.getElementById('refNavLink');
+    if(refLink) refLink.style.display = (currentUser.isReferee||currentUser.isAdmin) ? 'block' : 'none';
   } else {
     authBtn.href = 'login.html';
     authLabel.textContent = 'Sign In';
