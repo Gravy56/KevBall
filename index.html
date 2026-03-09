@@ -322,16 +322,88 @@
   .admin-only-block{display:none !important;}
   .admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);color:var(--gold);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 10px;text-transform:uppercase;margin-left:12px;vertical-align:middle;}
 
+  /* ── HAMBURGER NAV ── */
+  .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:201;}
+  .hamburger span{display:block;width:24px;height:2px;background:rgba(255,255,255,0.8);transition:all 0.3s;}
+  .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .hamburger.open span:nth-child(2){opacity:0;}
+  .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+  .mobile-menu{
+    display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
+    background:rgba(10,10,8,0.97);backdrop-filter:blur(12px);
+    flex-direction:column;align-items:center;justify-content:center;gap:0;
+    padding:80px 32px 32px;
+  }
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a,.mobile-menu button.mm-btn{
+    font-family:'Black Ops One',cursive;font-size:28px;letter-spacing:3px;
+    color:rgba(255,255,255,0.7);text-decoration:none;text-transform:uppercase;
+    padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+    width:100%;text-align:center;transition:color 0.2s;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;
+  }
+  .mobile-menu a:last-child,.mobile-menu button.mm-btn:last-child{border-bottom:none;}
+  .mobile-menu a:hover,.mobile-menu button.mm-btn:hover{color:var(--gold);}
+  .mobile-menu a.mm-shop{color:var(--gold);}
+  .mobile-menu a.mm-ref{color:var(--clay);display:none;}
+  .mobile-menu a.mm-ref.show{display:block;}
+  .mm-divider{width:60px;height:2px;background:var(--clay);margin:8px auto;}
+
   @media(max-width:768px){
-    nav{padding:14px 20px;} nav ul{display:none;}
+    /* NAV */
+    nav{padding:14px 20px;}
+    nav ul{display:none;}
+    nav .admin-btn:not(#adminNavBtn){display:none;}
+    .hamburger{display:flex;}
+
+    /* HERO */
+    .hero-stats{gap:16px;flex-wrap:wrap;justify-content:center;}
+    .hero-stat .num{font-size:24px;}
+    .hero-stat .lbl{font-size:8px;}
+
+    /* SECTIONS */
     .rules-grid{padding:0 16px;grid-template-columns:1fr;}
     .rankings-container,.sched-container,.bracket-container{padding:0 16px;}
     .bios-container,.courts-container{padding:0 16px;}
     .section-header{padding:56px 16px 36px;}
-    .hero-stats{gap:24px;}
-    .hero-stat .num{font-size:26px;}
+
+    /* RANKINGS TABLE — scrollable wrapper */
+    .rankings-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
+    .rankings-table-wrap table{min-width:360px;}
+
+    /* MATCHUP CARDS — stack vertically instead of 4-col grid */
+    .matchup-card{grid-template-columns:1fr 1fr !important;grid-template-rows:auto auto;gap:0;}
+    .matchup-p1{grid-column:1;padding:14px 12px 4px;}
+    .matchup-p2{grid-column:2;text-align:left !important;padding:14px 12px 4px;}
+    .matchup-score{grid-column:1/-1;justify-content:center;padding:4px 12px 14px;border-top:1px solid rgba(0,0,0,0.06);}
+    .matchup-del{position:absolute;top:8px;right:8px;}
+
+    /* WEEK TABS — horizontal scroll */
+    .week-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+    .week-tab{white-space:nowrap;flex-shrink:0;}
+
+    /* BIOS grid — single col on very small */
+    .bios-grid{grid-template-columns:1fr;}
+
+    /* COURTS grid */
+    .courts-grid{grid-template-columns:1fr;}
+
+    /* FORMS */
     .court-form-grid{grid-template-columns:1fr;}
     .form-row-2{grid-template-columns:1fr;}
+
+    /* MODALS */
+    .modal{margin:0;border-radius:0;max-height:100vh;min-height:60vh;}
+
+    /* LIVE BANNER */
+    #liveBanner{flex-wrap:wrap;gap:8px;padding:10px 16px;}
+    .lb-match{font-size:13px;}
+    .lb-score{font-size:17px;}
+  }
+
+  @media(max-width:480px){
+    .hero-stats{gap:12px;}
+    .bios-grid{grid-template-columns:1fr;}
+    .section-header h2{font-size:clamp(28px,10vw,48px);}
   }
   /* LIVE SCORE BANNER */
   #liveBanner {
@@ -364,14 +436,35 @@
     <li><a href="shop.html" style="color:var(--gold)">Shop</a></li>
     <li><a href="referee.html" id="refNavLink" style="display:none;color:var(--clay)">Referee</a></li>
   </ul>
-  <button class="admin-btn" id="adminNavBtn" onclick="openAdminModal()">
-    <span class="lock-icon" id="adminLockIcon">🔒</span>
-    <span id="adminBtnLabel">Admin</span>
-  </button>
-  <a href="login.html" class="admin-btn" id="authNavBtn" style="text-decoration:none;display:none">
-    <span>👤</span><span id="authNavLabel">Sign In</span>
-  </a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="admin-btn" id="adminNavBtn" onclick="openAdminModal()">
+      <span class="lock-icon" id="adminLockIcon">🔒</span>
+      <span id="adminBtnLabel">Admin</span>
+    </button>
+    <a href="login.html" class="admin-btn" id="authNavBtn" style="text-decoration:none;display:none">
+      <span>👤</span><span id="authNavLabel">Sign In</span>
+    </a>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </nav>
+
+<!-- MOBILE MENU OVERLAY -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#rules" onclick="closeMobileMenu()">Rules</a>
+  <a href="#rankings" onclick="closeMobileMenu()">Rankings</a>
+  <a href="#bios" onclick="closeMobileMenu()">Players</a>
+  <a href="#schedule" onclick="closeMobileMenu()">Schedule</a>
+  <a href="#bracket" onclick="closeMobileMenu()">Bracket</a>
+  <a href="#courts" onclick="closeMobileMenu()">Courts</a>
+  <div class="mm-divider"></div>
+  <a href="shop.html" class="mm-shop">Shop</a>
+  <a href="referee.html" class="mm-ref" id="mmRefLink">Referee</a>
+  <div class="mm-divider"></div>
+  <button class="mm-btn" onclick="openAdminModal();closeMobileMenu()">🔒 Admin</button>
+  <a href="login.html" id="mmAuthLink">👤 Sign In</a>
+</div>
 
 <!-- HERO -->
 <section id="hero">
@@ -724,7 +817,12 @@ function applyAdminState(){
     authBtn.href = 'profile.html';
     authLabel.textContent = 'My Profile';
     const refLink = document.getElementById('refNavLink');
-    if(refLink) refLink.style.display = (currentUser.isReferee||currentUser.isAdmin) ? 'block' : 'none';
+    const mmRef   = document.getElementById('mmRefLink');
+    const mmAuth  = document.getElementById('mmAuthLink');
+    const canRef  = currentUser.isReferee||currentUser.isAdmin;
+    if(refLink) refLink.style.display = canRef ? 'block' : 'none';
+    if(mmRef)   mmRef.classList.toggle('show', canRef);
+    if(mmAuth){ mmAuth.href='profile.html'; mmAuth.textContent='👤 My Profile'; }
   } else {
     authBtn.href = 'login.html';
     authLabel.textContent = 'Sign In';
@@ -1340,6 +1438,22 @@ await loadBios();
 await loadCourts();
 renderBracket();
 initReveal();
+
+  // ── MOBILE MENU ────────────────────────────────────────
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const ham  = document.getElementById('hamburger');
+    const open = menu.classList.toggle('open');
+    ham.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  // Close on ESC
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeMobileMenu(); });
 </script>
 <!-- LIVE SCORE BANNER -->
 <div id="liveBanner">
