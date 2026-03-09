@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEVBALL — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--clay:#c4622d;--clay-light:#d4794a;--clay-dark:#8b3a1a;--clay-bg:#f5e6d3;--ink:#1a1a18;--gold:#d4a843;--white:#fafaf8;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{font-family:'DM Sans',sans-serif;background:#1a2e18;color:var(--white);min-height:100vh;display:flex;flex-direction:column;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:relative;z-index:10;}
+  .logo{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-back{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+  .nav-back:hover{color:var(--gold);}
+  .bg-court{position:fixed;inset:0;z-index:0;opacity:0.07;}
+  .bg-court svg{width:100%;height:100%;}
+  .auth-wrapper{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;position:relative;z-index:1;}
+  .auth-card{width:100%;max-width:480px;}
+  .tab-row{display:flex;}
+  .tab{flex:1;padding:14px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border-bottom:3px solid transparent;}
+  .tab.active{background:rgba(255,255,255,0.08);color:var(--gold);border-bottom-color:var(--gold);}
+  .form-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:40px;backdrop-filter:blur(8px);}
+  .form-title{font-family:'Black Ops One',cursive;font-size:28px;letter-spacing:2px;color:var(--white);margin-bottom:6px;}
+  .form-sub{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:28px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;}
+  .field input,.field select{width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);color:var(--white);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;}
+  .field input:focus,.field select:focus{border-color:var(--gold);}
+  .field input::placeholder{color:rgba(255,255,255,0.2);}
+  .field select option{background:#2a2a2a;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .avatar-field{margin-bottom:18px;}
+  .avatar-field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;}
+  .avatar-drop{border:2px dashed rgba(255,255,255,0.15);padding:18px;cursor:pointer;position:relative;transition:border-color 0.2s;display:flex;align-items:center;gap:16px;}
+  .avatar-drop:hover{border-color:var(--gold);}
+  .avatar-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .avatar-preview-wrap{width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--clay-dark),var(--clay));display:flex;align-items:center;justify-content:center;font-family:'Black Ops One',cursive;font-size:16px;color:#fff;}
+  .avatar-drop-text strong{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.6);}
+  .avatar-drop-text span{font-size:11px;color:rgba(255,255,255,0.3);}
+  .submit-btn{width:100%;background:var(--gold);color:var(--ink);border:none;padding:15px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;font-weight:700;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .submit-btn:hover{background:#e8b84d;transform:translateY(-1px);}
+  .submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  /* GOOGLE BTN */
+  .google-btn{width:100%;background:#fff;color:#3c3c3c;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:4px;}
+  .google-btn:hover{background:#f1f1f1;transform:translateY(-1px);}
+  .google-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .google-icon{width:18px;height:18px;flex-shrink:0;}
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+  .divider hr{flex:1;border:none;border-top:1px solid rgba(255,255,255,0.1);}
+  .divider span{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+  .err-msg{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 14px;margin-bottom:16px;display:none;}
+  .err-msg.show{display:block;}
+  .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  .loading-overlay.show{display:flex;}
+  .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:#fff;padding:13px 22px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;z-index:1000;transform:translateY(80px);opacity:0;transition:all 0.3s;border-left:4px solid var(--gold);}
+  .toast.show{transform:translateY(0);opacity:1;}
+  @media(max-width:600px){nav{padding:16px 20px;}.form-card{padding:24px 20px;}.field-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="bg-court">
+  <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+    <rect x="150" y="80" width="900" height="540" fill="none" stroke="white" stroke-width="3"/>
+    <rect x="220" y="80" width="760" height="540" fill="none" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="350" x2="1050" y2="350" stroke="white" stroke-width="3"/>
+    <line x1="600" y1="170" x2="600" y2="530" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="170" x2="1050" y2="170" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="530" x2="1050" y2="530" stroke="white" stroke-width="2"/>
+  </svg>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Loading...</div>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <a href="index.html" class="nav-back">← Back to Home</a>
+</nav>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="tab-row">
+      <button class="tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</button>
+      <button class="tab" id="tabSignup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+    <div class="form-card">
+
+      <!-- SIGN IN -->
+      <div id="signinView">
+        <div class="form-title">Welcome Back</div>
+        <div class="form-sub">Sign in to your Kevball account</div>
+        <div class="err-msg" id="signinError"></div>
+        <button class="google-btn" id="googleSigninBtn" onclick="doGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="divider"><hr/><span>or</span><hr/></div>
+        <div class="field"><label>Email</label><input type="email" id="siEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doSignin()"/></div>
+        <div class="field"><label>Password</label><input type="password" id="siPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignin()"/></div>
+        <button class="submit-btn" id="signinBtn" onclick="doSignin()">Sign In →</button>
+        <p style="text-align:center;margin-top:16px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.12);text-transform:uppercase;">Kevin's account unlocks admin mode</p>
+      </div>
+
+      <!-- SIGN UP -->
+      <div id="signupView" style="display:none">
+        <div class="form-title">Join the Roster</div>
+        <div class="form-sub">Create your Kevball player account</div>
+        <div class="err-msg" id="signupError"></div>
+        <button class="google-btn" id="googleSignupBtn" onclick="doGoogleAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="divider"><hr/><span>or</span><hr/></div>
+        <div class="avatar-field">
+          <label>Profile Photo (optional)</label>
+          <div class="avatar-drop">
+            <input type="file" accept="image/*" onchange="handleSuAvatar(this)"/>
+            <div class="avatar-preview-wrap" id="suAvatarPreview">?</div>
+            <div class="avatar-drop-text"><strong>Upload a photo</strong><span>Click to browse</span></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>First Name *</label><input type="text" id="suFirst" placeholder="Kevin"/></div>
+          <div class="field"><label>Last Name *</label><input type="text" id="suLast" placeholder="Orellana"/></div>
+        </div>
+        <div class="field"><label>Email *</label><input type="email" id="suEmail" placeholder="you@email.com"/></div>
+        <div class="field"><label>Password *</label><input type="password" id="suPassword" placeholder="Min. 6 characters"/></div>
+        <div class="field"><label>Nickname (optional)</label><input type="text" id="suNick" placeholder="e.g. The Commissioner"/></div>
+        <div class="field">
+          <label>Play Style</label>
+          <select id="suStyle">
+            <option value="">Select...</option>
+            <option>Aggressive</option><option>Defensive</option><option>Balanced</option>
+            <option>Power</option><option>Technical</option><option>Chaos Agent</option>
+          </select>
+        </div>
+        <button class="submit-btn" id="signupBtn" onclick="doSignup()">Create Account →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ---- IMPORTANT: Set this to YOUR real Google account email ----
+// When you first sign in with Google using this email, you'll be auto-granted admin.
+const ADMIN_EMAIL = "kevinorellana456@gmail.com"; // <-- change to your actual email
+
+function showLoading(msg='Loading...'){document.getElementById('loadingOverlay').classList.add('show');document.getElementById('loadingText').textContent=msg;}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+function hideErr(id){document.getElementById(id).classList.remove('show');}
+
+async function redirectUser(uid){
+  const snap = await getDoc(doc(db,'users',uid));
+  const data = snap.exists() ? snap.data() : {};
+  location.href = data.isAdmin ? 'index.html' : 'profile.html';
+}
+
+// If already logged in, redirect immediately
+onAuthStateChanged(auth, async user => {
+  if(user) { showLoading('Loading...'); await redirectUser(user.uid); }
+});
+
+window.switchTab = function(tab){
+  document.getElementById('signinView').style.display = tab==='signin' ? 'block' : 'none';
+  document.getElementById('signupView').style.display = tab==='signup' ? 'block' : 'none';
+  document.getElementById('tabSignin').classList.toggle('active', tab==='signin');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+};
+if(location.search.includes('signup')) window.switchTab('signup');
+
+let suAvatarData = null;
+window.handleSuAvatar = function(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    suAvatarData=e.target.result;
+    document.getElementById('suAvatarPreview').innerHTML=`<img src="${suAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Shared function to create/update a user doc after any auth method
+async function ensureUserDoc(user, extraData={}){
+  const uid = user.uid;
+  const snap = await getDoc(doc(db,'users',uid));
+  if(snap.exists()) return snap.data(); // already exists, don't overwrite
+
+  const isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const nameParts = (user.displayName||'Player').split(' ');
+  const firstName = extraData.firstName || nameParts[0] || 'Player';
+  const lastName = extraData.lastName || nameParts.slice(1).join(' ') || '';
+  const displayName = firstName + (lastName ? ' '+lastName : '');
+  const avatar = extraData.avatar || user.photoURL || null;
+
+  const userData = {
+    uid, email: user.email,
+    firstName, lastName, displayName,
+    nick: extraData.nick || '',
+    style: extraData.style || '',
+    avatar,
+    isAdmin,
+    wins:0, losses:0, points:0,
+    createdAt: serverTimestamp()
+  };
+  await setDoc(doc(db,'users',uid), userData);
+  await setDoc(doc(db,'players',uid), {uid, name:displayName, wins:0, losses:0, points:0, avatar});
+  return userData;
+}
+
+window.doGoogleAuth = async function(){
+  showLoading('Opening Google sign-in...');
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    await ensureUserDoc(result.user);
+    toast('Signed in with Google! 🎾');
+    setTimeout(()=>redirectUser(result.user.uid), 600);
+  } catch(e){
+    hideLoading();
+    if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
+  }
+};
+
+window.doSignup = async function(){
+  hideErr('signupError');
+  const first=document.getElementById('suFirst').value.trim();
+  const last=document.getElementById('suLast').value.trim();
+  const email=document.getElementById('suEmail').value.trim();
+  const password=document.getElementById('suPassword').value;
+  const nick=document.getElementById('suNick').value.trim();
+  const style=document.getElementById('suStyle').value;
+  if(!first||!last){showErr('signupError','Please enter your full name.');return;}
+  if(!email){showErr('signupError','Please enter your email.');return;}
+  if(password.length<6){showErr('signupError','Password must be at least 6 characters.');return;}
+  const btn=document.getElementById('signupBtn');
+  btn.disabled=true; showLoading('Creating your account...');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, {displayName: first+' '+last});
+    const data = await ensureUserDoc(cred.user, {firstName:first, lastName:last, nick, style, avatar:suAvatarData||null});
+    toast('Welcome to Kevball, '+first+'! 🎾');
+    setTimeout(()=>location.href = data.isAdmin ? 'index.html' : 'profile.html', 800);
+  } catch(e){
+    hideLoading(); btn.disabled=false;
+    showErr('signupError', e.code==='auth/email-already-in-use' ? 'That email is already registered.' : e.message);
+  }
+};
+
+window.doSignin = async function(){
+  hideErr('signinError');
+  const email=document.getElementById('siEmail').value.trim();
+  const password=document.getElementById('siPassword').value;
+  if(!email||!password){showErr('signinError','Please enter your email and password.');return;}
+  const btn=document.getElementById('signinBtn');
+  btn.disabled=true; showLoading('Signing in...');
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const snap = await getDoc(doc(db,'users',cred.user.uid));
+    const data = snap.exists() ? snap.data() : {};
+    toast(`Welcome back, ${data.firstName||'player'}! 🎾`);
+    setTimeout(()=>location.href = data.isAdmin ? 'index.html' : 'profile.html', 600);
+  } catch(e){
+    hideLoading(); btn.disabled=false;
+    showErr('signinError','Incorrect email or password.');
+  }
+};
+</script>
+</body>
+</html>

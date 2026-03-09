@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEVBALL — My Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--clay:#c4622d;--clay-light:#d4794a;--clay-dark:#8b3a1a;--clay-bg:#f5e6d3;--ink:#1a1a18;--gold:#d4a843;--white:#fafaf8;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--clay-bg);color:var(--ink);min-height:100vh;}
+  nav{background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:18px 48px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--clay);}
+  .logo{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-right{display:flex;align-items:center;gap:16px;}
+  .nav-link{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s;}
+  .nav-link:hover{color:var(--gold);}
+  .logout-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;transition:all 0.2s;}
+  .logout-btn:hover{border-color:#e74c3c;color:#e74c3c;}
+  .profile-banner{background:linear-gradient(135deg,var(--clay-dark) 0%,var(--clay) 60%,var(--clay-light) 100%);padding:60px 48px 0;position:relative;overflow:hidden;}
+  .profile-banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:var(--clay-bg);border-radius:40px 40px 0 0;}
+  .banner-inner{max-width:1100px;margin:0 auto;display:flex;align-items:flex-end;gap:32px;position:relative;z-index:1;}
+  .profile-avatar-wrap{width:110px;height:110px;border-radius:50%;border:4px solid rgba(255,255,255,0.4);overflow:hidden;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:-20px;}
+  .profile-avatar-wrap img{width:100%;height:100%;object-fit:cover;}
+  .profile-initials-big{font-family:'Black Ops One',cursive;font-size:36px;color:rgba(255,255,255,0.8);}
+  .profile-banner-info{padding-bottom:28px;flex:1;}
+  .profile-banner-name{font-family:'Black Ops One',cursive;font-size:clamp(26px,4vw,44px);color:#fff;letter-spacing:2px;line-height:1;}
+  .profile-banner-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-top:6px;}
+  .admin-crown{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:var(--ink);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 12px;text-transform:uppercase;font-weight:700;margin-top:8px;}
+  .profile-body{max-width:1100px;margin:0 auto;padding:40px 48px 80px;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px;}
+  .stat-card{background:#fff;padding:22px 20px;border-bottom:3px solid var(--clay);text-align:center;}
+  .stat-val{font-family:'Black Ops One',cursive;font-size:36px;color:var(--clay);display:block;}
+  .stat-lbl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:#999;text-transform:uppercase;margin-top:4px;}
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .full-col{grid-column:1/-1;}
+  .panel{background:#fff;border-top:4px solid var(--clay);}
+  .panel-header{padding:18px 24px;border-bottom:1px solid #f0e4d2;display:flex;align-items:center;justify-content:space-between;}
+  .panel-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--ink);}
+  .panel-tag{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--clay);text-transform:uppercase;}
+  .panel-body{padding:20px 24px;}
+  .match-item{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5ede5;}
+  .match-item:last-child{border-bottom:none;}
+  .match-player{font-weight:600;font-size:14px;}
+  .match-player.me{color:var(--clay-dark);}
+  .match-player.right{text-align:right;}
+  .match-center{text-align:center;}
+  .match-score{font-family:'Black Ops One',cursive;font-size:18px;color:var(--clay);display:block;}
+  .match-status{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#bbb;display:block;margin-top:2px;}
+  .match-result-w{color:#2d5a27;font-size:9px;font-family:'Space Mono',monospace;letter-spacing:1px;display:block;}
+  .match-result-l{color:#c0392b;font-size:9px;font-family:'Space Mono',monospace;letter-spacing:1px;display:block;}
+  .week-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:8px;margin-top:16px;}
+  .week-label:first-child{margin-top:0;}
+  .edit-field{margin-bottom:16px;}
+  .edit-field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,0.4);margin-bottom:6px;}
+  .edit-field input,.edit-field select,.edit-field textarea{width:100%;padding:11px 14px;border:1.5px solid #d4c4b0;background:#fdfaf7;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color 0.2s;resize:vertical;}
+  .edit-field input:focus,.edit-field select:focus,.edit-field textarea:focus{border-color:var(--clay);}
+  .edit-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .save-profile-btn{background:var(--clay);color:#fff;border:none;padding:12px 28px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:background 0.2s;text-transform:uppercase;}
+  .save-profile-btn:hover{background:var(--clay-dark);}
+  .save-profile-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .avatar-edit-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+  .avatar-edit-preview{width:64px;height:64px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--clay-dark),var(--clay));display:flex;align-items:center;justify-content:center;font-family:'Black Ops One',cursive;font-size:22px;color:#fff;flex-shrink:0;border:3px solid var(--clay);}
+  .avatar-edit-preview img{width:100%;height:100%;object-fit:cover;}
+  .avatar-change-btn{position:relative;overflow:hidden;background:transparent;border:1.5px solid var(--clay);color:var(--clay);padding:8px 16px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+  .avatar-change-btn:hover{background:var(--clay);color:#fff;}
+  .avatar-change-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .empty-p{text-align:center;padding:32px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:#bbb;text-transform:uppercase;}
+  .loading-overlay{position:fixed;inset:0;background:rgba(245,230,211,0.85);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  .spinner{width:40px;height:40px;border:3px solid rgba(196,98,45,0.2);border-top-color:var(--clay);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--clay);text-transform:uppercase;}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:#fff;padding:13px 22px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;z-index:1000;transform:translateY(80px);opacity:0;transition:all 0.3s;border-left:4px solid var(--gold);}
+  .toast.show{transform:translateY(0);opacity:1;}
+  @media(max-width:768px){nav{padding:14px 20px;}.profile-banner{padding:40px 20px 0;}.banner-inner{flex-direction:column;align-items:flex-start;gap:16px;}.profile-avatar-wrap{margin-bottom:0;}.profile-body{padding:24px 20px 60px;}.stats-row{grid-template-columns:1fr 1fr;}.profile-grid{grid-template-columns:1fr;}.edit-field-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading your profile...</div>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link">← Home</a>
+    <button class="logout-btn" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+
+<div class="profile-banner" id="profileBanner" style="display:none">
+  <div class="banner-inner">
+    <div class="profile-avatar-wrap" id="bannerAvatar"></div>
+    <div class="profile-banner-info">
+      <div class="profile-banner-name" id="bannerName">—</div>
+      <div class="profile-banner-sub" id="bannerSub">—</div>
+      <div id="adminCrown" style="display:none"><span class="admin-crown">👑 Commissioner · Admin</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="profile-body" id="profileBody" style="display:none">
+  <div class="stats-row">
+    <div class="stat-card"><span class="stat-val" id="statW">0</span><span class="stat-lbl">Wins</span></div>
+    <div class="stat-card"><span class="stat-val" id="statL">0</span><span class="stat-lbl">Losses</span></div>
+    <div class="stat-card"><span class="stat-val" id="statPts">0</span><span class="stat-lbl">Points</span></div>
+    <div class="stat-card"><span class="stat-val" id="statRank">—</span><span class="stat-lbl">Ranking</span></div>
+  </div>
+  <div class="profile-grid">
+    <div class="panel full-col">
+      <div class="panel-header"><span class="panel-title">MY MATCHES</span><span class="panel-tag">All Weeks</span></div>
+      <div class="panel-body" id="myMatchesPanel"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">EDIT PROFILE</span><span class="panel-tag">Player Card</span></div>
+      <div class="panel-body">
+        <div class="avatar-edit-row">
+          <div class="avatar-edit-preview" id="editAvatarPreview"></div>
+          <div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px" id="editDisplayName">—</div>
+            <button class="avatar-change-btn">
+              <input type="file" accept="image/*" onchange="handleEditAvatar(this)"/>
+              Change Photo
+            </button>
+          </div>
+        </div>
+        <div class="edit-field-row">
+          <div class="edit-field"><label>First Name</label><input type="text" id="editFirst"/></div>
+          <div class="edit-field"><label>Last Name</label><input type="text" id="editLast"/></div>
+        </div>
+        <div class="edit-field"><label>Nickname</label><input type="text" id="editNick" placeholder="e.g. The Commissioner"/></div>
+        <div class="edit-field">
+          <label>Play Style</label>
+          <select id="editStyle">
+            <option value="">Select...</option>
+            <option>Aggressive</option><option>Defensive</option><option>Balanced</option>
+            <option>Power</option><option>Technical</option><option>Chaos Agent</option>
+          </select>
+        </div>
+        <div class="edit-field"><label>Bio / Trash Talk</label><textarea id="editBio" rows="3" placeholder="Tell us about your game..."></textarea></div>
+        <button class="save-profile-btn" id="saveProfileBtn" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">STANDINGS</span><span class="panel-tag">Current Season</span></div>
+      <div class="panel-body" id="standingsPanel"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+let currentUser = null;
+let editAvatarData = null;
+
+onAuthStateChanged(auth, async user => {
+  if(!user){ location.href='login.html'; return; }
+  const snap = await getDoc(doc(db,'users',user.uid));
+  if(!snap.exists()){ location.href='login.html'; return; }
+  currentUser = snap.data();
+  editAvatarData = currentUser.avatar || null;
+  document.getElementById('loadingOverlay').style.display='none';
+  document.getElementById('profileBanner').style.display='block';
+  document.getElementById('profileBody').style.display='block';
+  renderBanner();
+  renderStats();
+  renderMyMatches();
+  renderStandings();
+  populateEditForm();
+});
+
+document.getElementById('logoutBtn').onclick = async () => {
+  await signOut(auth);
+  location.href='login.html';
+};
+
+function renderBanner(){
+  const u = currentUser;
+  const initials = ((u.firstName||'?')[0] + (u.lastName||'?')[0]).toUpperCase();
+  const av = document.getElementById('bannerAvatar');
+  av.innerHTML = u.avatar
+    ? `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover"/>`
+    : `<span class="profile-initials-big">${initials}</span>`;
+  document.getElementById('bannerName').textContent = u.displayName || (u.firstName+' '+u.lastName);
+  document.getElementById('bannerSub').textContent = u.email + (u.nick ? ` · "${u.nick}"` : '');
+  if(u.isAdmin) document.getElementById('adminCrown').style.display='block';
+}
+
+async function renderStats(){
+  const playerSnap = await getDoc(doc(db,'players',currentUser.uid));
+  const p = playerSnap.exists() ? playerSnap.data() : {};
+  const wins = p.wins||0, losses = p.losses||0, pts = (wins*3)-losses;
+  document.getElementById('statW').textContent = wins;
+  document.getElementById('statL').textContent = losses;
+  document.getElementById('statPts').textContent = pts;
+  // Rank
+  const allSnap = await getDocs(query(collection(db,'players'), orderBy('points','desc')));
+  let rank = 0, i = 1;
+  allSnap.forEach(d => { if(d.id === currentUser.uid) rank = i; i++; });
+  document.getElementById('statRank').textContent = rank ? '#'+rank : '—';
+}
+
+async function renderMyMatches(){
+  const panel = document.getElementById('myMatchesPanel');
+  const weeksSnap = await getDocs(collection(db,'weeks'));
+  const myName = (currentUser.displayName||'').toLowerCase();
+  let html = '';
+  const weeks = [];
+  weeksSnap.forEach(d => weeks.push(d.data()));
+  weeks.sort((a,b) => (a.order||0)-(b.order||0));
+  for(const week of weeks){
+    const myMatches = (week.matches||[]).filter(m =>
+      m.p1.toLowerCase()===myName || m.p2.toLowerCase()===myName
+    );
+    if(!myMatches.length) continue;
+    html += `<div class="week-label">${week.label}</div>`;
+    myMatches.forEach(m => {
+      const isP1 = m.p1.toLowerCase()===myName;
+      const myScore = m.played ? (isP1?m.score1:m.score2) : null;
+      const oppScore = m.played ? (isP1?m.score2:m.score1) : null;
+      const opp = isP1 ? m.p2 : m.p1;
+      const won = m.played && myScore > oppScore;
+      html += `<div class="match-item">
+        <div class="match-player me">${currentUser.firstName}</div>
+        <div class="match-center">
+          ${m.played
+            ? `<span class="match-score">${myScore} — ${oppScore}</span>
+               <span class="${won?'match-result-w':'match-result-l'}">${won?'WIN ✓':'LOSS'}</span>`
+            : `<span class="match-score" style="font-size:14px;color:#bbb">vs</span>
+               <span class="match-status">Upcoming</span>`}
+        </div>
+        <div class="match-player right">${opp}</div>
+      </div>`;
+    });
+  }
+  panel.innerHTML = html || '<div class="empty-p">No matches scheduled yet</div>';
+}
+
+async function renderStandings(){
+  const panel = document.getElementById('standingsPanel');
+  const snap = await getDocs(query(collection(db,'players'), orderBy('points','desc')));
+  let html='', i=1;
+  snap.forEach(d => {
+    const p = d.data();
+    const isMe = d.id === currentUser.uid;
+    const medals = ['','var(--gold)','#aaa','#cd7f32'];
+    html += `<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f5ede5;">
+      <span style="font-family:'Black Ops One',cursive;font-size:18px;color:${medals[i]||'rgba(0,0,0,0.12)'};width:28px">${i}</span>
+      <span style="flex:1;font-weight:${isMe?700:400};font-size:14px;color:${isMe?'var(--clay-dark)':'var(--ink)'}">${p.name||''}${isMe?' (you)':''}</span>
+      <span style="font-family:'Black Ops One',cursive;font-size:15px;color:var(--clay)">${p.points||0}</span>
+    </div>`;
+    i++;
+  });
+  panel.innerHTML = html || '<div class="empty-p">No players yet</div>';
+}
+
+function populateEditForm(){
+  const u = currentUser;
+  document.getElementById('editFirst').value = u.firstName||'';
+  document.getElementById('editLast').value = u.lastName||'';
+  document.getElementById('editNick').value = u.nick||'';
+  document.getElementById('editStyle').value = u.style||'';
+  document.getElementById('editBio').value = u.bio||'';
+  document.getElementById('editDisplayName').textContent = u.displayName||'';
+  const prev = document.getElementById('editAvatarPreview');
+  if(u.avatar){
+    prev.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  } else {
+    prev.textContent = ((u.firstName||'?')[0]+(u.lastName||'?')[0]).toUpperCase();
+  }
+}
+
+window.handleEditAvatar = function(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    editAvatarData=e.target.result;
+    document.getElementById('editAvatarPreview').innerHTML=`<img src="${editAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveProfile = async function(){
+  const first = document.getElementById('editFirst').value.trim();
+  const last = document.getElementById('editLast').value.trim();
+  if(!first||!last){toast('Name cannot be empty!');return;}
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled=true; btn.textContent='Saving...';
+  const displayName = first+' '+last;
+  const updates = {
+    firstName:first, lastName:last, displayName,
+    nick: document.getElementById('editNick').value.trim(),
+    style: document.getElementById('editStyle').value,
+    bio: document.getElementById('editBio').value.trim(),
+    avatar: editAvatarData,
+  };
+  await updateDoc(doc(db,'users',currentUser.uid), updates);
+  await updateDoc(doc(db,'players',currentUser.uid), {name:displayName, avatar:editAvatarData});
+  currentUser = {...currentUser, ...updates};
+  renderBanner();
+  document.getElementById('editDisplayName').textContent = displayName;
+  btn.disabled=false; btn.textContent='Save Changes';
+  toast('Profile saved! ✓');
+};
+</script>
+</body>
+</html>
