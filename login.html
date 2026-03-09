@@ -173,7 +173,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // ---- IMPORTANT: Set this to YOUR real Google account email ----
 // When you first sign in with Google using this email, you'll be auto-granted admin.
-const ADMIN_EMAIL = "kgravy56@gmail.com"; // <-- change to your actual email
+const ADMIN_EMAIL = "kevinorellana456@gmail.com"; // <-- change to your actual email
 
 function showLoading(msg='Loading...'){document.getElementById('loadingOverlay').classList.add('show');document.getElementById('loadingText').textContent=msg;}
 function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
@@ -187,9 +187,11 @@ async function redirectUser(uid){
   location.href = data.isAdmin ? 'index.html' : 'profile.html';
 }
 
-// If already logged in, redirect immediately
-onAuthStateChanged(auth, async user => {
-  if(user) { showLoading('Loading...'); await redirectUser(user.uid); }
+// Wait for Firebase to fully resolve auth state before deciding to redirect.
+// Using authStateReady() avoids the flicker where auth is briefly null on load.
+auth.authStateReady().then(async () => {
+  const user = auth.currentUser;
+  if(user){ showLoading('Loading...'); await redirectUser(user.uid); }
 });
 
 window.switchTab = function(tab){

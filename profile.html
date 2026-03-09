@@ -174,7 +174,10 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 let currentUser = null;
 let editAvatarData = null;
 
-onAuthStateChanged(auth, async user => {
+// Wait for Firebase to fully resolve before checking auth.
+// This prevents the redirect loop caused by the brief null state on load.
+auth.authStateReady().then(async () => {
+  const user = auth.currentUser;
   if(!user){ location.href='login.html'; return; }
   const snap = await getDoc(doc(db,'users',user.uid));
   if(!snap.exists()){ location.href='login.html'; return; }
