@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match History — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18; --clay: #c4622d; --clay-light: #d4794a;
+    --clay-bg: #f5e6d3; --gold: #d4a843; --green: #2d5a27;
+    --white: #fafaf8; --red: #c0392b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--white); min-height:100vh; }
+
+  /* NAV */
+  nav {
+    position:sticky; top:0; z-index:100;
+    background:rgba(10,10,8,0.95); backdrop-filter:blur(12px);
+    border-bottom:2px solid var(--clay);
+    padding:14px 32px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:3px; color:var(--white); text-decoration:none; }
+  .logo span { color:var(--gold); }
+  .nav-back { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-decoration:none; text-transform:uppercase; transition:color 0.2s; }
+  .nav-back:hover { color:var(--clay); }
+
+  /* PAGE HEADER */
+  .page-header {
+    background:linear-gradient(135deg, #0f0f0d 0%, #1e1209 50%, #0f0f0d 100%);
+    border-bottom:1px solid rgba(196,98,45,0.2);
+    padding:56px 32px 40px; text-align:center;
+  }
+  .page-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:12px; }
+  .page-title { font-family:'Black Ops One',cursive; font-size:clamp(36px,6vw,64px); letter-spacing:4px; color:var(--white); line-height:1; }
+  .page-title span { color:var(--gold); }
+  .page-sub { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.3); margin-top:12px; text-transform:uppercase; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display:flex; justify-content:center; gap:0;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    background:rgba(255,255,255,0.02);
+  }
+  .stat-cell {
+    flex:1; max-width:180px; text-align:center;
+    padding:20px 16px; border-right:1px solid rgba(255,255,255,0.06);
+  }
+  .stat-cell:last-child { border-right:none; }
+  .stat-num { font-family:'Black Ops One',cursive; font-size:28px; color:var(--gold); display:block; }
+  .stat-lbl { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.3); text-transform:uppercase; margin-top:2px; display:block; }
+
+  /* FILTERS */
+  .filters {
+    max-width:900px; margin:32px auto 0; padding:0 24px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  }
+  .filter-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.3); text-transform:uppercase; margin-right:4px; }
+  .filter-input {
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:var(--white); font-family:'DM Sans',sans-serif; font-size:13px;
+    padding:8px 14px; outline:none; transition:border-color 0.2s; flex:1; min-width:160px;
+  }
+  .filter-input:focus { border-color:var(--clay); }
+  .filter-input::placeholder { color:rgba(255,255,255,0.25); }
+  .filter-select {
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    color:var(--white); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px;
+    padding:8px 14px; outline:none; cursor:pointer;
+  }
+  .filter-select option { background:var(--ink); }
+  .clear-btn {
+    background:none; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.35);
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:8px 14px;
+    cursor:pointer; text-transform:uppercase; transition:all 0.2s; white-space:nowrap;
+  }
+  .clear-btn:hover { border-color:var(--red); color:var(--red); }
+
+  /* MATCH LIST */
+  .history-wrap { max-width:900px; margin:24px auto 80px; padding:0 24px; }
+
+  .loading-state {
+    text-align:center; padding:80px 0;
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px;
+    color:rgba(255,255,255,0.2); text-transform:uppercase;
+  }
+  .loading-spinner {
+    width:32px; height:32px; border:2px solid rgba(255,255,255,0.1);
+    border-top-color:var(--clay); border-radius:50%;
+    animation:spin 0.8s linear infinite; margin:0 auto 16px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .empty-history {
+    text-align:center; padding:80px 0;
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px;
+    color:rgba(255,255,255,0.2); text-transform:uppercase;
+  }
+  .empty-history .empty-icon { font-size:48px; display:block; margin-bottom:16px; opacity:0.4; }
+
+  /* MATCH CARD */
+  .match-card {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);
+    margin-bottom:10px; transition:border-color 0.2s; overflow:hidden;
+    animation:fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .match-card:hover { border-color:rgba(196,98,45,0.3); }
+
+  .match-card-main {
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    padding:20px 24px; gap:16px; cursor:pointer;
+  }
+  .mc-team { }
+  .mc-team.right { text-align:right; }
+  .mc-team-name {
+    font-family:'Black Ops One',cursive; font-size:16px; letter-spacing:1px; color:var(--white);
+    line-height:1.2;
+  }
+  .mc-team-name.winner { color:var(--gold); }
+  .mc-team-members {
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px;
+    color:rgba(255,255,255,0.3); margin-top:3px; line-height:1.6;
+  }
+  .mc-win-tag {
+    font-family:'Space Mono',monospace; font-size:8px; letter-spacing:2px;
+    color:var(--gold); text-transform:uppercase; margin-top:4px; display:block;
+  }
+
+  .mc-center { text-align:center; flex-shrink:0; }
+  .mc-score {
+    font-family:'Black Ops One',cursive; font-size:28px; letter-spacing:3px; color:var(--white);
+    white-space:nowrap;
+  }
+  .mc-score .s-win { color:var(--gold); }
+  .mc-meta { font-family:'Space Mono',monospace; font-size:8px; letter-spacing:2px; color:rgba(255,255,255,0.2); text-transform:uppercase; margin-top:4px; display:block; }
+  .mc-format-badge {
+    display:inline-block; background:rgba(196,98,45,0.15); color:var(--clay);
+    font-family:'Space Mono',monospace; font-size:8px; letter-spacing:2px;
+    padding:2px 8px; text-transform:uppercase; margin-top:6px;
+  }
+
+  /* EXPANDABLE EVENTS */
+  .match-card-events {
+    display:none; padding:0 24px 16px;
+    border-top:1px solid rgba(255,255,255,0.05);
+  }
+  .match-card-events.open { display:block; }
+  .events-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.25); text-transform:uppercase; padding:12px 0 8px; }
+  .ev-row { display:flex; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; }
+  .ev-row:last-child { border-bottom:none; }
+  .ev-icon { flex-shrink:0; }
+  .ev-text { color:rgba(255,255,255,0.55); flex:1; }
+  .ev-time { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); }
+  .no-events { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:2px; padding:8px 0; }
+  .expand-hint { font-family:'Space Mono',monospace; font-size:8px; letter-spacing:2px; color:rgba(255,255,255,0.2); text-align:right; padding:4px 0 0; }
+
+  /* DATE DIVIDER */
+  .date-divider {
+    display:flex; align-items:center; gap:12px; margin:28px 0 12px;
+  }
+  .date-divider-line { flex:1; height:1px; background:rgba(255,255,255,0.07); }
+  .date-divider-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px; color:rgba(255,255,255,0.25); text-transform:uppercase; white-space:nowrap; }
+
+  /* PAGINATION */
+  .pagination { display:flex; justify-content:center; gap:8px; margin-top:32px; }
+  .page-btn {
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.5); font-family:'Space Mono',monospace; font-size:10px;
+    letter-spacing:1px; padding:8px 16px; cursor:pointer; transition:all 0.2s;
+  }
+  .page-btn:hover { border-color:var(--clay); color:var(--white); }
+  .page-btn.active { background:var(--clay); border-color:var(--clay); color:#fff; }
+  .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+  @media(max-width:600px) {
+    .stats-bar { flex-wrap:wrap; }
+    .stat-cell { min-width:50%; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .match-card-main { grid-template-columns:1fr auto 1fr; gap:8px; padding:16px 14px; }
+    .mc-team-name { font-size:13px; }
+    .mc-score { font-size:22px; }
+    .filters { flex-direction:column; }
+    .filter-input { min-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <a href="index.html" class="nav-back">← Back to Kevball</a>
+</nav>
+
+<div class="page-header">
+  <div class="page-label">All Time</div>
+  <div class="page-title">MATCH <span>HISTORY</span></div>
+  <div class="page-sub" id="pageSubLabel">Loading records...</div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-cell"><span class="stat-num" id="statTotal">—</span><span class="stat-lbl">Matches</span></div>
+  <div class="stat-cell"><span class="stat-num" id="statAvgScore">—</span><span class="stat-lbl">Avg Score</span></div>
+  <div class="stat-cell"><span class="stat-num" id="statFormats">—</span><span class="stat-lbl">Formats Played</span></div>
+  <div class="stat-cell"><span class="stat-num" id="statReferees">—</span><span class="stat-lbl">Referees</span></div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Filter</span>
+  <input class="filter-input" id="filterPlayer" placeholder="Search by player name..." oninput="applyFilters()"/>
+  <select class="filter-select" id="filterFormat" onchange="applyFilters()">
+    <option value="">All formats</option>
+    <option value="1v1">1v1</option>
+    <option value="2v2">2v2</option>
+    <option value="3v3">3v3</option>
+    <option value="4v4">4v4</option>
+  </select>
+  <button class="clear-btn" onclick="clearFilters()">✕ Clear</button>
+</div>
+
+<div class="history-wrap">
+  <div class="loading-state" id="loadingState">
+    <div class="loading-spinner"></div>
+    Loading match history...
+  </div>
+  <div id="historyList"></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+  isTokenAutoRefreshEnabled: true
+});
+const db = getFirestore(app);
+
+const PAGE_SIZE = 15;
+let allMatches = [];
+let filtered = [];
+let currentPage = 1;
+
+// ── LOAD ──────────────────────────────────────────────────
+async function loadHistory() {
+  const snap = await getDocs(query(collection(db, 'matchHistory'), orderBy('playedAt', 'desc')));
+  allMatches = [];
+  snap.forEach(d => allMatches.push({ ...d.data(), _id: d.id }));
+  document.getElementById('loadingState').style.display = 'none';
+  computeStats();
+  applyFilters();
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function computeStats() {
+  const total = allMatches.length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('pageSubLabel').textContent = `${total} recorded match${total !== 1 ? 'es' : ''}`;
+
+  if (total) {
+    const avgScore = allMatches.reduce((acc, m) => acc + (m.score1 || 0) + (m.score2 || 0), 0) / total;
+    document.getElementById('statAvgScore').textContent = Math.round(avgScore);
+  } else {
+    document.getElementById('statAvgScore').textContent = '—';
+  }
+
+  const formats = new Set(allMatches.map(m => m.format).filter(Boolean));
+  document.getElementById('statFormats').textContent = formats.size || '—';
+
+  const refs = new Set(allMatches.map(m => m.referee).filter(Boolean));
+  document.getElementById('statReferees').textContent = refs.size || '—';
+}
+
+// ── FILTERS ───────────────────────────────────────────────
+window.applyFilters = function() {
+  const playerQ = document.getElementById('filterPlayer').value.trim().toLowerCase();
+  const formatQ = document.getElementById('filterFormat').value;
+  filtered = allMatches.filter(m => {
+    const team1 = Array.isArray(m.team1) ? m.team1 : [m.p1 || ''];
+    const team2 = Array.isArray(m.team2) ? m.team2 : [m.p2 || ''];
+    const allPlayers = [...team1, ...team2].map(n => n.toLowerCase());
+    if (playerQ && !allPlayers.some(n => n.includes(playerQ))) return false;
+    if (formatQ && m.format !== formatQ) return false;
+    return true;
+  });
+  currentPage = 1;
+  render();
+};
+
+window.clearFilters = function() {
+  document.getElementById('filterPlayer').value = '';
+  document.getElementById('filterFormat').value = '';
+  applyFilters();
+};
+
+// ── RENDER ────────────────────────────────────────────────
+function render() {
+  const list = document.getElementById('historyList');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-history"><span class="empty-icon">🎾</span>No matches found.</div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filtered.slice(start, start + PAGE_SIZE);
+
+  // Group by date
+  const groups = {};
+  page.forEach(m => {
+    const d = m.playedAt?.toDate ? m.playedAt.toDate() : new Date(m.playedAt?.seconds ? m.playedAt.seconds * 1000 : Date.now());
+    const label = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    if (!groups[label]) groups[label] = [];
+    groups[label].push({ ...m, _date: d });
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([date, matches], gi) => {
+    html += `<div class="date-divider"><div class="date-divider-line"></div><div class="date-divider-label">${date}</div><div class="date-divider-line"></div></div>`;
+    matches.forEach((m, mi) => {
+      const delay = (gi * 3 + mi) * 30;
+      html += renderCard(m, delay);
+    });
+  });
+
+  list.innerHTML = html;
+  renderPagination(totalPages);
+}
+
+function renderCard(m, delay) {
+  const team1 = Array.isArray(m.team1) ? m.team1 : [m.p1 || 'Team 1'];
+  const team2 = Array.isArray(m.team2) ? m.team2 : [m.p2 || 'Team 2'];
+  const t1name = team1.join(' & ');
+  const t2name = team2.join(' & ');
+  const s1 = m.score1 ?? '—', s2 = m.score2 ?? '—';
+  const w1 = m.score1 > m.score2, w2 = m.score2 > m.score1;
+  const t = m._date ? m._date.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }) : '';
+  const hasEvents = m.events && m.events.length > 0;
+  const fmt = m.format || '1v1';
+  const id = m._id;
+
+  const eventsHtml = hasEvents
+    ? m.events.map(e => `<div class="ev-row"><span class="ev-icon">${e.icon||''}</span><span class="ev-text">${e.text||''}</span><span class="ev-time">${e.time||''}</span></div>`).join('')
+    : `<div class="no-events">No events logged</div>`;
+
+  return `<div class="match-card" style="animation-delay:${delay}ms">
+    <div class="match-card-main" onclick="toggleEvents('${id}')">
+      <div class="mc-team">
+        <div class="mc-team-name ${w1 ? 'winner' : ''}">${t1name}</div>
+        ${team1.length > 1 ? `<div class="mc-team-members">${team1.join(' · ')}</div>` : ''}
+        ${w1 ? '<span class="mc-win-tag">✓ WIN</span>' : ''}
+      </div>
+      <div class="mc-center">
+        <div class="mc-score">
+          <span class="${w1 ? 's-win' : ''}">${s1}</span>
+          <span style="color:rgba(255,255,255,0.15)"> — </span>
+          <span class="${w2 ? 's-win' : ''}">${s2}</span>
+        </div>
+        ${t ? `<span class="mc-meta">${t} · ${m.referee || ''}</span>` : ''}
+        <span class="mc-format-badge">${fmt}</span>
+      </div>
+      <div class="mc-team right">
+        <div class="mc-team-name ${w2 ? 'winner' : ''}">${t2name}</div>
+        ${team2.length > 1 ? `<div class="mc-team-members">${team2.join(' · ')}</div>` : ''}
+        ${w2 ? '<span class="mc-win-tag">✓ WIN</span>' : ''}
+      </div>
+    </div>
+    <div class="match-card-events" id="ev-${id}">
+      <div class="events-label">Match Events</div>
+      ${eventsHtml}
+    </div>
+    ${hasEvents ? `<div class="expand-hint" style="padding:0 24px 8px;font-family:Space Mono,monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.15)">TAP TO EXPAND</div>` : ''}
+  </div>`;
+}
+
+window.toggleEvents = function(id) {
+  const el = document.getElementById('ev-' + id);
+  if (el) el.classList.toggle('open');
+};
+
+function renderPagination(totalPages) {
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+  pg.innerHTML = html;
+}
+
+window.goPage = function(p) {
+  currentPage = p;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+loadHistory();
+</script>
+</body>
+</html>
