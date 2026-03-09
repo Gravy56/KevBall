@@ -330,8 +330,11 @@
     <li><a href="index.html#rankings">Rankings</a></li>
     <li><a href="login.html">Sign In</a></li>
   </ul>
+  <button id="adminOrdersBtn" onclick="openAdminOrders()" style="display:none;background:none;border:1px solid rgba(212,168,67,0.4);color:var(--gold);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:8px 16px;cursor:pointer;margin-right:10px;text-transform:uppercase;">
+    📋 View Orders
+  </button>
   <button class="cart-btn" onclick="openCart()">
-    🛒 Cart <span class="cart-count" id="cartCount">0</span>
+    📋 Pre-Orders <span class="cart-count" id="cartCount">0</span>
   </button>
 </nav>
 
@@ -343,12 +346,12 @@
     <div>
       <span class="hero-eyebrow">Official Kevball Merchandise</span>
       <h1 class="hero-title">REP THE<span>COURT.</span></h1>
-      <p class="hero-desc">Limited drops. Authentic gear. AJ-proof designs. Wear your Kevball pride wherever you go — except near AJ.</p>
-      <a href="#products" class="hero-cta">Shop All Drops →</a>
+      <p class="hero-desc">First drop incoming. Pre-order your size now and we'll place the bulk order once we have enough. AJ is excluded by Rule 10.</p>
+      <a href="#products" class="hero-cta">Pre-Order Now →</a>
     </div>
     <div class="hero-featured-product">
       <div class="featured-card">
-        <span class="featured-badge">Most Popular</span>
+        <span class="featured-badge">Pre-Order Now</span>
         <span class="featured-emoji">👕</span>
         <div class="featured-name">KEV●BALL TEE</div>
         <div class="featured-price">$28.00</div>
@@ -363,7 +366,7 @@
 <div id="products">
 <section class="products-section">
   <div class="section-header reveal">
-    <span class="section-label">Official Drops</span>
+    <span class="section-label">Pre-Order · First Drop</span>
     <h2 class="section-title">THE <span>COLLECTION</span></h2>
   </div>
 
@@ -381,14 +384,14 @@
 <footer>
   <p style="margin-bottom:8px;font-size:20px;font-family:'Black Ops One',cursive;color:#fff">KEV<span style="color:var(--gold)">●</span>BALL SHOP</p>
   <p>OFFICIAL MERCHANDISE · INVENTED BY <strong>KEVIN ORELLANA</strong></p>
-  <p style="margin-top:8px;opacity:0.4">Rule 10: AJ cannot purchase merch.</p>
+  <p style="margin-top:8px;opacity:0.4">Pre-order · No payment until we place the bulk order · AJ excluded by Rule 10.</p>
 </footer>
 
 <!-- CART SIDEBAR -->
 <div class="cart-overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()">
   <div class="cart-sidebar">
     <div class="cart-head">
-      <h2>YOUR CART</h2>
+      <h2>YOUR PRE-ORDER</h2>
       <button class="cart-close" onclick="closeCart()">✕</button>
     </div>
     <div class="cart-items" id="cartItems"></div>
@@ -398,66 +401,91 @@
         <span class="cart-subtotal-val" id="cartTotal">$0.00</span>
       </div>
       <div class="cart-note">Shipping calculated at checkout · Free over $50</div>
-      <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()" disabled>Proceed to Checkout →</button>
+      <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()" disabled>Submit Pre-Order →</button>
     </div>
   </div>
 </div>
 
-<!-- CHECKOUT MODAL -->
+<!-- PRE-ORDER MODAL -->
 <div class="modal-overlay" id="checkoutModal" onclick="if(event.target===this)closeCheckout()">
   <div class="modal">
     <div class="modal-head">
-      <h2>CHECKOUT</h2>
+      <h2>SUBMIT PRE-ORDER</h2>
       <button class="modal-close-btn" onclick="closeCheckout()">✕</button>
     </div>
     <div class="modal-body" id="checkoutBody">
       <div class="order-summary">
-        <div class="order-summary-title">Order Summary</div>
+        <div class="order-summary-title">Your Pre-Order</div>
         <div id="orderSummaryLines"></div>
       </div>
+      <div style="background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.3);padding:14px 18px;margin-bottom:24px;">
+        <p style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--clay-dark);line-height:1.7;">
+          📋 <strong>No payment now.</strong> We'll collect orders until we hit the minimum, then reach out to confirm and collect payment before placing the bulk order.
+        </p>
+      </div>
       <div class="form-section">
-        <div class="form-section-title">Contact Info</div>
+        <div class="form-section-title">Your Info</div>
         <div class="form-row"><label>Full Name *</label><input type="text" id="coName" placeholder="Kevin Orellana"/></div>
         <div class="form-row"><label>Email *</label><input type="email" id="coEmail" placeholder="kevin@kevball.online"/></div>
-        <div class="form-row"><label>Phone</label><input type="tel" id="coPhone" placeholder="(555) 000-0000"/></div>
+        <div class="form-row"><label>Phone (optional)</label><input type="tel" id="coPhone" placeholder="(555) 000-0000"/></div>
       </div>
-      <div class="form-section">
-        <div class="form-section-title">Shipping Address</div>
-        <div class="form-row"><label>Street Address *</label><input type="text" id="coStreet" placeholder="123 Court Ave"/></div>
-        <div class="form-row-2">
-          <div class="form-row" style="margin:0"><label>City *</label><input type="text" id="coCity" placeholder="New York"/></div>
-          <div class="form-row" style="margin:0"><label>State</label><input type="text" id="coState" placeholder="NY"/></div>
-        </div>
-        <div class="form-row-2" style="margin-top:14px">
-          <div class="form-row" style="margin:0"><label>ZIP *</label><input type="text" id="coZip" placeholder="10001"/></div>
-          <div class="form-row" style="margin:0">
-            <label>Country</label>
-            <select id="coCountry"><option>United States</option><option>Canada</option><option>United Kingdom</option><option>Other</option></select>
-          </div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div class="form-section-title">Payment</div>
-        <div class="form-row"><label>Card Number *</label><input type="text" id="coCard" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="formatCard(this)"/></div>
-        <div class="form-row-2">
-          <div class="form-row" style="margin:0"><label>Expiry *</label><input type="text" id="coExpiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/></div>
-          <div class="form-row" style="margin:0"><label>CVV *</label><input type="text" id="coCvv" placeholder="•••" maxlength="4"/></div>
-        </div>
-      </div>
-      <button class="place-order-btn" onclick="placeOrder()">🎾 Place Order</button>
+      <button class="place-order-btn" id="submitPreOrderBtn" onclick="placeOrder()">📋 Submit Pre-Order</button>
     </div>
-    <!-- SUCCESS -->
     <div class="success-screen" id="successScreen">
       <span class="success-icon">🎾</span>
-      <div class="success-title">ORDER CONFIRMED!</div>
+      <div class="success-title">PRE-ORDER SAVED!</div>
       <div class="success-sub" id="successMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PRE-ORDERS PANEL -->
+<div class="modal-overlay" id="adminOrdersModal" onclick="if(event.target===this)closeAdminOrders()">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <h2>ALL PRE-ORDERS</h2>
+      <button class="modal-close-btn" onclick="closeAdminOrders()">✕</button>
+    </div>
+    <div class="modal-body" id="adminOrdersBody">
+      <p style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;letter-spacing:1px;">Loading...</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const ADMIN_EMAIL = "kgravy56@gmail.com";
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+  currentUser = user || null;
+  updateAdminBtn();
+});
+
+function updateAdminBtn() {
+  const btn = document.getElementById('adminOrdersBtn');
+  if (!btn) return;
+  const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  btn.style.display = isAdmin ? 'flex' : 'none';
+}
+
 // ============================================================
 // PRODUCTS DATA
 // ============================================================
@@ -501,7 +529,7 @@ const PRODUCTS = [
   {
     id: 7, name: "Rule 10 Snapback", category: "headwear", emoji: "⛔",
     price: 30, desc: "AJ BANNED embroidered on the front panel. Limited run. Non-negotiable.",
-    sizes: ["One Size"], colors: ["#1a1a18","#fff"],
+    sizes: ["One Size"], colors: ["#1a1a18","#fafaf8"],
     soldOut: false
   },
   {
@@ -515,9 +543,9 @@ const PRODUCTS = [
 // ============================================================
 // STATE
 // ============================================================
-let cart = []; // [{productId, name, emoji, price, size, color, qty}]
-let selectedSizes = {};   // productId -> size
-let selectedColors = {};  // productId -> color index
+let cart = [];
+let selectedSizes = {};
+let selectedColors = {};
 
 function toast(msg) {
   const t = document.getElementById('toast');
@@ -539,8 +567,8 @@ function renderProducts(filter = 'all') {
       <div class="color-row">
         ${p.colors.map((c,i) => `
           <div class="color-dot ${i===colorIdx?'selected':''}"
-            style="background:${c};border:2px solid ${i===colorIdx?'var(--clay)':'transparent'}"
-            onclick="selectColor(${p.id},${i})" title="Color ${i+1}">
+            style="background:${c};border:2px solid ${i===colorIdx?'var(--clay)':'rgba(0,0,0,0.1)'}"
+            onclick="selectColor(${p.id},${i})">
           </div>`).join('')}
       </div>` : '';
 
@@ -555,10 +583,10 @@ function renderProducts(filter = 'all') {
     return `<div class="product-card ${visible?'':'hidden'}" id="pc-${p.id}">
       <div class="product-img">
         <span class="product-emoji">${p.emoji}</span>
-        ${p.soldOut ? `<div class="sold-out-overlay"><div class="sold-out-tag">SOLD OUT</div></div>` : ''}
+        ${p.soldOut ? `<div class="sold-out-overlay"><div class="sold-out-tag">SOLD OUT</div></div>` : ''  }
       </div>
       <div class="product-info">
-        <div class="product-category">${p.category}</div>
+        <div class="product-category">${p.category} · <span style="color:var(--gold)">Pre-Order</span></div>
         <div class="product-name">${p.name}</div>
         <p class="product-desc">${p.desc}</p>
         ${colorDots}
@@ -566,7 +594,7 @@ function renderProducts(filter = 'all') {
         <div class="product-footer">
           <div class="product-price">$${p.price}<span class="cents">.00</span></div>
           <button class="add-btn" onclick="addToCart(${p.id})" ${p.soldOut?'disabled':''}>
-            ${p.soldOut ? 'Sold Out' : '+ Add'}
+            ${p.soldOut ? 'Sold Out' : 'Pre-Order'}
           </button>
         </div>
       </div>
@@ -574,7 +602,7 @@ function renderProducts(filter = 'all') {
   }).join('');
 }
 
-function filterProducts(cat, btn) {
+window.filterProducts = function(cat, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.product-card').forEach(card => {
@@ -584,12 +612,12 @@ function filterProducts(cat, btn) {
   });
 }
 
-function selectSize(productId, size) {
+window.selectSize = function(productId, size) {
   selectedSizes[productId] = size;
   renderProducts(document.querySelector('.filter-btn.active')?.textContent.toLowerCase() || 'all');
 }
 
-function selectColor(productId, idx) {
+window.selectColor = function(productId, idx) {
   selectedColors[productId] = idx;
   renderProducts(document.querySelector('.filter-btn.active')?.textContent.toLowerCase() || 'all');
 }
@@ -597,31 +625,37 @@ function selectColor(productId, idx) {
 // ============================================================
 // CART LOGIC
 // ============================================================
-function addToCart(productId) {
+window.addToCart = function(productId) {
   const p = PRODUCTS.find(x => x.id === productId);
   if(!p || p.soldOut) return;
   const size = selectedSizes[productId];
   if(p.sizes.length > 1 && !size) { toast('Please select a size first!'); return; }
-  const colorIdx = selectedColors[productId] || 0;
+  const colorIdx = selectedColors[productId] !== undefined ? selectedColors[productId] : 0;
   const color = p.colors.length ? p.colors[colorIdx] : null;
+  const colorName = color ? colorLabel(color) : null;
   const key = `${productId}-${size||'one'}-${colorIdx}`;
   const existing = cart.find(i => i.key === key);
   if(existing) {
     existing.qty++;
   } else {
-    cart.push({ key, productId, name:p.name, emoji:p.emoji, price:p.price, size:size||null, color, qty:1 });
+    cart.push({ key, productId, name:p.name, emoji:p.emoji, price:p.price, size:size||null, color, colorName, qty:1 });
   }
   updateCartUI();
-  toast(`${p.name} added to cart! 🎾`);
+  toast(`${p.name} pre-order added! 🎾`);
 }
 
-function removeFromCart(key) {
+function colorLabel(hex) {
+  const map = {'#1a1a18':'Black','#c4622d':'Clay','#d4a843':'Gold','#2d5a27':'Green','#8b3a1a':'Brown','#fafaf8':'White'};
+  return map[hex] || hex;
+}
+
+window.removeFromCart = function(key) {
   cart = cart.filter(i => i.key !== key);
   updateCartUI();
   renderCartItems();
 }
 
-function changeQty(key, delta) {
+window.changeQty = function(key, delta) {
   const item = cart.find(i => i.key === key);
   if(!item) return;
   item.qty = Math.max(1, item.qty + delta);
@@ -640,7 +674,7 @@ function updateCartUI() {
 function renderCartItems() {
   const el = document.getElementById('cartItems');
   if(!cart.length) {
-    el.innerHTML = `<div class="cart-empty"><span class="empty-emoji">🛒</span>Your cart is empty</div>`;
+    el.innerHTML = `<div class="cart-empty"><span class="empty-emoji">📋</span>No items pre-ordered yet</div>`;
     return;
   }
   el.innerHTML = cart.map(item => `
@@ -650,7 +684,7 @@ function renderCartItems() {
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-meta">
           ${item.size ? item.size : ''}
-          ${item.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color};margin-left:6px;vertical-align:middle;"></span>` : ''}
+          ${item.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color};margin-left:6px;border:1px solid rgba(0,0,0,0.15);vertical-align:middle;"></span> ${item.colorName||''} ` : ''}
         </div>
         <div class="cart-qty">
           <button class="qty-btn" onclick="changeQty('${item.key}',-1)">−</button>
@@ -663,84 +697,188 @@ function renderCartItems() {
     </div>`).join('');
 }
 
-function openCart() {
+window.openCart = function() {
   renderCartItems();
   document.getElementById('cartOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function closeCart() {
+window.closeCart = function() {
   document.getElementById('cartOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 // ============================================================
-// CHECKOUT
+// PRE-ORDER MODAL
 // ============================================================
-function openCheckout() {
+window.openCheckout = function() {
   if(!cart.length) return;
   closeCart();
-  // Populate order summary
   const lines = document.getElementById('orderSummaryLines');
   const subtotal = cart.reduce((s,i) => s + i.price*i.qty, 0);
-  const shipping = subtotal >= 50 ? 0 : 5.99;
   lines.innerHTML = cart.map(i => `
     <div class="order-line">
-      <span>${i.emoji} ${i.name} ${i.size?'('+i.size+')':''} × ${i.qty}</span>
+      <span>${i.emoji} ${i.name}${i.size?' ('+i.size+')':''} ${i.color?'· '+i.colorName:''} × ${i.qty}</span>
       <span>$${(i.price*i.qty).toFixed(2)}</span>
     </div>`).join('') +
-    `<div class="order-line"><span>Shipping</span><span>${shipping===0?'FREE':'$'+shipping.toFixed(2)}</span></div>` +
-    `<div class="order-line"><span>Total</span><span>$${(subtotal+shipping).toFixed(2)}</span></div>`;
-
+    `<div class="order-line" style="font-weight:700"><span>Estimated Total</span><span>$${subtotal.toFixed(2)}</span></div>`;
   document.getElementById('checkoutBody').style.display = 'block';
   document.getElementById('successScreen').classList.remove('show');
   document.getElementById('checkoutModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeCheckout() {
+window.closeCheckout = function() {
   document.getElementById('checkoutModal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
-function formatCard(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,16);
-  input.value = v.replace(/(.{4})/g,'$1 ').trim();
-}
-function formatExpiry(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,4);
-  if(v.length >= 2) v = v.substring(0,2)+' / '+v.substring(2);
-  input.value = v;
-}
-
-function placeOrder() {
+window.placeOrder = async function() {
   const name = document.getElementById('coName').value.trim();
   const email = document.getElementById('coEmail').value.trim();
-  const street = document.getElementById('coStreet').value.trim();
-  const city = document.getElementById('coCity').value.trim();
-  const zip = document.getElementById('coZip').value.trim();
-  const card = document.getElementById('coCard').value.trim();
-  const expiry = document.getElementById('coExpiry').value.trim();
-  const cvv = document.getElementById('coCvv').value.trim();
+  const phone = document.getElementById('coPhone').value.trim();
+  if(!name) { toast('Please enter your name.'); return; }
+  if(!email) { toast('Please enter your email.'); return; }
 
-  if(!name||!email||!street||!city||!zip){toast('Please fill in your contact and address info.');return;}
-  if(!card||card.replace(/\s/g,'').length<16){toast('Please enter a valid card number.');return;}
-  if(!expiry||!cvv){toast('Please enter your card expiry and CVV.');return;}
+  const btn = document.getElementById('submitPreOrderBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
 
-  // In production you'd send this to a payment processor (Stripe, etc.)
-  // For now, show success screen
-  document.getElementById('checkoutBody').style.display = 'none';
-  const successScreen = document.getElementById('successScreen');
-  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
-  const shipping = subtotal >= 50 ? 0 : 5.99;
-  document.getElementById('successMsg').innerHTML = `
-    Thanks, ${name}!<br>
-    Order total: $${(subtotal+shipping).toFixed(2)}<br>
-    Confirmation sent to ${email}<br><br>
-    Ships within 3–5 business days.<br>
-    AJ will not receive your package.`;
-  successScreen.classList.add('show');
-  cart = [];
-  updateCartUI();
+  try {
+    // Save one Firestore doc per cart line item so it's easy to tally by product
+    const batch = cart.map(item => addDoc(collection(db, 'preorders'), {
+      name,
+      email,
+      phone: phone || null,
+      productId: item.productId,
+      productName: item.name,
+      emoji: item.emoji,
+      size: item.size || null,
+      color: item.color || null,
+      colorName: item.colorName || null,
+      qty: item.qty,
+      estimatedPrice: item.price * item.qty,
+      submittedAt: serverTimestamp()
+    }));
+    await Promise.all(batch);
+
+    document.getElementById('checkoutBody').style.display = 'none';
+    const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+    document.getElementById('successMsg').innerHTML =
+      `Thanks, ${name}!<br>Your pre-order is saved.<br><br>` +
+      `Estimated total: <strong>$${subtotal.toFixed(2)}</strong><br><br>` +
+      `We'll email <strong>${email}</strong> when we're ready to place the bulk order.`;
+    document.getElementById('successScreen').classList.add('show');
+    cart = [];
+    updateCartUI();
+  } catch(e) {
+    toast('Error saving pre-order. Try again.');
+    btn.disabled = false;
+    btn.textContent = '📋 Submit Pre-Order';
+    console.error(e);
+  }
+}
+
+// ============================================================
+// ADMIN: VIEW ALL PRE-ORDERS
+// ============================================================
+window.openAdminOrders = async function() {
+  document.getElementById('adminOrdersModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const body = document.getElementById('adminOrdersBody');
+  body.innerHTML = '<p style="font-family:Space Mono,monospace;font-size:11px;color:#aaa">Loading...</p>';
+
+  try {
+    const snap = await getDocs(query(collection(db,'preorders'), orderBy('submittedAt','asc')));
+    const orders = [];
+    snap.forEach(d => orders.push({...d.data(), _id: d.id}));
+
+    if(!orders.length) {
+      body.innerHTML = '<p style="font-family:Space Mono,monospace;font-size:12px;color:#aaa;text-align:center;padding:40px">No pre-orders yet.</p>';
+      return;
+    }
+
+    // Group by product
+    const byProduct = {};
+    orders.forEach(o => {
+      const key = o.productName;
+      if(!byProduct[key]) byProduct[key] = { emoji: o.emoji, items: [], totalQty: 0, totalVal: 0 };
+      byProduct[key].items.push(o);
+      byProduct[key].totalQty += o.qty;
+      byProduct[key].totalVal += o.estimatedPrice || 0;
+    });
+
+    // Also build a flat list by person
+    const byPerson = {};
+    orders.forEach(o => {
+      const key = o.email;
+      if(!byPerson[key]) byPerson[key] = { name: o.name, email: o.email, phone: o.phone, items: [] };
+      byPerson[key].items.push(o);
+    });
+
+    const grandTotal = orders.reduce((s,o) => s + (o.estimatedPrice||0), 0);
+    const totalUnits = orders.reduce((s,o) => s + o.qty, 0);
+
+    let html = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px;">
+        <div style="background:var(--clay-bg);padding:16px;text-align:center;border-bottom:3px solid var(--clay)">
+          <div style="font-family:Black Ops One,cursive;font-size:28px;color:var(--clay)">${Object.keys(byPerson).length}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;color:#999;text-transform:uppercase">People</div>
+        </div>
+        <div style="background:var(--clay-bg);padding:16px;text-align:center;border-bottom:3px solid var(--clay)">
+          <div style="font-family:Black Ops One,cursive;font-size:28px;color:var(--clay)">${totalUnits}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;color:#999;text-transform:uppercase">Total Items</div>
+        </div>
+        <div style="background:var(--clay-bg);padding:16px;text-align:center;border-bottom:3px solid var(--gold)">
+          <div style="font-family:Black Ops One,cursive;font-size:28px;color:var(--clay)">$${grandTotal.toFixed(0)}</div>
+          <div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;color:#999;text-transform:uppercase">Est. Revenue</div>
+        </div>
+      </div>
+
+      <div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:3px;color:var(--clay);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid rgba(196,98,45,0.2)">By Product</div>`;
+
+    Object.entries(byProduct).forEach(([name, data]) => {
+      html += `
+        <div style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-family:Black Ops One,cursive;font-size:16px;letter-spacing:1px">${data.emoji} ${name}</span>
+            <span style="font-family:Space Mono,monospace;font-size:10px;color:var(--clay)">${data.totalQty} units · $${data.totalVal.toFixed(2)}</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:var(--ink);color:rgba(255,255,255,0.6);">
+                <th style="padding:7px 12px;text-align:left;font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;font-weight:400">NAME</th>
+                <th style="padding:7px 12px;text-align:left;font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;font-weight:400">EMAIL</th>
+                <th style="padding:7px 12px;text-align:left;font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;font-weight:400">SIZE</th>
+                <th style="padding:7px 12px;text-align:left;font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;font-weight:400">COLOR</th>
+                <th style="padding:7px 12px;text-align:right;font-family:Space Mono,monospace;font-size:9px;letter-spacing:2px;font-weight:400">QTY</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items.map((o,i) => `
+                <tr style="background:${i%2===0?'#fff':'#fdf8f4'}">
+                  <td style="padding:8px 12px;font-weight:600">${o.name}</td>
+                  <td style="padding:8px 12px;color:#888;font-size:12px">${o.email}</td>
+                  <td style="padding:8px 12px">${o.size||'—'}</td>
+                  <td style="padding:8px 12px">
+                    ${o.color?`<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;background:${o.color};border:1px solid rgba(0,0,0,0.15);flex-shrink:0"></span>${o.colorName||''}</span>`:' — '}
+                  </td>
+                  <td style="padding:8px 12px;text-align:right;font-family:Space Mono,monospace;font-weight:700">${o.qty}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    });
+
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = '<p style="color:#e74c3c;font-family:Space Mono,monospace;font-size:11px">Error loading orders.</p>';
+    console.error(e);
+  }
+}
+
+window.closeAdminOrders = function() {
+  document.getElementById('adminOrdersModal').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ============================================================
