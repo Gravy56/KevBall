@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEVBALL — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --court-green: #2d5a27;
+    --clay: #c4622d;
+    --clay-light: #d4794a;
+    --clay-dark: #8b3a1a;
+    --clay-bg: #f5e6d3;
+    --ink: #1a1a18;
+    --gold: #d4a843;
+    --white: #fafaf8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{font-family:'DM Sans',sans-serif;background:#1a2e18;color:var(--white);min-height:100vh;display:flex;flex-direction:column;}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:relative;z-index:10;}
+  .logo{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-back{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-decoration:none;text-transform:uppercase;transition:color 0.2s;display:flex;align-items:center;gap:8px;}
+  .nav-back:hover{color:var(--gold);}
+
+  /* BACKGROUND COURT */
+  .bg-court{position:fixed;inset:0;z-index:0;opacity:0.07;}
+  .bg-court svg{width:100%;height:100%;}
+
+  /* MAIN LAYOUT */
+  .auth-wrapper{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;position:relative;z-index:1;}
+  .auth-card{width:100%;max-width:480px;}
+
+  /* TABS */
+  .tab-row{display:flex;margin-bottom:0;}
+  .tab{flex:1;padding:14px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border-bottom:3px solid transparent;}
+  .tab.active{background:rgba(255,255,255,0.08);color:var(--gold);border-bottom-color:var(--gold);}
+  .tab:hover:not(.active){color:rgba(255,255,255,0.7);}
+
+  /* FORM CARD */
+  .form-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:40px;backdrop-filter:blur(8px);}
+  .form-title{font-family:'Black Ops One',cursive;font-size:28px;letter-spacing:2px;color:var(--white);margin-bottom:6px;}
+  .form-sub{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;margin-bottom:32px;}
+
+  .field{margin-bottom:20px;}
+  .field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;}
+  .field input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);color:var(--white);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;}
+  .field input:focus{border-color:var(--gold);}
+  .field input::placeholder{color:rgba(255,255,255,0.2);}
+  .field input.error{border-color:#e74c3c;}
+
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+  .avatar-field{margin-bottom:20px;}
+  .avatar-field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:8px;}
+  .avatar-drop{border:2px dashed rgba(255,255,255,0.15);padding:20px;text-align:center;cursor:pointer;position:relative;transition:border-color 0.2s;display:flex;align-items:center;gap:16px;}
+  .avatar-drop:hover{border-color:var(--gold);}
+  .avatar-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .avatar-preview-wrap{width:56px;height:56px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--clay-dark),var(--clay));display:flex;align-items:center;justify-content:center;font-family:'Black Ops One',cursive;font-size:18px;color:#fff;}
+  .avatar-preview-wrap img{width:100%;height:100%;object-fit:cover;}
+  .avatar-drop-text{text-align:left;}
+  .avatar-drop-text strong{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,0.6);}
+  .avatar-drop-text span{font-size:11px;color:rgba(255,255,255,0.3);}
+
+  .submit-btn{width:100%;background:var(--gold);color:var(--ink);border:none;padding:15px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;font-weight:700;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:background 0.2s,transform 0.1s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .submit-btn:hover{background:#e8b84d;transform:translateY(-1px);}
+  .submit-btn:active{transform:translateY(0);}
+
+  .err-msg{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 14px;margin-bottom:16px;display:none;}
+  .err-msg.show{display:block;}
+
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+  .divider hr{flex:1;border:none;border-top:1px solid rgba(255,255,255,0.1);}
+  .divider span{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+
+  .secondary-btn{width:100%;background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.15);padding:13px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+  .secondary-btn:hover{border-color:rgba(255,255,255,0.4);color:var(--white);}
+
+  /* VIEW TOGGLE */
+  #signupView{display:none;}
+  #signupView.active{display:block;}
+  #signinView.active{display:block;}
+  #signinView{display:none;}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:#fff;padding:13px 22px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;z-index:1000;transform:translateY(80px);opacity:0;transition:all 0.3s;border-left:4px solid var(--gold);}
+  .toast.show{transform:translateY(0);opacity:1;}
+
+  /* KEVIN BADGE */
+  .kevin-hint{text-align:center;margin-top:20px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+
+  @media(max-width:600px){
+    nav{padding:16px 20px;}
+    .form-card{padding:24px 20px;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-court">
+  <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+    <rect width="1200" height="700" fill="none"/>
+    <rect x="150" y="80" width="900" height="540" fill="none" stroke="white" stroke-width="3"/>
+    <rect x="220" y="80" width="760" height="540" fill="none" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="350" x2="1050" y2="350" stroke="white" stroke-width="3"/>
+    <line x1="600" y1="170" x2="600" y2="530" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="170" x2="1050" y2="170" stroke="white" stroke-width="2"/>
+    <line x1="150" y1="530" x2="1050" y2="530" stroke="white" stroke-width="2"/>
+  </svg>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <a href="index.html" class="nav-back">← Back to Home</a>
+</nav>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="tab-row">
+      <button class="tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</button>
+      <button class="tab" id="tabSignup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <div class="form-card">
+
+      <!-- SIGN IN -->
+      <div id="signinView" class="active">
+        <div class="form-title">Welcome Back</div>
+        <div class="form-sub">Sign in to your Kevball account</div>
+        <div class="err-msg" id="signinError">Username or password incorrect.</div>
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="siUsername" placeholder="your_username" onkeydown="if(event.key==='Enter')doSignin()" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="siPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignin()" autocomplete="current-password"/>
+        </div>
+        <button class="submit-btn" onclick="doSignin()">Sign In →</button>
+        <div class="kevin-hint">Kevin Orellana's account unlocks admin mode</div>
+      </div>
+
+      <!-- SIGN UP -->
+      <div id="signupView">
+        <div class="form-title">Join the Roster</div>
+        <div class="form-sub">Create your Kevball player account</div>
+        <div class="err-msg" id="signupError"></div>
+
+        <div class="avatar-field">
+          <label>Profile Photo (optional)</label>
+          <div class="avatar-drop" id="suAvatarDrop">
+            <input type="file" accept="image/*" onchange="handleSuAvatar(this)"/>
+            <div class="avatar-preview-wrap" id="suAvatarPreview">?</div>
+            <div class="avatar-drop-text">
+              <strong>Upload a photo</strong>
+              <span>Click to browse</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>First Name *</label>
+            <input type="text" id="suFirst" placeholder="Kevin" autocomplete="given-name"/>
+          </div>
+          <div class="field">
+            <label>Last Name *</label>
+            <input type="text" id="suLast" placeholder="Orellana" autocomplete="family-name"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Username *</label>
+          <input type="text" id="suUsername" placeholder="kevball_king" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Password *</label>
+          <input type="password" id="suPassword" placeholder="Min. 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="field">
+          <label>Nickname (optional)</label>
+          <input type="text" id="suNick" placeholder="e.g. The Commissioner"/>
+        </div>
+        <button class="submit-btn" onclick="doSignup()">Create Account →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== HELPERS =====
+const ADMIN_USERNAME = 'kevin';
+const ADMIN_PASSWORD_HASH = 'kevball_admin_2024'; // simple string match, fine for this use case
+
+function getUsers(){ return JSON.parse(localStorage.getItem('kb_users')||'[]'); }
+function saveUsers(u){ localStorage.setItem('kb_users',JSON.stringify(u)); }
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ===== TABS =====
+let suAvatarData = null;
+function switchTab(tab){
+  document.getElementById('signinView').classList.toggle('active', tab==='signin');
+  document.getElementById('signupView').classList.toggle('active', tab==='signup');
+  document.getElementById('tabSignin').classList.toggle('active', tab==='signin');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+}
+
+// Check URL param
+if(location.search.includes('signup')) switchTab('signup');
+
+// ===== AVATAR UPLOAD =====
+function handleSuAvatar(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    suAvatarData=e.target.result;
+    const wrap=document.getElementById('suAvatarPreview');
+    wrap.innerHTML=`<img src="${suAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== SIGN UP =====
+function doSignup(){
+  const first=document.getElementById('suFirst').value.trim();
+  const last=document.getElementById('suLast').value.trim();
+  const username=document.getElementById('suUsername').value.trim().toLowerCase();
+  const password=document.getElementById('suPassword').value;
+  const nick=document.getElementById('suNick').value.trim();
+  const errEl=document.getElementById('signupError');
+
+  errEl.classList.remove('show');
+
+  if(!first||!last){ errEl.textContent='Please enter your first and last name.'; errEl.classList.add('show'); return; }
+  if(!username){ errEl.textContent='Please choose a username.'; errEl.classList.add('show'); return; }
+  if(password.length<6){ errEl.textContent='Password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+
+  const users=getUsers();
+  if(users.find(u=>u.username===username)){ errEl.textContent='That username is already taken.'; errEl.classList.add('show'); return; }
+
+  const isKevin = username===ADMIN_USERNAME && password===ADMIN_PASSWORD_HASH;
+  const newUser={
+    id: Date.now(),
+    username, password, // NOTE: plaintext fine for a local single-page sports app
+    firstName: first,
+    lastName: last,
+    name: first+' '+last,
+    nick,
+    avatar: suAvatarData||null,
+    isAdmin: isKevin,
+    createdAt: new Date().toISOString(),
+  };
+
+  users.push(newUser);
+  saveUsers(users);
+
+  // Also add to bios/players if not exists
+  addUserToBiosIfNeeded(newUser);
+
+  // Log them in immediately
+  sessionStorage.setItem('kb_session', JSON.stringify({id:newUser.id, username:newUser.username, isAdmin:newUser.isAdmin}));
+  if(newUser.isAdmin) sessionStorage.setItem('kb_admin','true');
+
+  toast('Account created! Redirecting...');
+  setTimeout(()=>{ location.href='profile.html'; }, 800);
+}
+
+// ===== SIGN IN =====
+function doSignin(){
+  const username=document.getElementById('siUsername').value.trim().toLowerCase();
+  const password=document.getElementById('siPassword').value;
+  const errEl=document.getElementById('signinError');
+  errEl.classList.remove('show');
+
+  if(!username||!password){ errEl.textContent='Please enter your username and password.'; errEl.classList.add('show'); return; }
+
+  // Kevin special case — always works even if no account created yet
+  if(username===ADMIN_USERNAME && password===ADMIN_PASSWORD_HASH){
+    const users=getUsers();
+    let kevinUser=users.find(u=>u.username===ADMIN_USERNAME);
+    if(!kevinUser){
+      kevinUser={id:1,username:ADMIN_USERNAME,password:ADMIN_PASSWORD_HASH,firstName:'Kevin',lastName:'Orellana',name:'Kevin Orellana',nick:'The Commissioner',avatar:null,isAdmin:true,createdAt:new Date().toISOString()};
+      users.push(kevinUser);
+      saveUsers(users);
+      addUserToBiosIfNeeded(kevinUser);
+    }
+    sessionStorage.setItem('kb_session',JSON.stringify({id:kevinUser.id,username:kevinUser.username,isAdmin:true}));
+    sessionStorage.setItem('kb_admin','true');
+    toast('Welcome back, Commissioner 🔓');
+    setTimeout(()=>{ location.href='index.html'; }, 800);
+    return;
+  }
+
+  const users=getUsers();
+  const user=users.find(u=>u.username===username && u.password===password);
+  if(!user){ errEl.classList.add('show'); return; }
+
+  sessionStorage.setItem('kb_session',JSON.stringify({id:user.id,username:user.username,isAdmin:user.isAdmin||false}));
+  if(user.isAdmin) sessionStorage.setItem('kb_admin','true');
+  else sessionStorage.removeItem('kb_admin');
+
+  toast(`Welcome back, ${user.firstName}!`);
+  setTimeout(()=>{ location.href='profile.html'; }, 800);
+}
+
+// ===== ADD TO BIOS =====
+function addUserToBiosIfNeeded(user){
+  const bios=JSON.parse(localStorage.getItem('kb_bios')||'[]');
+  if(!bios.find(b=>b.name.toLowerCase()===user.name.toLowerCase())){
+    bios.push({id:user.id,name:user.name,nick:user.nick||'',style:'',level:'Rookie',bio:'',court:'',avatar:user.avatar,wins:0,losses:0,points:0});
+    localStorage.setItem('kb_bios',JSON.stringify(bios));
+  }
+  const players=JSON.parse(localStorage.getItem('kb_players')||'[]');
+  if(!players.find(p=>p.name.toLowerCase()===user.name.toLowerCase())){
+    players.push({id:user.id,name:user.name,wins:0,losses:0,points:0});
+    localStorage.setItem('kb_players',JSON.stringify(players));
+  }
+}
+
+// If already logged in, redirect
+const existing=sessionStorage.getItem('kb_session');
+if(existing){
+  const s=JSON.parse(existing);
+  location.href = s.isAdmin ? 'index.html' : 'profile.html';
+}
+</script>
+</body>
+</html>
