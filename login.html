@@ -181,23 +181,27 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
 function hideErr(id){document.getElementById(id).classList.remove('show');}
 
-// Guard flag — set to true as soon as a sign-in button is clicked.
-// Prevents authStateReady from double-redirecting on the same page load.
-let isRedirecting = false;
-
-async function redirectUser(uid){
-  if(isRedirecting) return;
-  isRedirecting = true;
+// Single navigation function — always goes straight to the right page.
+// Never call location.href anywhere else.
+async function goToApp(uid){
   showLoading('Loading...');
-  const snap = await getDoc(doc(db,'users',uid));
-  const data = snap.exists() ? snap.data() : {};
-  location.href = data.isAdmin ? 'index.html' : 'profile.html';
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    const data = snap.exists() ? snap.data() : {};
+    location.href = data.isAdmin ? 'index.html' : 'profile.html';
+  } catch(e){
+    hideLoading();
+    showErr('signinError', 'Error loading profile. Please try again.');
+  }
 }
 
-// Only auto-redirect if the user was already logged in before arriving at this page.
-auth.authStateReady().then(async () => {
-  const user = auth.currentUser;
-  if(user && !isRedirecting) await redirectUser(user.uid);
+// Auto-redirect ONLY if already logged in when the page first loads.
+// We use a one-time listener that unsubscribes immediately so it never
+// fires again after the user signs in (which would cause the loop).
+const unsubscribe = onAuthStateChanged(auth, user => {
+  unsubscribe(); // stop listening after the very first state check
+  if(user) goToApp(user.uid);
+  // If no user, just show the login form — do nothing
 });
 
 window.switchTab = function(tab){
@@ -248,13 +252,11 @@ async function ensureUserDoc(user, extraData={}){
 }
 
 window.doGoogleAuth = async function(){
-  isRedirecting = true;
   showLoading('Opening Google sign-in...');
   try {
     const result = await signInWithPopup(auth, googleProvider);
     await ensureUserDoc(result.user);
-    toast('Signed in with Google! 🎾');
-    await redirectUser(result.user.uid);
+    await goToApp(result.user.uid);
   } catch(e){
     hideLoading();
     if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
@@ -272,15 +274,13 @@ window.doSignup = async function(){
   if(!first||!last){showErr('signupError','Please enter your full name.');return;}
   if(!email){showErr('signupError','Please enter your email.');return;}
   if(password.length<6){showErr('signupError','Password must be at least 6 characters.');return;}
-  isRedirecting = true;
   const btn=document.getElementById('signupBtn');
   btn.disabled=true; showLoading('Creating your account...');
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, {displayName: first+' '+last});
-    const data = await ensureUserDoc(cred.user, {firstName:first, lastName:last, nick, style, avatar:suAvatarData||null});
-    toast('Welcome to Kevball, '+first+'! 🎾');
-    await redirectUser(cred.user.uid);
+    await ensureUserDoc(cred.user, {firstName:first, lastName:last, nick, style, avatar:suAvatarData||null});
+    await goToApp(cred.user.uid);
   } catch(e){
     hideLoading(); btn.disabled=false;
     showErr('signupError', e.code==='auth/email-already-in-use' ? 'That email is already registered.' : e.message);
@@ -292,20 +292,18 @@ window.doSignin = async function(){
   const email=document.getElementById('siEmail').value.trim();
   const password=document.getElementById('siPassword').value;
   if(!email||!password){showErr('signinError','Please enter your email and password.');return;}
-  isRedirecting = true;
   const btn=document.getElementById('signinBtn');
   btn.disabled=true; showLoading('Signing in...');
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    const snap = await getDoc(doc(db,'users',cred.user.uid));
-    const data = snap.exists() ? snap.data() : {};
-    toast(`Welcome back, ${data.firstName||'player'}! 🎾`);
-    await redirectUser(cred.user.uid);
+    await goToApp(cred.user.uid);
   } catch(e){
-    hideLoading(); btn.disabled=false;
+    hideLoading();
+    btn.disabled=false;
     showErr('signinError','Incorrect email or password.');
   }
 };
 </script>
+<div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
 </body>
 </html>
