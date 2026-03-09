@@ -1277,7 +1277,7 @@ function renderBracket(){
 let biosCache = [];
 
 async function loadBios(){
-  const snap = await getDocs(collection(db,'users'));
+  const snap = await getDocs(collection(db,'bios'));
   biosCache = [];
   snap.forEach(d => biosCache.push({...d.data(), _id: d.id}));
   renderBios();
