@@ -30,7 +30,7 @@
   .signout-btn { background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:6px 12px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
   .signout-btn:hover { border-color:var(--red); color:var(--red); }
 
-  .main { max-width:720px; margin:0 auto; padding:24px 16px 100px; }
+  .main { max-width:720px; margin:0 auto; padding:16px clamp(8px,3vw,16px) 100px; }
   .phase { display:none; }
   .phase.active { display:block; }
 
@@ -80,24 +80,24 @@
   .score-timer { font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; color:rgba(255,255,255,0.35); margin-bottom:4px; }
   .score-target { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.25); }
 
-  .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
-  .team-score-card { background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.08); padding:18px 14px; text-align:center; position:relative; transition:border-color 0.3s; }
+  .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(6px,2vw,14px); margin-bottom:18px; }
+  .team-score-card { background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.08); padding:clamp(10px,3vw,18px) clamp(8px,2vw,14px); text-align:center; position:relative; transition:border-color 0.3s; }
   .team-score-card.leading { border-color:var(--gold); }
   .team-score-card.won { border-color:var(--green); background:rgba(45,90,39,0.12); }
-  .team-name-sc { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; color:var(--white); margin-bottom:4px; }
-  .team-members-sc { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:10px; line-height:1.8; white-space:pre-line; }
-  .big-score-sc { font-family:'Black Ops One',cursive; font-size:72px; line-height:1; color:var(--white); margin:8px 0; transition:color 0.3s; }
+  .team-name-sc { font-family:'Black Ops One',cursive; font-size:clamp(11px,3vw,16px); letter-spacing:1px; color:var(--white); margin-bottom:4px; }
+  .team-members-sc { font-family:'Space Mono',monospace; font-size:clamp(7px,1.8vw,9px); letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:clamp(4px,1.5vw,10px); line-height:1.8; white-space:pre-line; }
+  .big-score-sc { font-family:'Black Ops One',cursive; font-size:clamp(40px,12vw,80px); line-height:1; color:var(--white); margin:clamp(4px,1.5vw,10px) 0; transition:color 0.3s; }
   .team-score-card.leading .big-score-sc { color:var(--gold); }
   .team-score-card.won .big-score-sc { color:var(--green); }
   .score-bump { animation:bump 0.25s cubic-bezier(0.16,1,0.3,1); }
   @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
   .won-badge { display:none; position:absolute; top:-1px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:3px 10px; text-transform:uppercase; white-space:nowrap; }
   .team-score-card.won .won-badge { display:block; }
-  .score-btn { width:100%; padding:14px; border:none; cursor:pointer; font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; transition:all 0.15s; margin-bottom:6px; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
+  .score-btn { width:100%; padding:clamp(10px,3vw,16px); border:none; cursor:pointer; font-family:'Black Ops One',cursive; font-size:clamp(15px,4vw,22px); letter-spacing:2px; transition:all 0.15s; margin-bottom:6px; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
   .score-btn.plus { background:var(--clay); color:#fff; }
   .score-btn.plus:hover { background:var(--clay-light); }
   .score-btn.plus:active { transform:scale(0.96); }
-  .score-btn.minus { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); font-size:13px; }
+  .score-btn.minus { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); font-size:clamp(10px,2.5vw,13px); }
   .score-btn.minus:hover { background:rgba(255,255,255,0.1); }
 
   .events-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
