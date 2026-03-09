@@ -359,7 +359,7 @@
     /* NAV */
     nav{padding:14px 20px;}
     nav ul{display:none;}
-    nav .admin-btn:not(#adminNavBtn){display:none;}
+    .desktop-only{display:none !important;}
     .hamburger{display:flex;}
 
     /* HERO */
@@ -445,11 +445,11 @@
     <li><a href="referee.html" id="refNavLink" style="display:none;color:var(--clay)">Referee</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:10px">
-    <button class="admin-btn" id="adminNavBtn" onclick="openAdminModal()">
+    <button class="admin-btn desktop-only" id="adminNavBtn" onclick="openAdminModal()">
       <span class="lock-icon" id="adminLockIcon">🔒</span>
       <span id="adminBtnLabel">Admin</span>
     </button>
-    <a href="login.html" class="admin-btn" id="authNavBtn" style="text-decoration:none;display:none">
+    <a href="login.html" class="admin-btn desktop-only" id="authNavBtn" style="text-decoration:none;display:none">
       <span>👤</span><span id="authNavLabel">Sign In</span>
     </a>
     <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -473,8 +473,8 @@
   <div class="mm-divider"></div>
   <a href="https://instagram.com/kevballofficial" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📸 Instagram</a>
   <div class="mm-divider"></div>
-  <button class="mm-btn" onclick="openAdminModal();closeMobileMenu()">🔒 Admin</button>
   <a href="login.html" id="mmAuthLink">👤 Sign In</a>
+  <button class="mm-btn mm-admin" id="mmAdminBtn" onclick="openAdminModal();closeMobileMenu()" style="display:none">🔒 Admin</button>
 </div>
 
 <!-- HERO -->
@@ -850,10 +850,12 @@ function applyAdminState(){
     const refLink = document.getElementById('refNavLink');
     const mmRef   = document.getElementById('mmRefLink');
     const mmAuth  = document.getElementById('mmAuthLink');
+    const mmAdmin = document.getElementById('mmAdminBtn');
     const canRef  = currentUser.isReferee||currentUser.isAdmin;
     if(refLink) refLink.style.display = canRef ? 'block' : 'none';
     if(mmRef)   mmRef.classList.toggle('show', canRef);
     if(mmAuth){ mmAuth.href='profile.html'; mmAuth.textContent='👤 My Profile'; }
+    if(mmAdmin && currentUser.isAdmin) mmAdmin.style.display = 'block';
   } else {
     authBtn.href = 'login.html';
     authLabel.textContent = 'Sign In';
