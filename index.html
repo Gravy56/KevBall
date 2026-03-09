@@ -333,6 +333,21 @@
     .court-form-grid{grid-template-columns:1fr;}
     .form-row-2{grid-template-columns:1fr;}
   }
+  /* LIVE SCORE BANNER */
+  #liveBanner {
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
+    background:var(--ink); border-top:3px solid var(--clay);
+    padding:10px 24px; align-items:center; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+  }
+  #liveBanner.show { display:flex; }
+  .lb-live { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); flex-shrink:0; }
+  .lb-dot { width:8px; height:8px; border-radius:50%; background:var(--clay); animation:lbpulse 1.4s ease-in-out infinite; }
+  @keyframes lbpulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .lb-match { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; color:var(--white); flex:1; text-align:center; }
+  .lb-score { font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; color:var(--gold); flex-shrink:0; }
+  .lb-link { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.4); text-decoration:none; white-space:nowrap; flex-shrink:0; }
+  .lb-link:hover { color:var(--clay); }
 </style>
 </head>
 <body>
@@ -672,6 +687,17 @@ onAuthStateChanged(auth, async (user) => {
   applyAdminState();
   // Re-render anything that depends on admin state
   renderRankings(); renderMatchups(); renderBios(); renderCourts();
+});
+
+// ── LIVE SCORE BANNER ──────────────────────────────────────
+onSnapshot(doc(db,'liveMatch','current'), snap => {
+  const banner = document.getElementById('liveBanner');
+  if(!snap.exists()) { banner.classList.remove('show'); return; }
+  const d = snap.data();
+  if(!d.active) { banner.classList.remove('show'); return; }
+  document.getElementById('lbMatch').textContent = `${d.p1} vs ${d.p2}`;
+  document.getElementById('lbScore').textContent = `${d.score1} — ${d.score2}`;
+  banner.classList.add('show');
 });
 
 function isAdmin(){
@@ -1312,6 +1338,14 @@ await loadCourts();
 renderBracket();
 initReveal();
 </script>
+<!-- LIVE SCORE BANNER -->
+<div id="liveBanner">
+  <div class="lb-live"><div class="lb-dot"></div>Live</div>
+  <div class="lb-match" id="lbMatch">—</div>
+  <div class="lb-score" id="lbScore">0 — 0</div>
+  <a href="scoreboard.html" class="lb-link" target="_blank">Full Scoreboard →</a>
+</div>
+
 <div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
 </body>
 </html>
