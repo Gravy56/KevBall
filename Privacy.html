@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --clay: #c4622d;
+    --clay-bg: #f5e6d3;
+    --gold: #d4a843;
+    --paper: #faf7f2;
+    --rule: rgba(196,98,45,0.15);
+    --muted: #888;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--paper); color:var(--ink); font-family:'Libre Baskerville',Georgia,serif; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 48px;
+    background:rgba(26,26,24,0.95);
+    backdrop-filter:blur(10px);
+    border-bottom:2px solid var(--clay);
+  }
+  .logo { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:3px; color:#fff; text-decoration:none; }
+  .logo span { color:var(--gold); }
+  .nav-links { display:flex; gap:24px; align-items:center; }
+  .nav-links a { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); text-decoration:none; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-links .active { color:var(--clay); }
+
+  /* HERO BAND */
+  .doc-hero {
+    background:var(--ink); padding:120px 48px 60px;
+    border-bottom:4px solid var(--clay);
+    position:relative; overflow:hidden;
+  }
+  .doc-hero::before {
+    content:'PRIVACY'; position:absolute; right:-20px; top:50%; transform:translateY(-50%);
+    font-family:'Black Ops One',cursive; font-size:clamp(80px,15vw,180px);
+    color:rgba(255,255,255,0.03); pointer-events:none; letter-spacing:-4px; line-height:1;
+  }
+  .doc-hero-inner { max-width:780px; margin:0 auto; position:relative; z-index:1; }
+  .doc-eyebrow { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; color:var(--clay); margin-bottom:16px; display:block; }
+  .doc-title { font-family:'Black Ops One',cursive; font-size:clamp(36px,7vw,72px); color:#fff; line-height:1; letter-spacing:1px; margin-bottom:16px; }
+  .doc-meta { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.3); }
+  .doc-meta span { color:var(--gold); }
+
+  /* LAYOUT */
+  .doc-layout {
+    max-width:1060px; margin:0 auto; padding:64px 48px;
+    display:grid; grid-template-columns:220px 1fr; gap:60px; align-items:start;
+  }
+
+  /* SIDEBAR TOC */
+  .toc { position:sticky; top:90px; }
+  .toc-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:16px; }
+  .toc ul { list-style:none; border-left:2px solid var(--rule); }
+  .toc ul li a {
+    display:block; padding:8px 0 8px 16px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px;
+    color:var(--muted); text-decoration:none; transition:all 0.2s; line-height:1.4;
+  }
+  .toc ul li a:hover { color:var(--clay); border-left:2px solid var(--clay); margin-left:-2px; padding-left:18px; }
+  .toc ul li a.active { color:var(--clay); font-weight:700; }
+
+  /* CONTENT */
+  .doc-content { min-width:0; }
+  .doc-section { margin-bottom:56px; padding-bottom:56px; border-bottom:1px solid var(--rule); }
+  .doc-section:last-child { border-bottom:none; }
+
+  .section-num {
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--clay); margin-bottom:10px; display:block;
+  }
+  h2 { font-family:'Black Ops One',cursive; font-size:28px; letter-spacing:1px; color:var(--ink); margin-bottom:20px; line-height:1.1; }
+  p { font-size:15px; line-height:1.85; color:#444; margin-bottom:16px; }
+  p:last-child { margin-bottom:0; }
+  ul.doc-list { margin:16px 0 16px 0; padding-left:0; list-style:none; }
+  ul.doc-list li {
+    font-size:15px; line-height:1.75; color:#444; padding:8px 0 8px 24px;
+    position:relative; border-bottom:1px solid var(--rule);
+  }
+  ul.doc-list li:last-child { border-bottom:none; }
+  ul.doc-list li::before { content:'—'; position:absolute; left:0; color:var(--clay); font-weight:700; }
+
+  .highlight-box {
+    background:var(--clay-bg); border-left:4px solid var(--clay);
+    padding:18px 22px; margin:20px 0;
+  }
+  .highlight-box p { font-size:14px; color:var(--ink); margin:0; font-style:italic; }
+
+  .contact-block {
+    background:var(--ink); color:#fff; padding:28px 32px; margin-top:24px;
+  }
+  .contact-block p { color:rgba(255,255,255,0.6); font-size:14px; }
+  .contact-block a { color:var(--gold); text-decoration:none; }
+  .contact-block a:hover { text-decoration:underline; }
+
+  /* FOOTER */
+  footer {
+    background:var(--ink); color:rgba(255,255,255,0.3);
+    text-align:center; padding:40px 48px;
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
+  }
+  footer a { color:var(--clay); text-decoration:none; }
+  footer a:hover { color:var(--gold); }
+  footer strong { color:rgba(255,255,255,0.6); }
+
+  /* REVEAL */
+  .reveal { opacity:0; transform:translateY(20px); transition:opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity:1; transform:none; }
+
+  @media(max-width:800px) {
+    nav { padding:14px 20px; }
+    .doc-hero { padding:100px 20px 48px; }
+    .doc-layout { grid-template-columns:1fr; padding:40px 20px; gap:0; }
+    .toc { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="privacy.html" class="active">Privacy</a>
+    <a href="tos.html">Terms</a>
+  </div>
+</nav>
+
+<div class="doc-hero">
+  <div class="doc-hero-inner">
+    <span class="doc-eyebrow">Legal Documents</span>
+    <h1 class="doc-title">Privacy Policy</h1>
+    <div class="doc-meta">Last updated: <span>March 2026</span> &nbsp;·&nbsp; Kevball &nbsp;·&nbsp; kevball.online</div>
+  </div>
+</div>
+
+<div class="doc-layout">
+
+  <!-- SIDEBAR TOC -->
+  <aside class="toc">
+    <div class="toc-label">Contents</div>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#collect">What We Collect</a></li>
+      <li><a href="#use">How We Use It</a></li>
+      <li><a href="#storage">Data Storage</a></li>
+      <li><a href="#sharing">Sharing</a></li>
+      <li><a href="#merch">Pre-Orders & Shop</a></li>
+      <li><a href="#rights">Your Rights</a></li>
+      <li><a href="#cookies">Cookies</a></li>
+      <li><a href="#minors">Minors</a></li>
+      <li><a href="#changes">Changes</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="doc-content">
+
+    <div class="doc-section reveal" id="overview">
+      <span class="section-num">01 — Overview</span>
+      <h2>The Short Version</h2>
+      <div class="highlight-box">
+        <p>Kevball is a community sports platform. We collect only what's needed to run the game — your name, stats, and profile info. We don't sell your data. We don't run ads. AJ doesn't get access to anything.</p>
+      </div>
+      <p>This Privacy Policy explains what information Kevball ("we," "us," "our") collects when you use kevball.online, how we use it, and what rights you have over it. By using the site, you agree to the practices described here.</p>
+    </div>
+
+    <div class="doc-section reveal" id="collect">
+      <span class="section-num">02 — What We Collect</span>
+      <h2>Information We Collect</h2>
+      <p>We collect information you provide directly when you create an account, fill out a player profile, or submit a pre-order. This includes:</p>
+      <ul class="doc-list">
+        <li><strong>Account info</strong> — your name, email address, and password (stored securely via Firebase Auth)</li>
+        <li><strong>Profile info</strong> — display name, nickname, playing style, bio, avatar photo</li>
+        <li><strong>Game data</strong> — wins, losses, points, match history</li>
+        <li><strong>Pre-order info</strong> — name, email, phone number (optional), item selections</li>
+        <li><strong>Google sign-in</strong> — if you use Google to sign in, we receive your name, email, and profile photo from Google</li>
+      </ul>
+      <p>We do not collect payment information. No credit card numbers, bank details, or financial data are stored on our servers at any time.</p>
+    </div>
+
+    <div class="doc-section reveal" id="use">
+      <span class="section-num">03 — How We Use It</span>
+      <h2>How We Use Your Information</h2>
+      <p>We use your information exclusively to operate the Kevball platform:</p>
+      <ul class="doc-list">
+        <li>Displaying your player profile, stats, and ranking on the leaderboard</li>
+        <li>Tracking match history and score updates</li>
+        <li>Fulfilling merch pre-orders and contacting you when your order is ready</li>
+        <li>Identifying admin accounts to manage the platform</li>
+        <li>Sending you order confirmations or important platform updates (no marketing spam)</li>
+      </ul>
+      <p>We do not use your data for advertising, profiling, or any purpose beyond operating Kevball.</p>
+    </div>
+
+    <div class="doc-section reveal" id="storage">
+      <span class="section-num">04 — Data Storage</span>
+      <h2>Where Your Data Lives</h2>
+      <p>All user data is stored in <strong>Google Firebase</strong> (Firestore database and Firebase Authentication), hosted on Google Cloud infrastructure. Data is stored in the United States.</p>
+      <p>Firebase provides industry-standard security including encryption at rest and in transit. Your password is never stored in plain text — Firebase Auth handles authentication securely.</p>
+      <p>Avatar images you upload are stored as base64 data within Firestore. If you upload a photo, it becomes part of your player document.</p>
+    </div>
+
+    <div class="doc-section reveal" id="sharing">
+      <span class="section-num">05 — Sharing</span>
+      <h2>Who We Share Data With</h2>
+      <p>We do not sell, rent, or trade your personal information. Period.</p>
+      <p>Your data is shared only in these limited circumstances:</p>
+      <ul class="doc-list">
+        <li><strong>Public profile data</strong> — your name, nickname, stats, and bio are visible to all site visitors on the roster and rankings pages</li>
+        <li><strong>Firebase / Google</strong> — your data is processed and stored by Google Firebase as our infrastructure provider</li>
+        <li><strong>Platform admins</strong> — Kevball admins can see pre-order information (name, email, items) to fulfill orders</li>
+        <li><strong>Legal requirements</strong> — if required by law or to protect the safety of users</li>
+      </ul>
+    </div>
+
+    <div class="doc-section reveal" id="merch">
+      <span class="section-num">06 — Pre-Orders & Shop</span>
+      <h2>Shop & Pre-Order Data</h2>
+      <p>When you submit a merch pre-order, we store your name, email address, phone number (if provided), and the items you selected. This information is used solely to:</p>
+      <ul class="doc-list">
+        <li>Track demand and determine when to place a bulk order</li>
+        <li>Contact you to confirm your order and collect payment when ready</li>
+        <li>Coordinate delivery of your items</li>
+      </ul>
+      <p>No payment information is collected at the time of pre-order. Payment will be collected separately when the order is placed. Pre-order data is stored in Firestore and accessible to Kevball admins only.</p>
+    </div>
+
+    <div class="doc-section reveal" id="rights">
+      <span class="section-num">07 — Your Rights</span>
+      <h2>Your Rights & Choices</h2>
+      <p>You have full control over your information:</p>
+      <ul class="doc-list">
+        <li><strong>Access</strong> — you can view all your profile data on your profile page at any time</li>
+        <li><strong>Update</strong> — edit your profile, nickname, bio, avatar, and preferences at any time</li>
+        <li><strong>Delete</strong> — contact us to permanently delete your account and all associated data</li>
+        <li><strong>Pre-order withdrawal</strong> — contact us before the bulk order is placed to remove your pre-order</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at the address below. We will respond within 7 days.</p>
+    </div>
+
+    <div class="doc-section reveal" id="cookies">
+      <span class="section-num">08 — Cookies</span>
+      <h2>Cookies & Local Storage</h2>
+      <p>Kevball uses minimal browser storage. Firebase Authentication uses a session token stored in your browser to keep you logged in. This is a functional necessity, not a tracking cookie.</p>
+      <p>We do not use third-party tracking cookies, analytics cookies, or advertising cookies. We do not use Google Analytics or any similar tracking service.</p>
+    </div>
+
+    <div class="doc-section reveal" id="minors">
+      <span class="section-num">09 — Minors</span>
+      <h2>Children & Minors</h2>
+      <p>Kevball is a community platform intended for players who participate in Kevball games. If you are under 13 years of age, please have a parent or guardian review this policy and create your account on your behalf.</p>
+      <p>We do not knowingly collect data from children under 13 without parental consent. If you believe a minor has submitted personal data without consent, contact us and we will delete it promptly.</p>
+    </div>
+
+    <div class="doc-section reveal" id="changes">
+      <span class="section-num">10 — Changes</span>
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, we'll update the "Last updated" date at the top of this page. Continued use of Kevball after changes are posted constitutes your acceptance of the updated policy.</p>
+      <p>We won't make material changes without making a reasonable effort to notify active users.</p>
+    </div>
+
+    <div class="doc-section reveal" id="contact">
+      <span class="section-num">11 — Contact</span>
+      <h2>Contact Us</h2>
+      <p>Questions about this Privacy Policy or how your data is handled? Reach out:</p>
+      <div class="contact-block">
+        <p><strong style="color:#fff;font-family:'Black Ops One',cursive;letter-spacing:1px">KEVBALL</strong></p>
+        <p style="margin-top:8px">Email: <a href="mailto:kgravy56@gmail.com">kgravy56@gmail.com</a></p>
+        <p>Website: <a href="https://kevball.online">kevball.online</a></p>
+        <p style="margin-top:12px;font-size:12px">We typically respond within 7 business days.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <p style="margin-bottom:10px;font-family:'Black Ops One',cursive;font-size:18px;color:#fff">KEV<span style="color:var(--gold)">●</span>BALL</p>
+  <p><a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="tos.html">Terms of Service</a> &nbsp;·&nbsp; <a href="index.html">Home</a></p>
+  <p style="margin-top:10px">© 2026 Kevball · Invented by <strong>Kevin Orellana</strong></p>
+</footer>
+
+<script>
+  // Sticky TOC active state
+  const sections = document.querySelectorAll('.doc-section');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if(link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin:'-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+
+  // Reveal
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>
