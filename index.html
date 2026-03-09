@@ -32,7 +32,7 @@
   }
   nav .logo { font-family: 'Black Ops One', cursive; font-size: 26px; letter-spacing: 3px; color: var(--white); text-decoration: none; }
   nav .logo span { color: var(--gold); }
-  nav ul { list-style: none; display: flex; gap: 32px; }
+  nav ul { list-style: none; display: none; }
   nav ul li a { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
   nav ul li a:hover { color: var(--gold); }
 
@@ -299,6 +299,7 @@
   .court-del:hover{color:#e74c3c;}
 
   /* ADMIN */
+  .desktop-only{display:none !important;}
   .admin-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:7px 14px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
   .admin-btn:hover{border-color:var(--gold);color:var(--gold);}
   .admin-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,0.1);}
@@ -330,7 +331,7 @@
   .admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);color:var(--gold);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 10px;text-transform:uppercase;margin-left:12px;vertical-align:middle;}
 
   /* ── HAMBURGER NAV ── */
-  .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:201;}
+  .hamburger{display:flex;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:201;}
   .hamburger span{display:block;width:24px;height:2px;background:rgba(255,255,255,0.8);transition:all 0.3s;}
   .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
   .hamburger.open span:nth-child(2){opacity:0;}
@@ -360,7 +361,6 @@
     nav{padding:14px 20px;}
     nav ul{display:none;}
     .desktop-only{display:none !important;}
-    .hamburger{display:flex;}
 
     /* HERO */
     .hero-stats{gap:16px;flex-wrap:wrap;justify-content:center;}
@@ -1538,20 +1538,20 @@ renderBracket();
 initReveal();
 
   // ── MOBILE MENU ────────────────────────────────────────
-  function toggleMobileMenu() {
+  window.toggleMobileMenu = function() {
     const menu = document.getElementById('mobileMenu');
     const ham  = document.getElementById('hamburger');
     const open = menu.classList.toggle('open');
     ham.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
-  }
-  function closeMobileMenu() {
+  };
+  window.closeMobileMenu = function() {
     document.getElementById('mobileMenu').classList.remove('open');
     document.getElementById('hamburger').classList.remove('open');
     document.body.style.overflow = '';
-  }
+  };
   // Close on ESC
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeMobileMenu(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') window.closeMobileMenu(); });
 </script>
 <!-- LIVE SCORE BANNER -->
 <div id="liveBanner">
