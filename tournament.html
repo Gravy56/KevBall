@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournament — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c4622d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kevball">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<style>
+  :root{--ink:#1a1a18;--clay:#c4622d;--clay-light:#d4794a;--clay-dark:#8b3a1a;--clay-bg:#f5e6d3;--gold:#d4a843;--white:#fafaf8;--green:#2d5a27;--red:#c0392b;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--white);min-height:100vh;}
+
+  nav{background:rgba(0,0,0,0.7);border-bottom:2px solid var(--clay);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-right{display:flex;gap:10px;align-items:center;}
+  .nav-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:7px 14px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;display:inline-block;}
+  .nav-btn:hover{border-color:var(--clay);color:var(--white);}
+  .nav-btn.primary{background:var(--clay);color:#fff;border-color:var(--clay);}
+  .nav-btn.primary:hover{background:var(--clay-light);}
+
+  /* AUTH GATE */
+  #authGate{position:fixed;inset:0;background:var(--ink);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+  #authGate.hidden{display:none;}
+  .gate-logo{font-family:'Black Ops One',cursive;font-size:36px;letter-spacing:3px;}
+  .gate-logo span{color:var(--gold);}
+  .gate-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase;}
+  .gate-link{color:var(--gold);text-decoration:none;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 24px 80px;}
+
+  /* PAGE HEADER */
+  .page-header{margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+  .page-title-block .sub{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--clay);text-transform:uppercase;margin-bottom:6px;}
+  .page-title-block h1{font-family:'Black Ops One',cursive;font-size:36px;letter-spacing:3px;}
+  .header-btns{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* STATUS BANNER */
+  .status-banner{padding:14px 20px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;border-left:4px solid var(--clay);background:rgba(196,98,45,0.08);display:none;}
+  .status-banner.show{display:block;}
+  .status-banner.active{border-color:var(--green);background:rgba(45,90,39,0.12);}
+  .status-banner .status-match{font-family:'Black Ops One',cursive;font-size:18px;color:var(--gold);letter-spacing:2px;margin-top:4px;}
+
+  /* SETUP PANEL */
+  .setup-panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:24px;margin-bottom:28px;}
+  .sp-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:var(--white);margin-bottom:20px;}
+  .sp-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .sp-field label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;}
+  .sp-field select,.sp-field input{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;outline:none;transition:border-color 0.2s;}
+  .sp-field select:focus,.sp-field input:focus{border-color:var(--clay);}
+  .sp-field select option{background:var(--ink);}
+
+  /* PLAYER PICKER */
+  .player-pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .player-chip{padding:7px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;user-select:none;}
+  .player-chip.selected{background:var(--clay);border-color:var(--clay);color:#fff;}
+  .player-chip:hover:not(.selected){border-color:rgba(255,255,255,0.3);}
+  .selected-count{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+
+  /* GENERATE BUTTON */
+  .gen-btn{background:var(--clay);color:#fff;border:none;padding:13px 28px;font-family:'Black Ops One',cursive;font-size:15px;letter-spacing:2px;cursor:pointer;transition:background 0.2s;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+  .gen-btn:hover{background:var(--clay-light);}
+  .gen-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* BRACKET */
+  .bracket-wrap{overflow-x:auto;padding-bottom:16px;}
+  .bracket{display:flex;gap:0;align-items:stretch;min-width:max-content;}
+  .bracket-round{display:flex;flex-direction:column;justify-content:space-around;min-width:200px;padding:0 12px;}
+  .round-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);text-align:center;padding:8px 0 16px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:16px;}
+  .match-slot{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);margin-bottom:8px;position:relative;transition:border-color 0.2s;}
+  .match-slot.active{border-color:var(--clay);box-shadow:0 0 12px rgba(196,98,45,0.2);}
+  .match-slot.complete{border-color:rgba(255,255,255,0.12);opacity:0.7;}
+  .match-slot.bye{border-color:rgba(255,255,255,0.04);opacity:0.4;}
+  .ms-player{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .ms-player:last-child{border-bottom:none;}
+  .ms-player.winner{background:rgba(212,168,67,0.12);}
+  .ms-player.winner .ms-name{color:var(--gold);font-weight:700;}
+  .ms-player.tbd{opacity:0.35;}
+  .ms-name{font-family:'Black Ops One',cursive;font-size:13px;letter-spacing:1px;}
+  .ms-score{font-family:'Black Ops One',cursive;font-size:14px;color:var(--clay);}
+  .match-id-badge{position:absolute;top:-8px;left:10px;background:var(--ink);padding:0 6px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+  .match-slot.active .match-id-badge{color:var(--clay);}
+  .ms-connector{position:absolute;right:-12px;top:50%;width:12px;height:1px;background:rgba(255,255,255,0.1);}
+
+  /* WINNER DISPLAY */
+  .winner-card{background:linear-gradient(135deg,var(--clay-dark),var(--clay));padding:32px;text-align:center;margin-top:24px;display:none;}
+  .winner-card.show{display:block;}
+  .winner-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:10px;}
+  .winner-name{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,52px);letter-spacing:3px;color:var(--gold);}
+
+  /* ADMIN CONTROLS */
+  .admin-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+  .admin-bar.hidden{display:none;}
+  .a-btn{padding:9px 18px;border:1px solid rgba(255,255,255,0.15);background:none;color:rgba(255,255,255,0.6);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+  .a-btn:hover{border-color:var(--clay);color:var(--white);}
+  .a-btn.danger{border-color:rgba(192,57,43,0.4);color:rgba(192,57,43,0.7);}
+  .a-btn.danger:hover{border-color:var(--red);color:var(--red);}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(26,26,24,0.98);color:#fff;padding:12px 24px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;z-index:1000;border-left:4px solid var(--gold);opacity:0;transition:all 0.3s;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+  .empty-state{text-align:center;padding:60px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+
+  @media(max-width:600px){.sp-row{grid-template-columns:1fr;}.page-header{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+
+<div id="authGate">
+  <div class="gate-logo">KEV<span>●</span>BALL</div>
+  <p class="gate-sub" id="gateSub">Loading...</p>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-btn">← Home</a>
+    <button class="nav-btn" id="signOutBtn" onclick="doSignOut()" style="display:none">Sign Out</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-title-block">
+      <div class="sub">Kevball</div>
+      <h1>TOURNAMENT</h1>
+    </div>
+    <div class="header-btns" id="headerBtns" style="display:none">
+      <button class="nav-btn primary" onclick="showSetup()">+ New Bracket</button>
+    </div>
+  </div>
+
+  <!-- ACTIVE MATCH BANNER -->
+  <div class="status-banner" id="statusBanner"></div>
+
+  <!-- ADMIN BAR -->
+  <div class="admin-bar hidden" id="adminBar">
+    <button class="a-btn" onclick="showSetup()">+ New Bracket</button>
+    <button class="a-btn danger" onclick="deleteTournament()">✕ Delete Tournament</button>
+  </div>
+
+  <!-- SETUP PANEL (admin only, hidden by default) -->
+  <div class="setup-panel" id="setupPanel" style="display:none">
+    <div class="sp-title">GENERATE BRACKET</div>
+    <div class="sp-row">
+      <div class="sp-field">
+        <label>Tournament Name</label>
+        <input type="text" id="tourneyName" placeholder="e.g. Kevball Open 2025"/>
+      </div>
+      <div class="sp-field">
+        <label>Format</label>
+        <select id="tourneyFormat">
+          <option value="1v1">1v1</option>
+          <option value="2v2">2v2</option>
+        </select>
+      </div>
+    </div>
+    <div class="sp-field" style="margin-bottom:12px">
+      <label>Win Target</label>
+      <select id="tourneyTarget">
+        <option value="7">7</option>
+        <option value="11">11</option>
+        <option value="15">15</option>
+        <option value="21" selected>21</option>
+      </select>
+    </div>
+    <div class="sp-field" style="margin-bottom:12px">
+      <label>Select Players</label>
+      <div class="selected-count" id="selectedCount">0 selected</div>
+      <div class="player-pool" id="playerPool">Loading players...</div>
+    </div>
+    <button class="gen-btn" id="genBtn" onclick="generateBracket()" disabled>Generate Bracket</button>
+    <button class="a-btn" onclick="hideSetup()" style="margin-left:12px">Cancel</button>
+  </div>
+
+  <!-- BRACKET DISPLAY -->
+  <div id="bracketArea">
+    <div class="empty-state" id="emptyState">No active tournament.<br>Admins can create one above.</div>
+  </div>
+
+  <!-- WINNER -->
+  <div class="winner-card" id="winnerCard">
+    <div class="winner-label">Tournament Champion</div>
+    <div class="winner-name" id="winnerName">—</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+initializeAppCheck(app, { provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'), isTokenAutoRefreshEnabled: true });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let isAdmin = false;
+let selectedPlayers = new Set();
+let playersCache = [];
+let tournamentUnsub = null;
+
+// ── AUTH ──────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  const gate = document.getElementById('authGate');
+  if (user) {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    currentUser = snap.exists() ? snap.data() : {};
+    isAdmin = !!currentUser.isAdmin;
+  }
+  gate.classList.add('hidden');
+  if (isAdmin) {
+    document.getElementById('adminBar').classList.remove('hidden');
+    document.getElementById('signOutBtn').style.display = 'block';
+    loadPlayers();
+  }
+  watchTournament();
+});
+
+window.doSignOut = async () => { await signOut(auth); location.href = 'login.html'; };
+
+// ── PLAYERS ───────────────────────────────────────────────
+async function loadPlayers() {
+  const snap = await getDocs(query(collection(db,'players'), orderBy('points','desc')));
+  playersCache = [];
+  snap.forEach(d => playersCache.push({...d.data(), _id: d.id}));
+  renderPlayerPool();
+}
+
+function renderPlayerPool() {
+  const pool = document.getElementById('playerPool');
+  if (!playersCache.length) { pool.innerHTML = '<span style="color:rgba(255,255,255,0.3);font-size:12px">No players yet</span>'; return; }
+  pool.innerHTML = playersCache.map(p =>
+    `<div class="player-chip${selectedPlayers.has(p.name)?' selected':''}" onclick="togglePlayer('${p.name}')">${p.name}</div>`
+  ).join('');
+}
+
+window.togglePlayer = function(name) {
+  if (selectedPlayers.has(name)) selectedPlayers.delete(name);
+  else selectedPlayers.add(name);
+  renderPlayerPool();
+  const n = selectedPlayers.size;
+  document.getElementById('selectedCount').textContent = `${n} selected${n>=2?' ('+nextPow2(n)+' slot bracket)':''}`;
+  document.getElementById('genBtn').disabled = n < 2;
+};
+
+function nextPow2(n) {
+  let p = 1; while (p < n) p *= 2; return p;
+}
+
+// ── SETUP UI ──────────────────────────────────────────────
+window.showSetup = function() {
+  document.getElementById('setupPanel').style.display = 'block';
+  renderPlayerPool();
+};
+window.hideSetup = function() { document.getElementById('setupPanel').style.display = 'none'; };
+
+// ── BRACKET GENERATION ────────────────────────────────────
+window.generateBracket = async function() {
+  const name = document.getElementById('tourneyName').value.trim() || 'Kevball Tournament';
+  const format = document.getElementById('tourneyFormat').value;
+  const target = parseInt(document.getElementById('tourneyTarget').value);
+  const players = [...selectedPlayers];
+
+  if (players.length < 2) { toast('Select at least 2 players'); return; }
+
+  // Shuffle players for seeding
+  const shuffled = [...players].sort(() => Math.random() - 0.5);
+
+  // Pad to next power of 2 with BYEs
+  const size = nextPow2(shuffled.length);
+  while (shuffled.length < size) shuffled.push(null); // null = BYE
+
+  // Build rounds array
+  // Round 0 = first round, has size/2 matches
+  const rounds = [];
+  let roundMatches = [];
+  for (let i = 0; i < size; i += 2) {
+    roundMatches.push({
+      id: `r0m${i/2}`,
+      p1: shuffled[i],
+      p2: shuffled[i+1],
+      score1: null, score2: null,
+      winner: shuffled[i+1] === null ? shuffled[i] : null, // auto-advance byes
+      bye: shuffled[i+1] === null,
+      played: shuffled[i+1] === null
+    });
+  }
+  rounds.push(roundMatches);
+
+  // Build subsequent rounds (TBD placeholders)
+  let prev = roundMatches;
+  while (prev.length > 1) {
+    const next = [];
+    for (let i = 0; i < prev.length; i += 2) {
+      next.push({
+        id: `r${rounds.length}m${i/2}`,
+        p1: prev[i].winner || null,
+        p2: prev[i+1]?.winner || null,
+        score1: null, score2: null,
+        winner: null, bye: false, played: false
+      });
+    }
+    rounds.push(next);
+    prev = next;
+  }
+
+  // Find first unplayed non-bye match
+  const nextMatch = findNextMatch(rounds);
+
+  const data = {
+    name, format, target,
+    players, rounds,
+    currentMatchId: nextMatch?.id || null,
+    status: 'active',
+    winner: null,
+    createdAt: serverTimestamp()
+  };
+
+  await setDoc(doc(db, 'tournament', 'current'), data);
+  hideSetup();
+  toast('Bracket generated!');
+};
+
+function findNextMatch(rounds) {
+  for (const round of rounds) {
+    for (const m of round) {
+      if (!m.played && !m.bye && m.p1 && m.p2) return m;
+    }
+  }
+  return null;
+}
+
+// ── WATCH TOURNAMENT ──────────────────────────────────────
+function watchTournament() {
+  if (tournamentUnsub) tournamentUnsub();
+  tournamentUnsub = onSnapshot(doc(db,'tournament','current'), snap => {
+    if (!snap.exists() || snap.data().status === 'deleted') {
+      document.getElementById('bracketArea').innerHTML = '';
+      document.getElementById('emptyState') || (document.getElementById('bracketArea').innerHTML = '<div class="empty-state" id="emptyState">No active tournament.<br>Admins can create one above.</div>');
+      document.getElementById('winnerCard').classList.remove('show');
+      document.getElementById('statusBanner').classList.remove('show');
+      return;
+    }
+    const t = snap.data();
+    renderBracket(t);
+    renderStatusBanner(t);
+    if (t.winner) {
+      document.getElementById('winnerCard').classList.add('show');
+      document.getElementById('winnerName').textContent = t.winner;
+    }
+  });
+}
+
+function renderStatusBanner(t) {
+  const banner = document.getElementById('statusBanner');
+  if (!t.currentMatchId || t.winner) { banner.classList.remove('show'); return; }
+  const match = findMatchById(t.rounds, t.currentMatchId);
+  if (!match) { banner.classList.remove('show'); return; }
+  banner.classList.add('show', 'active');
+  banner.innerHTML = `
+    <div>Next Up — ${t.name}</div>
+    <div class="status-match">${match.p1 || 'TBD'} vs ${match.p2 || 'TBD'}</div>
+    <div style="margin-top:6px;color:rgba(255,255,255,0.3)">Format: ${t.format} · First to ${t.target}${isAdmin ? ' · <a href="referee.html" style="color:var(--gold);text-decoration:none">Open Referee →</a>' : ''}</div>`;
+}
+
+function findMatchById(rounds, id) {
+  for (const round of rounds) {
+    for (const m of round) { if (m.id === id) return m; }
+  }
+  return null;
+}
+
+function renderBracket(t) {
+  const area = document.getElementById('bracketArea');
+  const rounds = t.rounds;
+  const numRounds = rounds.length;
+  const roundNames = ['Round 1','Round 2','Quarterfinals','Semifinals','Final'];
+  // Reverse index for naming
+  const getRoundName = i => {
+    const fromEnd = numRounds - 1 - i;
+    if (fromEnd === 0) return 'Final';
+    if (fromEnd === 1) return 'Semifinal';
+    if (fromEnd === 2) return 'Quarterfinal';
+    return `Round ${i + 1}`;
+  };
+
+  let html = '<div class="bracket-wrap"><div class="bracket">';
+  for (let r = 0; r < rounds.length; r++) {
+    html += `<div class="bracket-round">`;
+    html += `<div class="round-label">${getRoundName(r)}</div>`;
+    for (const m of rounds[r]) {
+      const isActive = m.id === t.currentMatchId;
+      const p1class = m.winner === m.p1 ? 'winner' : (!m.p1 ? 'tbd' : '');
+      const p2class = m.winner === m.p2 ? 'winner' : (!m.p2 ? 'tbd' : '');
+      const slotClass = m.bye ? 'bye' : m.played ? 'complete' : isActive ? 'active' : '';
+      html += `<div class="match-slot ${slotClass}">
+        <div class="match-id-badge">${isActive ? '▶ NEXT' : m.played ? '✓' : ''}</div>
+        <div class="ms-player ${p1class}">
+          <span class="ms-name">${m.p1 || 'TBD'}</span>
+          <span class="ms-score">${m.score1 !== null ? m.score1 : ''}</span>
+        </div>
+        <div class="ms-player ${p2class}">
+          <span class="ms-name">${m.bye ? 'BYE' : (m.p2 || 'TBD')}</span>
+          <span class="ms-score">${m.score2 !== null ? m.score2 : ''}</span>
+        </div>
+        ${r < rounds.length-1 ? '<div class="ms-connector"></div>' : ''}
+      </div>`;
+    }
+    html += '</div>';
+  }
+  html += '</div></div>';
+  area.innerHTML = html;
+}
+
+// ── DELETE TOURNAMENT ─────────────────────────────────────
+window.deleteTournament = async function() {
+  if (!confirm('Delete the current tournament? This cannot be undone.')) return;
+  await setDoc(doc(db,'tournament','current'),{status:'deleted'});
+  toast('Tournament deleted.');
+};
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
+      });
+    }
+  </script>
+</body>
+</html>
