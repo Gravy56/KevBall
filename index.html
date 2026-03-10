@@ -2,777 +2,258 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KEVBALL — Official</title>
-<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Referee Dashboard — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --court-green: #2d5a27;
-    --court-green-light: #3a7a32;
-    --court-line: #e8f4e8;
-    --clay: #c4622d;
-    --clay-light: #d4794a;
-    --clay-dark: #8b3a1a;
-    --clay-bg: #f5e6d3;
-    --white: #fafaf8;
-    --ink: #1a1a18;
-    --gold: #d4a843;
+    --ink: #1a1a18; --clay: #c4622d; --clay-light: #d4794a;
+    --clay-dark: #8b3a1a; --clay-bg: #f5e6d3; --gold: #d4a843;
+    --green: #2d5a27; --white: #fafaf8; --red: #c0392b;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--court-green); color: var(--white); overflow-x: hidden; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { font-family:'DM Sans',sans-serif; background:var(--ink); color:var(--white); overflow-x:hidden; }
 
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 48px;
-    background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  nav .logo { font-family: 'Black Ops One', cursive; font-size: 26px; letter-spacing: 3px; color: var(--white); text-decoration: none; }
-  nav .logo span { color: var(--gold); }
-  nav ul { list-style: none; display: none; }
-  nav ul li a { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
-  nav ul li a:hover { color: var(--gold); }
+  #authGate { position:fixed; inset:0; background:var(--ink); z-index:999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  #authGate.hidden { display:none; }
+  #authGate .gate-logo { font-family:'Black Ops One',cursive; font-size:36px; letter-spacing:3px; }
+  #authGate .gate-logo span { color:var(--gold); }
+  #authGate p { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
+  .gate-denied { color:var(--red); font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; text-align:center; padding:0 40px; display:none; line-height:2; }
+  .gate-link { color:var(--gold); text-decoration:none; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; }
 
-  #hero {
-    height: 100vh; position: relative; overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    background: #1e4a1a;
-  }
-  .court-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-  .court-bg svg { width: 100%; height: 100%; opacity: 0.32; }
-  .cl { stroke-dasharray: 2000; stroke-dashoffset: 2000; animation: dl 2.5s ease forwards; }
-  @keyframes dl { to { stroke-dashoffset: 0; } }
+  nav { background:rgba(0,0,0,0.4); border-bottom:2px solid var(--clay); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; color:var(--white); text-decoration:none; }
+  .logo span { color:var(--gold); }
+  .ref-badge { background:var(--clay); color:#fff; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:5px 12px; text-transform:uppercase; }
+  .signout-btn { background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:6px 12px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
+  .signout-btn:hover { border-color:var(--red); color:var(--red); }
 
-  .hero-content { position: relative; z-index: 2; text-align: center; animation: hfi 1s ease 0.5s both; }
-  @keyframes hfi { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-  .hero-eyebrow { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
-  .hero-title { font-family: 'Black Ops One', cursive; font-size: clamp(72px, 17vw, 190px); line-height: 0.9; color: var(--white); text-shadow: 0 0 80px rgba(212,168,67,0.3), 0 4px 0 rgba(0,0,0,0.4); }
-  .hero-title .ball { display: inline-block; color: var(--gold); animation: sp 8s linear infinite; }
-  @keyframes sp { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  .hero-sub { font-family: 'Bebas Neue', sans-serif; font-size: clamp(16px,2.5vw,28px); letter-spacing: 8px; color: rgba(255,255,255,0.55); margin-top: 12px; }
-  .hero-stats { display: flex; gap: 48px; justify-content: center; margin-top: 44px; }
-  .hero-stat { text-align: center; }
-  .hero-stat .num { font-family: 'Black Ops One', cursive; font-size: 36px; color: var(--gold); display: block; }
-  .hero-stat .lbl { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
-  .hero-cta { margin-top: 44px; display: flex; gap: 16px; justify-content: center; }
-  .btn-p { background: var(--gold); color: var(--ink); font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s; clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
-  .btn-p:hover { background: #e8b84d; transform: translateY(-2px); }
-  .btn-g { background: transparent; color: var(--white); font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; text-decoration: none; transition: all 0.2s; clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
-  .btn-g:hover { border-color: var(--white); background: rgba(255,255,255,0.06); }
-  .scroll-hint { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,0.35); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 3px; animation: bounce 2s ease infinite; }
-  .scroll-hint::after { content: ''; width: 1px; height: 36px; background: linear-gradient(to bottom,rgba(255,255,255,0.35),transparent); }
-  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+  .main { max-width:720px; margin:0 auto; padding:16px clamp(8px,3vw,16px) 100px; }
+  .phase { display:none; }
+  .phase.active { display:block; }
 
-  .section-transition { height: 180px; background: linear-gradient(to bottom, #1e4a1a, #8b3a1a); }
+  .card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:22px; margin-bottom:18px; }
+  .card-title { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:2px; color:var(--gold); margin-bottom:16px; text-transform:uppercase; }
 
-  .clay-section { background: var(--clay-bg); color: var(--ink); position: relative; }
-  .clay-section::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background: repeating-linear-gradient(90deg, var(--clay) 0, var(--clay) 20px, var(--clay-light) 20px, var(--clay-light) 40px); }
-  .alt-bg { background: #f0e4d2; }
+  .match-list { display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto; }
+  .match-opt { background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.08); padding:14px 18px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:space-between; }
+  .match-opt:hover { border-color:var(--clay); }
+  .match-opt.selected { border-color:var(--gold); background:rgba(212,168,67,0.08); }
+  .match-opt-names { font-family:'Black Ops One',cursive; font-size:14px; letter-spacing:1px; }
+  .match-opt-meta { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.35); text-transform:uppercase; margin-top:3px; }
+  .match-opt-status { font-family:'Space Mono',monospace; font-size:9px; color:var(--green); letter-spacing:1px; flex-shrink:0; }
+  .match-opt.played .match-opt-status { color:rgba(255,255,255,0.25); }
 
-  .section-header { text-align: center; padding: 80px 48px 60px; }
-  .section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--clay); margin-bottom: 12px; display: block; }
-  .section-title { font-family: 'Black Ops One', cursive; font-size: clamp(38px,7vw,78px); color: var(--ink); line-height: 1; }
-  .section-title span { color: var(--clay); }
+  .format-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .fmt-btn { font-family:'Black Ops One',cursive; font-size:14px; letter-spacing:1px; padding:10px 18px; border:2px solid rgba(255,255,255,0.12); background:transparent; color:rgba(255,255,255,0.4); cursor:pointer; transition:all 0.2s; }
+  .fmt-btn:hover { border-color:var(--clay); color:var(--white); }
+  .fmt-btn.active { border-color:var(--gold); background:rgba(212,168,67,0.1); color:var(--gold); }
 
-  /* RULES */
-  #rules { padding-bottom: 80px; }
-  .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 2px; padding: 0 48px; max-width: 1400px; margin: 0 auto; }
-  .rule-card { background: #fff; padding: 28px 32px; position: relative; overflow: hidden; transition: color 0.3s; cursor: default; }
-  .rule-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:0; background:var(--clay); transition:width 0.32s; z-index:0; }
-  .rule-card:hover::before { width:100%; }
-  .rule-card > * { position:relative; z-index:1; }
-  .rule-num { font-family:'Black Ops One',cursive; font-size:44px; color:rgba(196,98,45,0.1); line-height:1; transition:color 0.3s; }
-  .rule-name { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:3px; color:var(--clay); margin:6px 0 8px; transition:color 0.3s; }
-  .rule-text { font-size:13.5px; line-height:1.65; color:#444; transition:color 0.3s; }
-  .rule-card:hover .rule-num { color:rgba(255,255,255,0.15); }
-  .rule-card:hover .rule-name { color:#fff; }
-  .rule-card:hover .rule-text { color:rgba(255,255,255,0.88); }
-  .special-rule { background:var(--ink); }
-  .special-rule .rule-num { color:rgba(212,168,67,0.15); }
-  .special-rule .rule-name { color:var(--gold); }
-  .special-rule .rule-text { color:rgba(255,255,255,0.7); }
-  .special-rule::before { background:var(--gold); }
-  .special-rule:hover .rule-name { color:var(--ink); }
-  .special-rule:hover .rule-text { color:rgba(0,0,0,0.82); }
+  .teams-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(4px,2vw,10px); align-items:start; width:100%; }
+  .team-col { min-width:0; }
+  .team-label { font-family:'Black Ops One',cursive; font-size:clamp(10px,2.5vw,13px); letter-spacing:1px; margin-bottom:8px; padding:6px 8px; text-align:center; }
+  .team-label.t1 { background:rgba(196,98,45,0.2); color:var(--clay); }
+  .team-label.t2 { background:rgba(45,90,39,0.2); color:#5aaa52; }
+  .vs-col { display:flex; align-items:center; justify-content:center; padding-top:32px; width:clamp(20px,5vw,40px); flex-shrink:0; }
+  .vs-mid { font-family:'Black Ops One',cursive; font-size:clamp(12px,3vw,18px); color:rgba(255,255,255,0.15); }
 
-  /* RANKINGS */
-  #rankings { padding-bottom: 80px; }
-  .rankings-container { max-width: 900px; margin: 0 auto; padding: 0 48px; }
-  .add-bar { display:flex; gap:12px; margin-bottom:28px; background:#fff; padding:16px; border-top:4px solid var(--clay); }
-  .add-bar input { flex:1; font-family:'DM Sans',sans-serif; font-size:15px; padding:12px 16px; border:1px solid #ddd; outline:none; transition:border-color 0.2s; }
-  .add-bar input:focus { border-color:var(--clay); }
-  .add-bar button { background:var(--clay); color:#fff; border:none; padding:12px 24px; font-family:'Space Mono',monospace; font-size:12px; letter-spacing:1px; cursor:pointer; transition:background 0.2s; white-space:nowrap; }
-  .add-bar button:hover { background:var(--clay-dark); }
-  .ranking-table { background:#fff; width:100%; border-collapse:collapse; }
-  .ranking-table th { background:var(--ink); color:var(--gold); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; padding:14px 20px; text-align:left; }
-  .ranking-table td { padding:15px 20px; border-bottom:1px solid #eee; font-size:15px; color:var(--ink); }
-  .ranking-table tr:hover td { background:#fdf5ec; }
-  .rk-pos { font-family:'Black Ops One',cursive; font-size:20px; color:rgba(0,0,0,0.12); }
-  .rk-1 .rk-pos { color:var(--gold); }
-  .rk-2 .rk-pos { color:#aaa; }
-  .rk-3 .rk-pos { color:#cd7f32; }
-  .rk-name { font-weight:700; font-size:16px; }
-  .rk-w { color:#2d5a27; font-weight:700; }
-  .rk-l { color:#c0392b; font-weight:700; }
-  .rk-pts { font-family:'Black Ops One',cursive; font-size:18px; color:var(--clay); }
-  .abt { background:none; border:none; cursor:pointer; color:#ccc; font-size:16px; transition:color 0.2s; padding:3px 5px; }
-  .abt:hover { color:#e74c3c; }
-  .badge { display:inline-block; padding:2px 8px; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; background:var(--clay); color:#fff; margin-left:8px; vertical-align:middle; }
+  .player-slot { display:flex; align-items:center; gap:4px; margin-bottom:6px; min-width:0; }
+  .player-slot select { flex:1; min-width:0; width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--white); font-family:'DM Sans',sans-serif; font-size:clamp(11px,3vw,13px); padding:clamp(6px,2vw,9px) clamp(6px,2vw,12px); outline:none; transition:border-color 0.2s; }
+  .player-slot select:focus { border-color:var(--clay); }
+  .player-slot select option { background:var(--ink); }
+  .slot-num { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:1px; width:12px; flex-shrink:0; text-align:right; }
 
-  /* SCHEDULE */
-  #schedule { padding-bottom: 80px; }
-  .sched-container { max-width: 1000px; margin: 0 auto; padding: 0 48px; }
-  .week-tabs { display:flex; gap:4px; margin-bottom:28px; flex-wrap:wrap; }
-  .week-tab { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; padding:10px 20px; border:2px solid var(--clay); background:transparent; color:var(--clay); cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
-  .week-tab.active,.week-tab:hover { background:var(--clay); color:#fff; }
-  .add-match-bar { background:#fff; padding:18px; border-top:4px solid var(--clay); margin-bottom:20px; }
-  .add-match-bar input, .add-match-bar select { font-family:'DM Sans',sans-serif; padding:9px 12px; border:1px solid #ddd; font-size:13px; outline:none; background:#fff; color:var(--ink); width:100%; }
-  .add-match-bar input:focus, .add-match-bar select:focus { border-color:var(--clay); }
-  .amb-fmt-row { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
-  .amb-fmt-btn { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; padding:7px 14px; border:2px solid var(--clay); background:transparent; color:var(--clay); cursor:pointer; transition:all 0.2s; }
-  .amb-fmt-btn.active,.amb-fmt-btn:hover { background:var(--clay); color:#fff; }
-  .amb-teams { display:grid; grid-template-columns:1fr 40px 1fr; gap:8px; align-items:start; margin-bottom:12px; }
-  .amb-team-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--clay); margin-bottom:6px; font-weight:700; }
-  .amb-vs { display:flex; align-items:center; justify-content:center; padding-top:22px; font-family:'Black Ops One',cursive; font-size:14px; color:#ccc; }
-  .amb-slot { margin-bottom:6px; }
-  .vs-lbl { font-family:'Black Ops One',cursive; font-size:18px; color:var(--clay); }
-  .add-match-bar button { background:var(--clay); color:#fff; border:none; padding:10px 20px; font-family:'Space Mono',monospace; font-size:11px; cursor:pointer; white-space:nowrap; }
-  .matchup-list { display:flex; flex-direction:column; gap:6px; }
-  .matchup-card { background:#fff; display:grid; grid-template-columns:1fr auto 1fr 32px; align-items:center; overflow:hidden; border-left:4px solid transparent; transition:border-color 0.2s; position:relative; }
-  .matchup-card:hover { border-left-color:var(--clay); }
-  .mp { padding:18px 22px; font-weight:700; font-size:15px; color:var(--ink); }
-  .mp.right { text-align:right; }
-  .mp.winner { color:var(--clay-dark); }
-  .mc { text-align:center; padding:18px 14px; }
-  .score-disp { font-family:'Black Ops One',cursive; font-size:26px; color:var(--clay); display:block; }
-  .score-inp { display:flex; gap:8px; align-items:center; }
-  .score-inp input { width:46px; text-align:center; font-family:'Black Ops One',cursive; font-size:20px; padding:6px; border:2px solid #ddd; outline:none; color:var(--clay); }
-  .score-inp input:focus { border-color:var(--clay); }
-  .score-dash { font-family:'Black Ops One',cursive; font-size:22px; color:#ccc; }
-  .save-btn { display:block; margin-top:7px; background:var(--clay); color:#fff; border:none; padding:6px 12px; font-family:'Space Mono',monospace; font-size:9px; cursor:pointer; width:100%; letter-spacing:1px; }
-  .mstatus { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; display:block; margin-top:5px; color:#aaa; }
-  .del-btn { background:none; border:none; cursor:pointer; color:#eee; font-size:14px; padding:4px 8px; transition:color 0.2s; }
-  .del-btn:hover { color:#e74c3c; }
-  .add-week-btn { margin-top:14px; background:transparent; border:2px dashed var(--clay); color:var(--clay); padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; cursor:pointer; letter-spacing:2px; transition:all 0.2s; }
-  .add-week-btn:hover { background:var(--clay); color:#fff; }
+  .randomize-btn { width:100%; background:rgba(212,168,67,0.1); border:1px solid rgba(212,168,67,0.3); color:var(--gold); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; padding:10px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; margin-top:6px; }
+  .randomize-btn:hover { background:rgba(212,168,67,0.2); border-color:var(--gold); }
 
-  /* BRACKET */
-  #bracket { padding-bottom: 80px; }
-  .bracket-container { max-width:1200px; margin:0 auto; padding:0 48px; }
-  .bracket-setup { background:#fff; padding:24px; border-top:4px solid var(--clay); margin-bottom:28px; }
-  .bracket-setup h3 { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px; color:var(--clay); margin-bottom:14px; }
-  .player-cbs { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
-  .cb-label { display:flex; align-items:center; gap:8px; background:#f5f5f5; padding:8px 14px; cursor:pointer; font-size:14px; transition:background 0.2s; user-select:none; }
-  .cb-label:hover { background:#ffe8d6; }
-  .cb-label input { accent-color:var(--clay); }
-  .bracket-btns { display:flex; gap:12px; flex-wrap:wrap; }
-  .gen-btn { background:var(--clay); color:#fff; border:none; padding:14px 32px; font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; cursor:pointer; transition:background 0.2s; }
-  .gen-btn:hover { background:var(--clay-dark); }
-  .shuf-btn { background:var(--ink); color:var(--gold); border:none; padding:14px 24px; font-family:'Space Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s; }
-  .shuf-btn:hover { background:#333; }
-  .reset-btn { background:transparent; color:var(--clay); border:2px solid var(--clay); padding:14px 24px; font-family:'Space Mono',monospace; font-size:12px; cursor:pointer; transition:all 0.2s; }
-  .reset-btn:hover { background:var(--clay); color:#fff; }
+  .settings-row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .settings-row label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; white-space:nowrap; }
+  select.setting-sel { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; padding:9px 14px; outline:none; }
 
-  .bracket-visual { overflow-x:auto; padding:16px 0; }
-  .bracket-rounds { display:flex; gap:0; min-width:max-content; }
-  .b-round { display:flex; flex-direction:column; min-width:200px; padding:0 4px; }
-  .b-round-lbl { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); text-align:center; padding:8px; background:#fff; border-bottom:2px solid var(--clay); margin-bottom:8px; }
-  .b-match { display:flex; flex-direction:column; }
-  .b-player { background:#fff; padding:10px 14px; border-left:3px solid #ddd; font-size:13px; font-weight:600; color:var(--ink); cursor:default; transition:all 0.2s; min-width:180px; display:flex; justify-content:space-between; align-items:center; }
-  .b-player.clickable { cursor:pointer; }
-  .b-player.clickable:hover { border-left-color:var(--clay); background:#fdf5ec; }
-  .b-player.winner { border-left-color:var(--clay); background:#fff5ec; color:var(--clay-dark); font-weight:700; }
-  .b-player.tbd { color:#bbb; font-style:italic; font-weight:400; }
-  .b-player.bye { color:#ccc; font-style:italic; font-weight:400; background:#f9f9f9; }
-  .b-score { font-family:'Black Ops One',cursive; font-size:15px; color:var(--clay); }
-  .b-div { height:5px; }
-  .b-connector { display:flex; flex-direction:column; justify-content:space-around; width:20px; padding-top:42px; }
+  .start-btn { width:100%; background:var(--clay); color:#fff; border:none; padding:16px; font-family:'Black Ops One',cursive; font-size:18px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%); }
+  .start-btn:hover { background:var(--clay-light); transform:translateY(-2px); }
+  .start-btn:disabled { background:#444; cursor:not-allowed; transform:none; }
 
-  .champion-box { background:var(--clay); color:#fff; padding:24px 28px; text-align:center; font-family:'Black Ops One',cursive; font-size:20px; line-height:1.5; margin: auto 0; min-width:160px; }
+  .score-header { text-align:center; margin-bottom:20px; }
+  .score-match-label { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); margin-bottom:4px; }
+  .score-timer { font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; color:rgba(255,255,255,0.35); margin-bottom:4px; }
+  .score-target { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.25); }
 
-  .empty-state { text-align:center; padding:56px 24px; color:#bbb; font-family:'Space Mono',monospace; font-size:12px; letter-spacing:2px; }
-  .empty-icon { font-size:44px; display:block; margin-bottom:10px; }
+  .scoreboard-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(6px,2vw,14px); margin-bottom:18px; }
+  .team-score-card { background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.08); padding:clamp(10px,3vw,18px) clamp(8px,2vw,14px); text-align:center; position:relative; transition:border-color 0.3s; }
+  .team-score-card.leading { border-color:var(--gold); }
+  .team-score-card.won { border-color:var(--green); background:rgba(45,90,39,0.12); }
+  .team-name-sc { font-family:'Black Ops One',cursive; font-size:clamp(11px,3vw,16px); letter-spacing:1px; color:var(--white); margin-bottom:4px; }
+  .team-members-sc { font-family:'Space Mono',monospace; font-size:clamp(7px,1.8vw,9px); letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:clamp(4px,1.5vw,10px); line-height:1.8; white-space:pre-line; }
+  .big-score-sc { font-family:'Black Ops One',cursive; font-size:clamp(40px,12vw,80px); line-height:1; color:var(--white); margin:clamp(4px,1.5vw,10px) 0; transition:color 0.3s; }
+  .team-score-card.leading .big-score-sc { color:var(--gold); }
+  .team-score-card.won .big-score-sc { color:var(--green); }
+  .score-bump { animation:bump 0.25s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+  .won-badge { display:none; position:absolute; top:-1px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:3px 10px; text-transform:uppercase; white-space:nowrap; }
+  .team-score-card.won .won-badge { display:block; }
+  .score-btn { width:100%; padding:clamp(10px,3vw,16px); border:none; cursor:pointer; font-family:'Black Ops One',cursive; font-size:clamp(15px,4vw,22px); letter-spacing:2px; transition:all 0.15s; margin-bottom:6px; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
+  .score-btn.plus { background:var(--clay); color:#fff; }
+  .score-btn.plus:hover { background:var(--clay-light); }
+  .score-btn.plus:active { transform:scale(0.96); }
+  .score-btn.minus { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); font-size:clamp(10px,2.5vw,13px); }
+  .score-btn.minus:hover { background:rgba(255,255,255,0.1); }
 
-  .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.6s ease,transform 0.6s ease; }
-  .reveal.visible { opacity:1; transform:translateY(0); }
+  .events-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+  .event-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.65); font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; padding:10px 8px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; text-align:center; }
+  .event-btn:hover { background:rgba(196,98,45,0.15); border-color:var(--clay); color:#fff; }
+  .event-btn:active { transform:scale(0.97); }
 
-  footer { background:var(--ink); color:rgba(255,255,255,0.4); text-align:center; padding:40px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; }
-  footer strong { color:var(--gold); }
-  .toast { position:fixed; bottom:28px; right:28px; background:var(--ink); color:#fff; padding:13px 22px; font-family:'Space Mono',monospace; font-size:12px; letter-spacing:1px; z-index:1000; transform:translateY(80px); opacity:0; transition:all 0.3s; border-left:4px solid var(--gold); }
-  .toast.show { transform:translateY(0); opacity:1; }
+  .event-log { max-height:150px; overflow-y:auto; }
+  .event-entry { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px; }
+  .event-entry:last-child { border-bottom:none; }
+  .ev-time { font-family:'Space Mono',monospace; font-size:9px; color:rgba(255,255,255,0.25); flex-shrink:0; }
+  .ev-text { color:rgba(255,255,255,0.65); flex:1; }
+  .ev-icon { flex-shrink:0; }
+  .log-empty { font-family:'Space Mono',monospace; font-size:10px; color:rgba(255,255,255,0.2); letter-spacing:2px; padding:10px 0; text-transform:uppercase; }
 
-  /* SIGNUP MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
-  .modal-overlay.open{opacity:1;pointer-events:all;}
-  .modal{background:var(--clay-bg);width:100%;max-width:560px;border-top:5px solid var(--clay);position:relative;max-height:90vh;overflow-y:auto;transition:transform 0.35s cubic-bezier(0.16,1,0.3,1),opacity 0.35s;transform:translateY(40px);opacity:0;}
-  .modal-overlay.open .modal{transform:translateY(0);opacity:1;}
-  .modal-header{background:var(--ink);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;}
-  .modal-header h2{font-family:'Black Ops One',cursive;font-size:22px;letter-spacing:2px;color:var(--gold);}
-  .modal-close{background:none;border:none;color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;transition:color 0.2s;padding:0;}
-  .modal-close:hover{color:#fff;}
-  .modal-body{padding:28px 32px;}
-  .form-row{margin-bottom:18px;}
-  .form-row label{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--clay-dark);margin-bottom:7px;}
-  .form-row input,.form-row select,.form-row textarea{width:100%;padding:12px 16px;border:1.5px solid #d4c4b0;background:#fff;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;transition:border-color 0.2s;resize:vertical;}
-  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--clay);}
-  .form-row textarea{min-height:90px;}
-  .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .avatar-upload-area{border:2px dashed #d4c4b0;background:#fff;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;position:relative;}
-  .avatar-upload-area:hover{border-color:var(--clay);}
-  .avatar-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
-  .avatar-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:3px solid var(--clay);}
-  .avatar-placeholder{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--clay),var(--clay-light));display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-family:'Black Ops One',cursive;font-size:28px;color:#fff;}
-  .upload-hint{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;}
-  .submit-btn{width:100%;background:var(--clay);color:#fff;border:none;padding:15px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:background 0.2s;}
-  .submit-btn:hover{background:var(--clay-dark);}
+  .end-btn { width:100%; background:var(--red); color:#fff; border:none; padding:15px; font-family:'Black Ops One',cursive; font-size:17px; letter-spacing:3px; cursor:pointer; transition:background 0.2s; clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%); }
+  .end-btn:hover { background:#e74c3c; }
+  .cancel-btn { width:100%; background:none; color:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.1); padding:11px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; margin-top:10px; }
+  .cancel-btn:hover { border-color:#e74c3c; color:#e74c3c; }
 
-  /* PLAYER BIOS */
-  #bios{padding-bottom:80px;}
-  .bios-container{max-width:1300px;margin:0 auto;padding:0 48px;}
-  .bios-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;}
-  .signup-cta-btn{background:var(--clay);color:#fff;border:none;padding:14px 32px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background 0.2s;}
-  .signup-cta-btn:hover{background:var(--clay-dark);}
-  .bios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
-  .bio-card{background:#fff;overflow:hidden;border-bottom:4px solid var(--clay);transition:transform 0.2s,box-shadow 0.2s;cursor:default;display:flex;flex-direction:column;}
-  .bio-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(196,98,45,0.18);}
-  .bio-card-top{background:linear-gradient(135deg,var(--clay-dark),var(--clay));padding:20px 22px 20px 22px;display:flex;align-items:center;gap:14px;position:relative;}
-  .bio-avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.4);flex-shrink:0;}
-  .bio-initials{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,0.18);border:3px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-family:'Black Ops One',cursive;font-size:20px;color:#fff;flex-shrink:0;}
-  .bio-name-block{flex:1;min-width:0;}
-  .bio-name{font-family:'Black Ops One',cursive;font-size:18px;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bio-position{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.65);text-transform:uppercase;margin-top:3px;}
-  .bio-nick{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--gold);margin-top:4px;font-style:italic;}
-  .bio-body{padding:18px 22px;flex:1;}
-  .bio-stat-row{display:flex;gap:12px;margin-bottom:14px;}
-  .bio-stat{flex:1;text-align:center;background:#fdf5ec;padding:10px 4px;}
-  .bio-stat .sv{font-family:'Black Ops One',cursive;font-size:20px;color:var(--clay);display:block;}
-  .bio-stat .sk{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#999;text-transform:uppercase;}
-  .bio-blurb{font-size:13.5px;line-height:1.6;color:#666;margin-bottom:14px;}
-  .bio-meta{display:flex;gap:8px;flex-wrap:wrap;}
-  .bio-tag{background:var(--clay-bg);color:var(--clay-dark);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 10px;text-transform:uppercase;}
-  .bio-del{position:absolute;top:10px;right:12px;background:rgba(0,0,0,0.25);border:none;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;transition:all 0.2s;padding:3px 7px;border-radius:3px;line-height:1;}
-  .bio-del:hover{background:rgba(220,50,50,0.8);color:#fff;}
+  .complete-screen { text-align:center; padding:40px 16px; }
+  .complete-icon { font-size:64px; display:block; margin-bottom:16px; animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes popIn { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
+  .complete-title { font-family:'Black Ops One',cursive; font-size:30px; letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
+  .complete-sub { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:28px; }
+  .final-score-row { display:flex; justify-content:center; gap:28px; margin-bottom:36px; flex-wrap:wrap; }
+  .fsb { text-align:center; }
+  .fsb .fn { font-family:'Black Ops One',cursive; font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:4px; }
+  .fsb .fp { font-family:'Space Mono',monospace; font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; margin-bottom:6px; line-height:1.6; }
+  .fsb .fs { font-family:'Black Ops One',cursive; font-size:52px; color:var(--white); line-height:1; }
+  .fsb.winner-block .fs { color:var(--gold); }
+  .new-match-btn { background:var(--clay); color:#fff; border:none; padding:14px 40px; font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:2px; cursor:pointer; transition:all 0.2s; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); }
+  .new-match-btn:hover { background:var(--clay-light); }
 
-  /* COURTS */
-  #courts{padding-bottom:80px;}
-  .courts-container{max-width:1300px;margin:0 auto;padding:0 48px;}
-  .add-court-form{background:#fff;border-top:4px solid var(--clay);padding:24px 28px;margin-bottom:32px;}
-  .add-court-form h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--clay);margin-bottom:18px;}
-  .court-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .court-form-grid .full{grid-column:1/-1;}
-  .court-form-grid input,.court-form-grid select,.court-form-grid textarea{width:100%;padding:11px 15px;border:1.5px solid #d4c4b0;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color 0.2s;background:#fdfaf7;resize:vertical;}
-  .court-form-grid input:focus,.court-form-grid select:focus,.court-form-grid textarea:focus{border-color:var(--clay);}
-  .court-form-grid label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--clay-dark);margin-bottom:5px;}
-  .photo-drop{border:2px dashed #d4c4b0;background:#fdfaf7;padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s;position:relative;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
-  .photo-drop:hover{border-color:var(--clay);}
-  .photo-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
-  .photo-drop-icon{font-size:28px;}
-  .photo-drop-text{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#aaa;text-transform:uppercase;}
-  .photo-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-  .photo-thumb{width:72px;height:52px;object-fit:cover;border:2px solid var(--clay);}
-  .add-court-btn{background:var(--clay);color:#fff;border:none;padding:13px 32px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;margin-top:14px;transition:background 0.2s;}
-  .add-court-btn:hover{background:var(--clay-dark);}
-  .courts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;}
-  .court-card{background:#fff;overflow:hidden;border-bottom:4px solid var(--clay);transition:transform 0.2s,box-shadow 0.2s;}
-  .court-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(196,98,45,0.14);}
-  .court-photo-strip{height:200px;position:relative;background:linear-gradient(135deg,#2d5a27,#1e3d1a);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .court-photo-strip img{width:100%;height:100%;object-fit:cover;}
-  .court-photo-placeholder{font-size:48px;opacity:0.4;}
-  .court-photo-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 8px;}
-  .cpn-btn{background:rgba(0,0,0,0.4);border:none;color:#fff;width:28px;height:28px;cursor:pointer;font-size:14px;transition:background 0.2s;border-radius:50%;}
-  .cpn-btn:hover{background:rgba(0,0,0,0.7);}
-  .court-photo-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
-  .cpd{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);}
-  .cpd.active{background:#fff;}
-  .court-info{padding:20px 22px;}
-  .court-name{font-family:'Black Ops One',cursive;font-size:20px;color:var(--ink);letter-spacing:1px;margin-bottom:4px;}
-  .court-loc{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--clay);text-transform:uppercase;margin-bottom:12px;}
-  .court-desc{font-size:13.5px;line-height:1.6;color:#666;margin-bottom:14px;}
-  .court-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .court-tag{background:var(--clay-bg);color:var(--clay-dark);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 10px;text-transform:uppercase;}
-  .court-tag.green{background:#e8f4e8;color:var(--court-green);}
-  .court-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f0e4d2;padding-top:12px;}
-  .court-mode-badge{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;background:var(--ink);color:var(--gold);padding:5px 12px;text-transform:uppercase;}
-  .court-del{background:none;border:none;color:#ddd;font-size:13px;cursor:pointer;transition:color 0.2s;}
-  .court-del:hover{color:#e74c3c;}
-
-  /* ADMIN */
-  .desktop-only{display:none !important;}
-  .admin-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:7px 14px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
-  .admin-btn:hover{border-color:var(--gold);color:var(--gold);}
-  .admin-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,0.1);}
-  .admin-btn .lock-icon{font-size:12px;}
-  .admin-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
-  .admin-modal-overlay.open{opacity:1;pointer-events:all;}
-  .admin-modal{background:var(--ink);width:100%;max-width:400px;border-top:4px solid var(--gold);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;transform:translateY(30px);opacity:0;}
-  .admin-modal-overlay.open .admin-modal{transform:translateY(0);opacity:1;}
-  .admin-modal-header{padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between;}
-  .admin-modal-header h2{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;color:var(--gold);}
-  .admin-modal-body{padding:24px 28px 28px;}
-  .admin-modal-body p{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,0.4);margin-bottom:20px;line-height:1.6;}
-  .admin-pw-input{width:100%;padding:14px 18px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);color:#fff;font-family:'Space Mono',monospace;font-size:15px;letter-spacing:3px;outline:none;transition:border-color 0.2s;margin-bottom:14px;}
-  .admin-pw-input:focus{border-color:var(--gold);}
-  .admin-pw-input.error{border-color:#e74c3c;animation:shake 0.35s ease;}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-  .admin-login-btn{width:100%;background:var(--gold);color:var(--ink);border:none;padding:14px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;font-weight:700;cursor:pointer;transition:background 0.2s;text-transform:uppercase;}
-  .admin-login-btn:hover{background:#e8b84d;}
-  .admin-logout-btn{width:100%;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);padding:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;margin-top:10px;text-transform:uppercase;}
-  .admin-logout-btn:hover{border-color:#e74c3c;color:#e74c3c;}
-  .admin-error{color:#e74c3c;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;margin-top:-8px;margin-bottom:12px;display:none;}
-  .admin-error.show{display:block;}
-  .admin-only{display:none !important;}
-  body.admin-mode .admin-only{display:revert !important;}
-  body.admin-mode .admin-only-flex{display:flex !important;}
-  .admin-only-flex{display:none !important;}
-  body.admin-mode .admin-only-block{display:block !important;}
-  .admin-only-block{display:none !important;}
-  .admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);color:var(--gold);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 10px;text-transform:uppercase;margin-left:12px;vertical-align:middle;}
-
-  /* ── HAMBURGER NAV ── */
-  .hamburger{display:flex;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:201;}
-  .hamburger span{display:block;width:24px;height:2px;background:rgba(255,255,255,0.8);transition:all 0.3s;}
-  .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-  .hamburger.open span:nth-child(2){opacity:0;}
-  .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-  .mobile-menu{
-    display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-    background:rgba(10,10,8,0.97);backdrop-filter:blur(12px);
-    flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;
-    padding:72px 32px 32px;
-    overflow-y:auto;-webkit-overflow-scrolling:touch;
-  }
-  .mobile-menu.open{display:flex;}
-  .mobile-menu a,.mobile-menu button.mm-btn{
-    font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;
-    color:rgba(255,255,255,0.7);text-decoration:none;text-transform:uppercase;
-    padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);
-    width:100%;text-align:left;transition:color 0.2s;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;
-  }
-  .mobile-menu a:last-child,.mobile-menu button.mm-btn:last-child{border-bottom:none;}
-  .mobile-menu a:hover,.mobile-menu button.mm-btn:hover{color:var(--gold);}
-  .mobile-menu a.mm-shop{color:var(--gold);}
-  .mobile-menu a.mm-ref{color:var(--clay);display:none;}
-  .mobile-menu a.mm-ref.show{display:block;}
-  .mm-divider{width:40px;height:2px;background:var(--clay);margin:6px 0;}
-
-  @media(max-width:768px){
-    /* NAV */
-    nav{padding:14px 20px;}
-    nav ul{display:none;}
-    .desktop-only{display:none !important;}
-
-    /* HERO */
-    .hero-stats{gap:16px;flex-wrap:wrap;justify-content:center;}
-    .hero-stat .num{font-size:24px;}
-    .hero-stat .lbl{font-size:8px;}
-
-    /* SECTIONS */
-    .rules-grid{padding:0 16px;grid-template-columns:1fr;}
-    .rankings-container,.sched-container,.bracket-container{padding:0 16px;}
-    .bios-container,.courts-container{padding:0 16px;}
-    .section-header{padding:56px 16px 36px;}
-
-    /* RANKINGS TABLE — scrollable wrapper */
-    .rankings-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
-    .rankings-table-wrap table{min-width:360px;}
-
-    /* MATCHUP CARDS — stack vertically instead of 4-col grid */
-    .matchup-card{grid-template-columns:1fr 1fr !important;grid-template-rows:auto auto;gap:0;}
-    .matchup-p1{grid-column:1;padding:14px 12px 4px;}
-    .matchup-p2{grid-column:2;text-align:left !important;padding:14px 12px 4px;}
-    .matchup-score{grid-column:1/-1;justify-content:center;padding:4px 12px 14px;border-top:1px solid rgba(0,0,0,0.06);}
-    .matchup-del{position:absolute;top:8px;right:8px;}
-
-    /* WEEK TABS — horizontal scroll */
-    .week-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-    .week-tab{white-space:nowrap;flex-shrink:0;}
-
-    /* BIOS grid — single col on very small */
-    .bios-grid{grid-template-columns:1fr;}
-
-    /* COURTS grid */
-    .courts-grid{grid-template-columns:1fr;}
-
-    /* FORMS */
-    .court-form-grid{grid-template-columns:1fr;}
-    .form-row-2{grid-template-columns:1fr;}
-
-    /* MODALS */
-    .modal{margin:0;border-radius:0;max-height:100vh;min-height:60vh;}
-
-    /* LIVE BANNER */
-    #liveBanner{flex-wrap:wrap;gap:8px;padding:10px 16px;}
-    .lb-match{font-size:13px;}
-    .lb-score{font-size:17px;}
-  }
-
-  @media(max-width:480px){
-    .hero-stats{gap:12px;}
-    .bios-grid{grid-template-columns:1fr;}
-    .section-header h2{font-size:clamp(28px,10vw,48px);}
-  }
-  /* LIVE SCORE BANNER */
-  #liveBanner {
-    display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
-    background:var(--ink); border-top:3px solid var(--clay);
-    padding:10px 24px; align-items:center; justify-content:space-between; gap:16px;
-    flex-wrap:wrap;
-  }
-  #liveBanner.show { display:flex; }
-  .lb-live { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); flex-shrink:0; }
-  .lb-dot { width:8px; height:8px; border-radius:50%; background:var(--clay); animation:lbpulse 1.4s ease-in-out infinite; }
-  @keyframes lbpulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .lb-match { font-family:'Black Ops One',cursive; font-size:15px; letter-spacing:1px; color:var(--white); flex:1; text-align:center; }
-  .lb-score { font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:2px; color:var(--gold); flex-shrink:0; }
-  .lb-link { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.4); text-decoration:none; white-space:nowrap; flex-shrink:0; }
-  .lb-link:hover { color:var(--clay); }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(26,26,24,0.98); color:#fff; padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; z-index:1000; border-left:4px solid var(--gold); opacity:0; transition:all 0.3s; white-space:nowrap; }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 </style>
 </head>
 <body>
 
+<div id="authGate">
+  <div class="gate-logo">KEV<span>●</span>BALL</div>
+  <p>Checking referee access...</p>
+  <div class="gate-denied" id="gateDenied">
+    ⛔ Referee access required.<br>Contact an admin to be designated as a referee.
+    <br><br><a href="index.html" class="gate-link">← Back to Kevball</a>
+  </div>
+</div>
+
 <nav>
-  <a href="#hero" class="logo">KEV<span>●</span>BALL</a>
-  <ul>
-    <li><a href="#rules">Rules</a></li>
-    <li><a href="#rankings">Rankings</a></li>
-    <li><a href="#bios">Players</a></li>
-    <li><a href="#schedule">Schedule</a></li>
-    <li><a href="#bracket">Bracket</a></li>
-    <li><a href="#courts">Courts</a></li>
-    <li><a href="history.html">History</a></li>
-    <li><a href="stream-watch.html" id="watchNavLink" style="color:var(--clay)">📺 Watch Live</a></li>
-    <li><a href="shop.html" style="color:var(--gold)">Shop</a></li>
-    <li><a href="referee.html" id="refNavLink" style="display:none;color:var(--clay)">Referee</a></li>
-  </ul>
-  <div style="display:flex;align-items:center;gap:10px">
-    <button class="admin-btn desktop-only" id="adminNavBtn" onclick="openAdminModal()">
-      <span class="lock-icon" id="adminLockIcon">🔒</span>
-      <span id="adminBtnLabel">Admin</span>
-    </button>
-    <a href="login.html" class="admin-btn desktop-only" id="authNavBtn" style="text-decoration:none;display:none">
-      <span>👤</span><span id="authNavLabel">Sign In</span>
-    </a>
-    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="ref-badge">🎾 Referee</span>
+    <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
   </div>
 </nav>
 
-<!-- MOBILE MENU OVERLAY -->
-<div class="mobile-menu" id="mobileMenu">
-  <button onclick="window.closeMobileMenu()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:28px;cursor:pointer;line-height:1;padding:4px;">✕</button>
-  <a href="#rules" onclick="closeMobileMenu()">Rules</a>
-  <a href="#rankings" onclick="closeMobileMenu()">Rankings</a>
-  <a href="#bios" onclick="closeMobileMenu()">Players</a>
-  <a href="#schedule" onclick="closeMobileMenu()">Schedule</a>
-  <a href="#bracket" onclick="closeMobileMenu()">Bracket</a>
-  <a href="#courts" onclick="closeMobileMenu()">Courts</a>
-  <div class="mm-divider"></div>
-  <a href="history.html">History</a>
-  <a href="shop.html" class="mm-shop">Shop</a>
-  <a href="referee.html" class="mm-ref" id="mmRefLink">Referee</a>
-  <a href="stream-watch.html" style="color:var(--clay)">📺 Watch Live</a>
-  <a href="stream-broadcast.html" class="mm-ref" id="mmBroadcastLink">🔴 Broadcast</a>
-  <div class="mm-divider"></div>
-  <a href="https://instagram.com/kevballofficial" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📸 Instagram</a>
-  <div class="mm-divider"></div>
-  <a href="login.html" id="mmAuthLink">👤 Sign In</a>
-  <button class="mm-btn mm-admin" id="mmAdminBtn" onclick="openAdminModal();closeMobileMenu()" style="display:none">🔒 Admin</button>
-</div>
+<div class="main">
 
-<!-- HERO -->
-<section id="hero">
-  <div class="court-bg">
-    <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
-      <rect width="1200" height="700" fill="#2d5a27"/>
-      <rect x="150" y="80" width="900" height="540" fill="none" stroke="#c8e6c0" stroke-width="3" class="cl"/>
-      <rect x="220" y="80" width="760" height="540" fill="none" stroke="#c8e6c0" stroke-width="2" class="cl" style="animation-delay:.3s"/>
-      <line x1="150" y1="350" x2="1050" y2="350" stroke="#c8e6c0" stroke-width="3" class="cl" style="animation-delay:.5s"/>
-      <line x1="600" y1="170" x2="600" y2="530" stroke="#c8e6c0" stroke-width="2" class="cl" style="animation-delay:.8s"/>
-      <line x1="150" y1="170" x2="1050" y2="170" stroke="#c8e6c0" stroke-width="2" class="cl" style="animation-delay:1s"/>
-      <line x1="150" y1="530" x2="1050" y2="530" stroke="#c8e6c0" stroke-width="2" class="cl" style="animation-delay:1.2s"/>
-      <line x1="600" y1="80" x2="600" y2="110" stroke="#c8e6c0" stroke-width="2"/>
-      <line x1="600" y1="590" x2="600" y2="622" stroke="#c8e6c0" stroke-width="2"/>
-    </svg>
-  </div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">Est. Court 4 · Kevin's Rules · Official Rulebook</p>
-    <h1 class="hero-title">KEV<span class="ball">●</span>BALL</h1>
-    <p class="hero-sub">Handball Meets Tennis · Invented by Kevin Orellana</p>
-    <div class="hero-stats">
-      <div class="hero-stat"><span class="num">18</span><span class="lbl">Official Rules</span></div>
-      <div class="hero-stat"><span class="num">2</span><span class="lbl">Court Modes</span></div>
-      <div class="hero-stat"><span class="num">∞</span><span class="lbl">Good Vibes</span></div>
-    </div>
-    <div class="hero-cta">
-      <a href="#rules" class="btn-p">Read The Rules</a>
-      <a href="#bracket" class="btn-g">Start Tournament</a>
-    </div>
-  </div>
-  <div class="scroll-hint">SCROLL</div>
-</section>
-
-<div class="section-transition"></div>
-
-<!-- RULES -->
-<section class="clay-section" id="rules">
-  <div class="section-header reveal">
-    <span class="section-label">The Official Codex</span>
-    <h2 class="section-title">THE <span>RULES</span></h2>
-  </div>
-  <div class="rules-grid reveal" id="rulesGrid"></div>
-  <div style="height:80px"></div>
-</section>
-
-<!-- RANKINGS -->
-<section class="clay-section alt-bg" id="rankings">
-  <div class="section-header reveal">
-    <span class="section-label">Leaderboard</span>
-    <h2 class="section-title">PLAYER <span>RANKINGS</span></h2>
-  </div>
-  <div class="rankings-container">
-    <div class="add-bar reveal admin-only">
-      <input type="text" id="playerNameInput" placeholder="Enter player name..." onkeydown="if(event.key==='Enter')addPlayer()"/>
-      <button onclick="addPlayer()">+ ADD PLAYER</button>
-    </div>
-    <div class="reveal">
-      <table class="ranking-table">
-        <thead><tr><th style="width:56px">#</th><th>Player</th><th>W</th><th>L</th><th>PTS</th><th></th></tr></thead>
-        <tbody id="rankingBody"></tbody>
-      </table>
-    </div>
-  </div>
-  <div style="height:80px"></div>
-</section>
-
-<!-- SCHEDULE -->
-<section class="clay-section" id="schedule">
-  <div class="section-header reveal">
-    <span class="section-label">Week by Week</span>
-    <h2 class="section-title">MATCH <span>SCHEDULE</span></h2>
-  </div>
-  <div class="sched-container">
-    <div class="week-tabs reveal" id="weekTabs"></div>
-    <div class="add-match-bar reveal admin-only" id="addMatchBar">
-      <div class="amb-fmt-row" id="ambFmtRow">
-        <button class="amb-fmt-btn active" onclick="setMatchFormat(1,this)">1v1</button>
-        <button class="amb-fmt-btn" onclick="setMatchFormat(2,this)">2v2</button>
-        <button class="amb-fmt-btn" onclick="setMatchFormat(3,this)">3v3</button>
-        <button class="amb-fmt-btn" onclick="setMatchFormat(4,this)">4v4</button>
-      </div>
-      <div class="amb-teams" id="ambTeams"><!-- rendered by JS --></div>
-      <datalist id="playerList"></datalist>
-      <button onclick="addMatch()" style="background:var(--clay);color:#fff;border:none;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;width:100%;letter-spacing:2px;">ADD MATCH</button>
-    </div>
-    <div id="matchupList" class="matchup-list reveal"></div>
-    <div class="reveal admin-only"><button class="add-week-btn" onclick="addWeek()">+ ADD WEEK</button></div>
-  </div>
-  <div style="height:80px"></div>
-</section>
-
-<!-- PLAYER BIOS -->
-<section class="clay-section" id="bios">
-  <div class="section-header reveal">
-    <span class="section-label">The Roster</span>
-    <h2 class="section-title">PLAYER <span>BIOS</span></h2>
-  </div>
-  <div class="bios-container">
-    <div class="bios-topbar reveal">
-      <p style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:#999;text-transform:uppercase;">All signed-up players appear here</p>
-      <button class="signup-cta-btn" onclick="openSignup()">+ PLAYER SIGN UP</button>
-    </div>
-    <div class="bios-grid reveal" id="biosGrid"></div>
-  </div>
-  <div style="height:80px"></div>
-</section>
-
-<!-- COURTS -->
-<section class="clay-section alt-bg" id="courts">
-  <div class="section-header reveal">
-    <span class="section-label">Where We Play</span>
-    <h2 class="section-title">THE <span>COURTS</span></h2>
-  </div>
-  <div class="courts-container">
-    <div class="add-court-form reveal admin-only">
-      <h3>ADD A COURT</h3>
-      <div class="court-form-grid">
-        <div>
-          <label>Court Name</label>
-          <input type="text" id="courtName" placeholder="e.g. Court 4 — Main" />
-        </div>
-        <div>
-          <label>Location</label>
-          <input type="text" id="courtLocation" placeholder="e.g. Central Park, NY" />
-        </div>
-        <div>
-          <label>Surface</label>
-          <select id="courtSurface">
-            <option value="Hard Court">Hard Court</option>
-            <option value="Clay">Clay</option>
-            <option value="Grass">Grass</option>
-            <option value="Indoor">Indoor</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div>
-          <label>Default Mode</label>
-          <select id="courtMode">
-            <option value="Full Court">Full Court</option>
-            <option value="Two Box">Two Box</option>
-            <option value="Full Court — No Sides">Full Court No Sides</option>
-            <option value="Two Box — No Sides">Two Box No Sides</option>
-          </select>
-        </div>
-        <div class="full">
-          <label>Description / Notes</label>
-          <textarea id="courtDesc" placeholder="Describe the court — quirks, dimensions, history, AJ sightings..." rows="3"></textarea>
-        </div>
-        <div class="full">
-          <label>Court Photos</label>
-          <div class="photo-drop" id="courtPhotoDrop">
-            <input type="file" id="courtPhotoInput" accept="image/*" multiple onchange="handleCourtPhotos(this)" />
-            <div class="photo-drop-icon">📸</div>
-            <div class="photo-drop-text">Click or drag photos here</div>
-            <div class="photo-thumbs" id="courtPhotoThumbs"></div>
-          </div>
-        </div>
-      </div>
-      <button class="add-court-btn" onclick="addCourt()">+ ADD COURT</button>
-    </div>
-    <div class="courts-grid reveal" id="courtsGrid"></div>
-  </div>
-  <div style="height:80px"></div>
-</section>
-
-<!-- BRACKET -->
-<section class="clay-section alt-bg" id="bracket">
-  <div class="section-header reveal">
-    <span class="section-label">Tournament Mode</span>
-    <h2 class="section-title">BRACKET <span>MAKER</span></h2>
-  </div>
-  <div class="bracket-container">
-    <div class="bracket-setup reveal admin-only">
-      <h3>SELECT PLAYERS FOR TOURNAMENT</h3>
-      <div class="player-cbs" id="bracketPlayerCbs"><p style="color:#bbb;font-size:13px">Add players in Rankings first.</p></div>
-      <div class="bracket-btns">
-        <button class="gen-btn" onclick="generateBracket()">GENERATE BRACKET</button>
-        <button class="shuf-btn" onclick="shuffleBracket()">↺ SHUFFLE SEEDING</button>
-        <button class="reset-btn" onclick="resetBracket()">RESET</button>
+  <!-- PHASE 1: SETUP -->
+  <div class="phase active" id="phaseSelect">
+    <div class="card">
+      <div class="card-title">Scheduled Matches</div>
+      <div class="match-list" id="matchList">
+        <p style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px">Loading...</p>
       </div>
     </div>
-    <div class="bracket-visual reveal">
-      <div class="bracket-rounds" id="bracketRounds">
-        <div class="empty-state" style="width:100%"><span class="empty-icon">🏆</span>SELECT PLAYERS AND GENERATE A BRACKET</div>
-      </div>
-    </div>
-  </div>
-  <div style="height:80px"></div>
-</section>
 
-<footer>
-  <p style="margin-bottom:8px;font-size:20px;font-family:'Black Ops One',cursive;color:#fff">KEV<span style="color:var(--gold)">●</span>BALL</p>
-  <p>INVENTED BY <strong>KEVIN ORELLANA</strong> · <strong>AJ IS BANNED</strong> · RULE 10 IS NON-NEGOTIABLE</p>
-  <p style="margin-top:8px;opacity:0.5">No overhand serves. No holds. No AJ. 🎾</p>
-  <a href="https://instagram.com/kevballofficial" target="_blank" rel="noopener" style="
-    display:inline-flex;align-items:center;gap:10px;margin-top:24px;
-    background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
-    color:#fff;text-decoration:none;padding:12px 24px;
-    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
-    transition:opacity 0.2s;
-  " onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-    @kevballofficial
-  </a>
-</footer>
+    <div class="card">
+      <div class="card-title">Format</div>
+      <div class="format-row">
+        <button class="fmt-btn active" onclick="setFormat(1,this)">1v1</button>
+        <button class="fmt-btn" onclick="setFormat(2,this)">2v2</button>
+        <button class="fmt-btn" onclick="setFormat(3,this)">3v3</button>
+        <button class="fmt-btn" onclick="setFormat(4,this)">4v4</button>
+      </div>
+      <div class="teams-grid" id="teamsGrid"></div>
+      <button class="randomize-btn" onclick="randomizeTeams()">🎲 Randomize Teams</button>
+    </div>
 
-<!-- ADMIN MODAL -->
-<div class="admin-modal-overlay" id="adminModalOverlay" onclick="if(event.target===this)closeAdminModal()">
-  <div class="admin-modal">
-    <div class="admin-modal-header">
-      <h2 id="adminModalTitle">ADMIN LOGIN</h2>
-      <button class="modal-close" onclick="closeAdminModal()">✕</button>
-    </div>
-    <div class="admin-modal-body" id="adminModalBody">
-      <p>Enter the admin password to unlock court and match editing.</p>
-      <input type="password" class="admin-pw-input" id="adminPwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')attemptLogin()" />
-      <div class="admin-error" id="adminError">Incorrect password. Try again.</div>
-      <button class="admin-login-btn" onclick="attemptLogin()">UNLOCK</button>
-    </div>
-  </div>
-</div>
-
-<!-- SIGNUP MODAL -->
-<div class="modal-overlay" id="signupOverlay" onclick="if(event.target===this)closeSignup()">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>PLAYER SIGN UP</h2>
-      <button class="modal-close" onclick="closeSignup()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row" style="text-align:center;margin-bottom:24px;">
-        <div class="avatar-upload-area" id="avatarUploadArea">
-          <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(this)" />
-          <div class="avatar-placeholder" id="avatarPlaceholder">?</div>
-          <div class="upload-hint">Upload photo (optional)</div>
-        </div>
-      </div>
-      <div class="form-row-2" style="margin-top:16px">
-        <div class="form-row" style="margin:0">
-          <label>First Name *</label>
-          <input type="text" id="signupFirst" placeholder="Kevin" />
-        </div>
-        <div class="form-row" style="margin:0">
-          <label>Last Name *</label>
-          <input type="text" id="signupLast" placeholder="Orellana" />
-        </div>
-      </div>
-      <div class="form-row" style="margin-top:16px">
-        <label>Nickname (optional)</label>
-        <input type="text" id="signupNick" placeholder="e.g. The Commissioner" />
-      </div>
-      <div class="form-row-2" style="margin-top:16px">
-        <div class="form-row" style="margin:0">
-          <label>Preferred Play Style</label>
-          <select id="signupStyle">
-            <option value="">Select...</option>
-            <option value="Aggressive">Aggressive</option>
-            <option value="Defensive">Defensive</option>
-            <option value="Balanced">Balanced</option>
-            <option value="Power">Power</option>
-            <option value="Technical">Technical</option>
-            <option value="Chaos Agent">Chaos Agent</option>
-          </select>
-        </div>
-        <div class="form-row" style="margin:0">
-          <label>Experience Level</label>
-          <select id="signupLevel">
-            <option value="Rookie">Rookie</option>
-            <option value="Amateur">Amateur</option>
-            <option value="Veteran">Veteran</option>
-            <option value="Elite">Elite</option>
-            <option value="Legend">Legend</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row" style="margin-top:16px">
-        <label>Bio / Trash Talk</label>
-        <textarea id="signupBio" placeholder="Tell us about your game. Fears, strengths, rivals..."></textarea>
-      </div>
-      <div class="form-row" style="margin-top:16px">
-        <label>Favorite Court Mode</label>
-        <select id="signupCourt">
-          <option value="Full Court">Full Court</option>
-          <option value="Two Box">Two Box</option>
-          <option value="No Sides">No Sides</option>
-          <option value="Any / Doesn't Matter">Any</option>
+    <div class="card">
+      <div class="card-title">Game Settings</div>
+      <div class="settings-row">
+        <label>Win at</label>
+        <select class="setting-sel" id="targetScore">
+          <option value="7">7 pts</option>
+          <option value="11">11 pts</option>
+          <option value="21" selected>21 pts</option>
+          <option value="15">15 pts</option>
         </select>
       </div>
-      <button class="submit-btn" onclick="submitSignup()">JOIN THE ROSTER</button>
+    </div>
+
+    <button class="start-btn" onclick="startMatch()">🎾 Start Match</button>
+  </div>
+
+  <!-- PHASE 2: SCORING -->
+  <div class="phase" id="phaseScore">
+    <div class="score-header">
+      <div class="score-match-label" id="scoreLiveLabel">Live Match</div>
+      <div class="score-timer" id="timerDisplay">00:00</div>
+      <div class="score-target" id="targetLabel">First to 21 wins</div>
+    </div>
+
+    <div class="scoreboard-grid">
+      <div class="team-score-card" id="t1Card">
+        <div class="won-badge">Winners!</div>
+        <div class="team-name-sc">TEAM 1</div>
+        <div class="team-members-sc" id="t1Members"></div>
+        <div class="big-score-sc" id="t1Score">0</div>
+        <button class="score-btn plus" onclick="addPoint(1)">+1</button>
+        <button class="score-btn minus" onclick="removePoint(1)">undo</button>
+      </div>
+      <div class="team-score-card" id="t2Card">
+        <div class="won-badge">Winners!</div>
+        <div class="team-name-sc">TEAM 2</div>
+        <div class="team-members-sc" id="t2Members"></div>
+        <div class="big-score-sc" id="t2Score">0</div>
+        <button class="score-btn plus" onclick="addPoint(2)">+1</button>
+        <button class="score-btn minus" onclick="removePoint(2)">undo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Call Event</div>
+      <div class="events-grid">
+        <button class="event-btn" onclick="logEvent('⚠️','Foul')">⚠️ Foul</button>
+        <button class="event-btn" onclick="logEvent('🟡','Warning')">🟡 Warning</button>
+        <button class="event-btn" onclick="logEvent('🔴','Penalty +1 Team 1',1)">🔴 Penalty → T1</button>
+        <button class="event-btn" onclick="logEvent('🔴','Penalty +1 Team 2',2)">🔴 Penalty → T2</button>
+        <button class="event-btn" onclick="logEvent('⏸️','Timeout')">⏸️ Timeout</button>
+        <button class="event-btn" onclick="logEvent('🔄','Score Disputed')">🔄 Disputed</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Match Events</div>
+      <div class="event-log" id="eventLog"><div class="log-empty">No events yet</div></div>
+    </div>
+
+    <button class="end-btn" onclick="confirmEndMatch()">⏹ End Match & Save Score</button>
+    <button class="cancel-btn" onclick="confirmCancelMatch()">✕ Cancel Game</button>
+  </div>
+
+  <!-- PHASE 3: COMPLETE -->
+  <div class="phase" id="phaseComplete">
+    <div class="complete-screen">
+      <span class="complete-icon">🏆</span>
+      <div class="complete-title">Match Complete</div>
+      <div class="complete-sub" id="completeWinner"></div>
+      <div class="final-score-row" id="finalScoreRow"></div>
+      <button class="new-match-btn" onclick="resetToSelect()">Start New Match</button>
     </div>
   </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -781,10 +262,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, getDocs, addDoc, query, orderBy, onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -803,773 +281,412 @@ initializeAppCheck(app, {
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ============================================================
-// AUTH STATE — drives admin mode + nav button
-// ============================================================
 let currentUser = null;
-
-onAuthStateChanged(auth, async (user) => {
-  if(user){
-    const snap = await getDoc(doc(db,'users',user.uid));
-    currentUser = snap.exists() ? snap.data() : null;
-  } else {
-    currentUser = null;
-  }
-  applyAdminState();
-  // Re-render anything that depends on admin state
-  renderRankings(); renderMatchups(); renderBios(); renderCourts(); renderAddMatchSlots();
-});
-
-// ── LIVE SCORE BANNER ──────────────────────────────────────
-onSnapshot(doc(db,'liveMatch','current'), snap => {
-  const banner = document.getElementById('liveBanner');
-  if(!snap.exists()) { banner.classList.remove('show'); return; }
-  const d = snap.data();
-  if(!d.active) { banner.classList.remove('show'); return; }
-  const lb1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1||'?');
-  const lb2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2||'?');
-  document.getElementById('lbMatch').textContent = `${lb1} vs ${lb2}`;
-  document.getElementById('lbScore').textContent = `${d.score1} — ${d.score2}`;
-  banner.classList.add('show');
-});
-
-function isAdmin(){
-  return !!(currentUser && currentUser.isAdmin);
-}
-
-function applyAdminState(){
-  if(isAdmin()){
-    document.body.classList.add('admin-mode');
-    document.getElementById('adminNavBtn').classList.add('active');
-    document.getElementById('adminLockIcon').textContent='🔓';
-    document.getElementById('adminBtnLabel').textContent='Admin ✓';
-  } else {
-    document.body.classList.remove('admin-mode');
-    document.getElementById('adminNavBtn').classList.remove('active');
-    document.getElementById('adminLockIcon').textContent='🔒';
-    document.getElementById('adminBtnLabel').textContent='Admin';
-  }
-  const authBtn = document.getElementById('authNavBtn');
-  const authLabel = document.getElementById('authNavLabel');
-  authBtn.style.display = 'flex';
-  if(currentUser){
-    authBtn.href = 'profile.html';
-    authLabel.textContent = 'My Profile';
-    const refLink = document.getElementById('refNavLink');
-    const mmRef   = document.getElementById('mmRefLink');
-    const mmAuth  = document.getElementById('mmAuthLink');
-    const mmAdmin = document.getElementById('mmAdminBtn');
-    const canRef  = currentUser.isReferee||currentUser.isAdmin;
-    if(refLink) refLink.style.display = canRef ? 'block' : 'none';
-    if(mmRef)   mmRef.classList.toggle('show', canRef);
-    if(mmAuth){ mmAuth.href='profile.html'; mmAuth.textContent='👤 My Profile'; }
-    if(mmAdmin && currentUser.isAdmin) mmAdmin.style.display = 'block';
-  } else {
-    authBtn.href = 'login.html';
-    authLabel.textContent = 'Sign In';
-  }
-}
-
-// Admin modal — now just shows status / sign out, no password needed
-// (Admin is determined by Firebase auth, not a password)
-window.openAdminModal = function(){
-  const title = document.getElementById('adminModalTitle');
-  const body = document.getElementById('adminModalBody');
-  if(isAdmin()){
-    title.textContent = 'ADMIN MODE';
-    body.innerHTML = `
-      <p>Signed in as <strong style="color:var(--gold)">${currentUser.displayName}</strong>. All editing controls are active.</p>
-      <button class="admin-login-btn" onclick="doSignOut()">SIGN OUT</button>`;
-  } else if(currentUser){
-    title.textContent = 'SIGNED IN';
-    body.innerHTML = `
-      <p>Signed in as <strong style="color:var(--gold)">${currentUser.displayName}</strong>. View-only access.</p>
-      <a href="profile.html" style="display:block;text-align:center;width:100%;background:var(--gold);color:var(--ink);padding:14px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-decoration:none;font-weight:700;margin-bottom:10px;">VIEW MY PROFILE</a>
-      <button class="admin-logout-btn" onclick="doSignOut()">SIGN OUT</button>`;
-  } else {
-    title.textContent = 'SIGN IN';
-    body.innerHTML = `
-      <p>Sign in to your Kevball account to access your profile and match history.</p>
-      <a href="login.html" style="display:block;text-align:center;width:100%;background:var(--gold);color:var(--ink);padding:14px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-decoration:none;font-weight:700;">SIGN IN / CREATE ACCOUNT</a>`;
-  }
-  document.getElementById('adminModalOverlay').classList.add('open');
-};
-
-window.closeAdminModal = function(){
-  document.getElementById('adminModalOverlay').classList.remove('open');
-};
-
-window.doSignOut = async function(){
-  await signOut(auth);
-  closeAdminModal();
-  toast('Signed out.');
-};
-
-// ============================================================
-// RULES
-// ============================================================
-const RULES=[
-  {num:"01",name:"Court Modes",text:"Two modes: Full Court (entire lined tennis court area) and Two Box (the two smaller boxes). Both have a 'No Sides' variant where outer sidelines are excluded. Lines count as OUT — contact with a line scores a point for the opponent.",special:false},
-  {num:"02",name:"Out of Bounds",text:"Players may move freely but cannot impede the opponent's side. A ball that bounces OUT is a point for the other team. The ball must physically contact the ground out of bounds — crossing the line mid-air doesn't count.",special:false},
-  {num:"03",name:"Michael Veltri Effect",text:"Any body part (including clothing) counts as a hit. Players may only contact the ball TWICE — a third contact is out. UNLESS it's a kick with the foot (not leg or shin). This saves-the-third-hit exception is called the Michael Veltri Effect.",special:true},
-  {num:"04",name:"Bounce Rule",text:"The ball may only bounce within bounds TWICE. A third in-bounds bounce or any out-of-bounds bounce is automatically an out. No exceptions.",special:false},
-  {num:"05",name:"The Net",text:"Any player contact with the net is an instant point for the opposing team — bad vibes, full stop. The ball touching the net is fine and playable. Reach-overs are allowed if no net contact is made. A top-bounce off the net does NOT count as a hit.",special:false},
-  {num:"06",name:"Referee Rules",text:"The ref makes calls and keeps score. Without a ref: Kevin Orellana has final say. Then the best player present. If still indecisive, a rock-paper-scissors match settles it. Survival of the fittest.",special:false},
-  {num:"07",name:"Scoring & Team Balance",text:"1v1 games go to 11. More players: games go to 21. Team sizes are based on fairness — a 1v2 is valid if skill gaps justify it. The two best players MUST be on opposing teams. Mid-game swaps allowed for balance.",special:false},
-  {num:"08",name:"Serve Rules",text:"Serves must be UNDERHAND only. The ball must travel in an arch. It can land anywhere in bounds UNLESS within 5 feet of the net or physically unreachable — ref will call this. The server may let the ball bounce before serving.",special:false},
-  {num:"09",name:"Fraum Rotation",text:"When the opposing team scores, the server rotates clockwise once the serving team gets the ball back. Player positions themselves are not enforced — only who serves rotates.",special:false},
-  {num:"10",name:"AJ Rule 🚫",text:"AJ (the security guard) is permanently and unconditionally BANNED from Kevball. He is Kevball's #1 hater and has repeatedly forced players off the court. If he ever attempts to play, he must be met with pitchforks and torches.",special:true},
-  {num:"11",name:"Second Serves & Side Swaps",text:"Players may redo a faulty serve ('Second Serve'). In competitive/bracket games: second serves disallowed at 11 points. At 8 or 11 points, teams must swap sides. Casual games have no such restrictions.",special:false},
-  {num:"12",name:"Sam Wolff Rule",text:"Returning the ball too aggressively or making unnecessary contact with an opponent: first offense = warning. Physical contact = point deducted from the aggressor's team. Sportsmanship matters.",special:false},
-  {num:"13",name:"No Holding",text:"The ball must NEVER be held, even for a fraction of a second. It must be slapped or struck in one continuous motion. No throwing. Violations = immediate point for the opponent.",special:false},
-  {num:"14",name:"Serve Possession",text:"A team holds the serve indefinitely until their scoring streak ends. Losing a point transfers the ball to the opponent. Exception: a team holding a game point must forfeit their serve.",special:false},
-  {num:"15",name:"Voluntary Play Rule",text:"If a player chooses to play a ball already ruled a point for them (only they can invoke this), the point is reversed and play continues. Cannot be used to reverse a point against oneself.",special:false},
-  {num:"16",name:"Ben Quadinaros Rule",text:"Within 5 feet of the net, overhand shots MUST land in the first two boxes. Shots going completely left or right (impossible to reach) are illegal. Underhands from this zone may still land in the back box.",special:true},
-  {num:"17",name:"Saldarriaga Rule",text:"Upon a Wolff Rule violation, the aggressor must also perform a little dance. Refusal to dance = ejection. However, if the dance is deemed SEXY ENOUGH, the Wolff Rule penalty is fully revoked.",special:true},
-  {num:"18",name:"6-7 Ejection",text:"If a team intentionally allows a point to create the scoreline '6-7', both team members are immediately ejected. No exceptions. This is a direct insult to the spirit of Kevball.",special:false},
-];
-
-function renderRules(){
-  document.getElementById('rulesGrid').innerHTML=RULES.map((r,i)=>`
-    <div class="rule-card ${r.special?'special-rule':''}" style="animation-delay:${i*.04}s">
-      <div class="rule-num">${r.num}</div>
-      <div class="rule-name">${r.name}</div>
-      <p class="rule-text">${r.text}</p>
-    </div>`).join('');
-}
-
-// ============================================================
-// TOAST
-// ============================================================
-function toast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
-}
-
-// ============================================================
-// RANKINGS — Firestore: collection('players')
-// ============================================================
 let playersCache = [];
+let weeksCache = [];
+let teamSize = 1;
+let matchState = {
+  team1:[], team2:[], score1:0, score2:0,
+  target:21, events:[], weekId:null, matchId:null,
+  startTime:null, timerInterval:null
+};
 
-async function loadPlayers(){
+// ── AUTH GATE ──────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (!user) { showDenied(); return; }
+  const snap = await getDoc(doc(db,'users',user.uid));
+  const data = snap.exists() ? snap.data() : {};
+  if (!data.isReferee && !data.isAdmin) { showDenied(); return; }
+  currentUser = data;
+  document.getElementById('authGate').classList.add('hidden');
+  init();
+});
+
+function showDenied() {
+  document.getElementById('authGate').querySelector('p').style.display = 'none';
+  document.getElementById('gateDenied').style.display = 'block';
+}
+window.doSignOut = async () => { await signOut(auth); location.href = 'login.html'; };
+
+async function init() {
+  await Promise.all([loadPlayers(), loadWeeks()]);
+  renderTeamsGrid();
+  renderMatchList();
+
+  // ── RESTORE active match if referee navigated away ──
+  const liveSnap = await getDoc(doc(db, 'liveMatch', 'current'));
+  if (liveSnap.exists()) {
+    const live = liveSnap.data();
+    if (live.active) {
+      const resume = confirm(
+        `Active match in progress:\n` +
+        `${(live.team1||[live.p1]).join(' & ')} vs ${(live.team2||[live.p2]).join(' & ')}\n` +
+        `Score: ${live.score1} — ${live.score2}\n\n` +
+        `Resume this match?`
+      );
+      if (resume) {
+        restoreMatch(live);
+        return;
+      }
+    }
+  }
+}
+
+function restoreMatch(live) {
+  const team1 = Array.isArray(live.team1) ? live.team1 : [live.p1||'Team 1'];
+  const team2 = Array.isArray(live.team2) ? live.team2 : [live.p2||'Team 2'];
+  const size = Math.max(team1.length, team2.length, 1);
+
+  // Restore matchState
+  matchState.team1 = team1;
+  matchState.team2 = team2;
+  matchState.score1 = live.score1 || 0;
+  matchState.score2 = live.score2 || 0;
+  matchState.target = live.target || 21;
+  matchState.events = live.events || [];
+  // Approximate startTime from elapsed: use startedAt if available
+  if (live.startedAt?.seconds) {
+    matchState.startTime = live.startedAt.seconds * 1000;
+  } else {
+    matchState.startTime = Date.now();
+  }
+  teamSize = size;
+  const fmt = size === 1 ? '1v1' : `${size}v${size}`;
+
+  // Update scoring UI
+  document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
+  document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins · ${fmt}`;
+  document.getElementById('t1Members').textContent = team1.join('\n');
+  document.getElementById('t2Members').textContent = team2.join('\n');
+  document.getElementById('t1Score').textContent = matchState.score1;
+  document.getElementById('t2Score').textContent = matchState.score2;
+  document.getElementById('t1Card').className = 'team-score-card';
+  document.getElementById('t2Card').className = 'team-score-card';
+  renderEventLog();
+  updateScoreUI();
+  startTimer();
+  showPhase('phaseScore');
+  toast('Match restored! ✓');
+}
+
+async function loadPlayers() {
   const snap = await getDocs(query(collection(db,'players'), orderBy('points','desc')));
   playersCache = [];
-  snap.forEach(d => playersCache.push({...d.data(), _id: d.id}));
-  renderRankings();
-  updateDatalist();
-  updateBracketCbs();
+  snap.forEach(d => playersCache.push({...d.data(), _id:d.id}));
 }
 
-window.addPlayer = async function(){
-  if(!isAdmin()){toast('Admin access required.');return;}
-  const inp = document.getElementById('playerNameInput');
-  const name = inp.value.trim(); if(!name) return;
-  if(playersCache.find(p=>p.name.toLowerCase()===name.toLowerCase())){toast('Player already exists!');return;}
-  const ref = await addDoc(collection(db,'players'),{name,wins:0,losses:0,points:0,avatar:null});
-  inp.value='';
-  toast(name+' added to the roster!');
-  await loadPlayers();
-};
-
-window.upStat = async function(id, field, delta){
-  if(!isAdmin()) return;
-  const p = playersCache.find(p=>p._id===id); if(!p) return;
-  const newVal = Math.max(0,(p[field]||0)+delta);
-  const wins = field==='wins' ? newVal : (p.wins||0);
-  const losses = field==='losses' ? newVal : (p.losses||0);
-  const points = wins*3 - losses;
-  await updateDoc(doc(db,'players',id),{[field]:newVal, points});
-  await loadPlayers();
-};
-
-window.removePlayer = async function(id){
-  if(!isAdmin()) return;
-  await deleteDoc(doc(db,'players',id));
-  toast('Player removed.');
-  await loadPlayers();
-};
-
-function renderRankings(){
-  const sorted=[...playersCache].sort((a,b)=>(b.points||0)-(a.points||0));
-  const tbody=document.getElementById('rankingBody');
-  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">👤</span>NO PLAYERS YET</div></td></tr>`;return;}
-  tbody.innerHTML=sorted.map((p,i)=>`
-    <tr class="rk-${i+1}">
-      <td class="rk-pos">${i+1}</td>
-      <td class="rk-name">${p.name}${i===0?'<span class="badge">CHAMPION</span>':''}</td>
-      <td class="rk-w">
-        ${isAdmin()?`<button class="abt" onclick="upStat('${p._id}','wins',1)" style="color:#2d5a27">+</button>`:''}${p.wins||0}${isAdmin()?`<button class="abt" onclick="upStat('${p._id}','wins',-1)">−</button>`:''}
-      </td>
-      <td class="rk-l">
-        ${isAdmin()?`<button class="abt" onclick="upStat('${p._id}','losses',1)" style="color:#c0392b">+</button>`:''}${p.losses||0}${isAdmin()?`<button class="abt" onclick="upStat('${p._id}','losses',-1)">−</button>`:''}
-      </td>
-      <td class="rk-pts">${p.points||0}</td>
-      <td>${isAdmin()?`<button class="abt" onclick="removePlayer('${p._id}')">✕</button>`:''}</td>
-    </tr>`).join('');
-}
-
-// ============================================================
-// SCHEDULE — Firestore: collection('weeks')
-// ============================================================
-let weeksCache = [];
-let currentWeekIdx = 0;
-
-async function loadWeeks(){
+async function loadWeeks() {
   const snap = await getDocs(query(collection(db,'weeks'), orderBy('order','asc')));
   weeksCache = [];
-  snap.forEach(d => weeksCache.push({...d.data(), _id: d.id}));
-  if(!weeksCache.length){
-    // Create Week 1 if none
-    const ref = await addDoc(collection(db,'weeks'),{label:'Week 1',matches:[],order:0});
-    weeksCache.push({label:'Week 1',matches:[],order:0,_id:ref.id});
-  }
-  renderWeekTabs();
-  renderMatchups();
+  snap.forEach(d => weeksCache.push({...d.data(), _id:d.id}));
 }
 
-function updateDatalist(){
-  // playerList refreshed in renderAddMatchSlots()
-}
-
-function renderWeekTabs(){
-  document.getElementById('weekTabs').innerHTML=weeksCache.map((w,i)=>`
-    <button class="week-tab ${i===currentWeekIdx?'active':''}" onclick="switchWeek(${i})">${w.label}</button>`).join('');
-}
-
-window.switchWeek = function(i){currentWeekIdx=i;renderWeekTabs();renderMatchups();}
-
-window.addWeek = async function(){
-  if(!isAdmin()) return;
-  const label = `Week ${weeksCache.length+1}`;
-  const ref = await addDoc(collection(db,'weeks'),{label,matches:[],order:weeksCache.length});
-  weeksCache.push({label,matches:[],order:weeksCache.length,_id:ref.id});
-  currentWeekIdx=weeksCache.length-1;
-  renderWeekTabs(); renderMatchups();
-};
-
-// ── MATCH FORMAT STATE ────────────────────────────────────
-let schedMatchSize = 1;
-
-window.setMatchFormat = function(n, btn) {
-  schedMatchSize = n;
-  document.querySelectorAll('.amb-fmt-btn').forEach(b => b.classList.remove('active'));
+// ── FORMAT ─────────────────────────────────────────────────
+window.setFormat = function(n, btn) {
+  teamSize = n;
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderAddMatchSlots();
+  renderTeamsGrid();
+  matchState.weekId = null; matchState.matchId = null;
+  document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
 };
 
-function renderAddMatchSlots() {
-  const opts = playersCache.map(p => `<option value="${p.name}">`).join('');
-  const makeSlots = (team) => Array.from({length:schedMatchSize}, (_,i) => `
-    <div class="amb-slot">
-      <input type="text" id="amb_${team}${i}" placeholder="Player ${i+1}" list="playerList" autocomplete="off"/>
+function renderTeamsGrid() {
+  const opts = `<option value="">— Select player —</option>` +
+    playersCache.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+  const makeSlots = (team) => Array.from({length:teamSize}, (_,i) => `
+    <div class="player-slot">
+      <span class="slot-num">${i+1}</span>
+      <select id="${team}p${i}">${opts}</select>
     </div>`).join('');
-  document.getElementById('ambTeams').innerHTML = `
-    <div>
-      <div class="amb-team-label">Team 1</div>
+
+  document.getElementById('teamsGrid').innerHTML = `
+    <div class="team-col">
+      <div class="team-label t1">Team 1</div>
       ${makeSlots('t1')}
     </div>
-    <div class="amb-vs">VS</div>
-    <div>
-      <div class="amb-team-label">Team 2</div>
+    <div class="vs-col"><div class="vs-mid">VS</div></div>
+    <div class="team-col">
+      <div class="team-label t2">Team 2</div>
       ${makeSlots('t2')}
     </div>`;
-  document.getElementById('playerList').innerHTML = opts;
 }
 
-function getAmbTeam(team) {
-  return Array.from({length:schedMatchSize}, (_,i) => {
-    const el = document.getElementById(`amb_${team}${i}`);
+function getTeam(team) {
+  return Array.from({length:teamSize}, (_,i) => {
+    const el = document.getElementById(`${team}p${i}`);
     return el ? el.value.trim() : '';
   }).filter(Boolean);
 }
 
-window.addMatch = async function(){
-  if(!isAdmin()) return;
-  const team1 = getAmbTeam('t1');
-  const team2 = getAmbTeam('t2');
-  if(team1.length < schedMatchSize || team2.length < schedMatchSize){toast(`Fill all ${schedMatchSize} players per team!`);return;}
+// ── RANDOMIZE ──────────────────────────────────────────────
+window.randomizeTeams = function() {
+  const needed = teamSize * 2;
+  if (playersCache.length < needed) { toast(`Need at least ${needed} players to randomize!`); return; }
+  const shuffled = [...playersCache].sort(() => Math.random() - 0.5).slice(0, needed);
+  shuffled.slice(0, teamSize).forEach((p,i) => { const el = document.getElementById(`t1p${i}`); if(el) el.value = p.name; });
+  shuffled.slice(teamSize).forEach((p,i) => { const el = document.getElementById(`t2p${i}`); if(el) el.value = p.name; });
+  toast('Teams randomized! 🎲');
+};
+
+// ── MATCH LIST ─────────────────────────────────────────────
+function renderMatchList() {
+  const list = document.getElementById('matchList');
+  const all = [];
+  weeksCache.forEach(week => {
+    (week.matches||[]).forEach(m => {
+      if (m.p1||m.team1) all.push({...m, weekId:week._id, weekLabel:week.label});
+    });
+  });
+  if (!all.length) {
+    list.innerHTML = '<p style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px">No scheduled matches.</p>';
+    return;
+  }
+  list.innerHTML = all.map(m => {
+    const t1 = Array.isArray(m.team1) ? m.team1.join(', ') : (m.p1||'');
+    const t2 = Array.isArray(m.team2) ? m.team2.join(', ') : (m.p2||'');
+    return `<div class="match-opt ${m.played?'played':''}" onclick="selectScheduledMatch('${m.weekId}','${m.id}')" id="mo-${m.id}">
+      <div>
+        <div class="match-opt-names">${t1} vs ${t2}</div>
+        <div class="match-opt-meta">${m.weekLabel}${m.format?' · '+m.format:''}</div>
+      </div>
+      <div class="match-opt-status">${m.played?'Played':'● Upcoming'}</div>
+    </div>`;
+  }).join('');
+}
+
+window.selectScheduledMatch = function(weekId, matchId) {
+  const week = weeksCache.find(w => w._id===weekId);
+  const m = week && (week.matches||[]).find(x => x.id===matchId);
+  if (!m) return;
+  document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`mo-${matchId}`)?.classList.add('selected');
+  matchState.weekId = weekId; matchState.matchId = matchId;
+
+  const t1 = Array.isArray(m.team1) ? m.team1 : [m.p1].filter(Boolean);
+  const t2 = Array.isArray(m.team2) ? m.team2 : [m.p2].filter(Boolean);
+  const newSize = Math.max(t1.length, t2.length, 1);
+  teamSize = newSize;
+  document.querySelectorAll('.fmt-btn').forEach((b,i) => b.classList.toggle('active', i===newSize-1));
+  renderTeamsGrid();
+  t1.forEach((name,i) => { const el=document.getElementById(`t1p${i}`); if(el) el.value=name; });
+  t2.forEach((name,i) => { const el=document.getElementById(`t2p${i}`); if(el) el.value=name; });
+  toast('Match loaded! ✓');
+};
+
+// ── START ──────────────────────────────────────────────────
+window.startMatch = async function() {
+  const team1 = getTeam('t1');
+  const team2 = getTeam('t2');
+  if (team1.length < teamSize) { toast(`Select all ${teamSize} players for Team 1!`); return; }
+  if (team2.length < teamSize) { toast(`Select all ${teamSize} players for Team 2!`); return; }
   const all = [...team1,...team2].map(n=>n.toLowerCase());
-  if(new Set(all).size < all.length){toast('Duplicate player across teams!');return;}
-  const week = weeksCache[currentWeekIdx];
-  const fmt = schedMatchSize===1?'1v1':`${schedMatchSize}v${schedMatchSize}`;
-  // Store both legacy p1/p2 (for 1v1 compat) and team arrays
-  const newMatch = {
-    id: Date.now(),
-    team1, team2,
-    p1: team1.join(' & '), p2: team2.join(' & '),
-    format: fmt,
-    score1: null, score2: null, played: false
+  if (new Set(all).size < all.length) { toast("Same player can't be on both teams!"); return; }
+
+  matchState = {...matchState, team1, team2, score1:0, score2:0, events:[],
+    target: parseInt(document.getElementById('targetScore').value),
+    startTime: Date.now(), timerInterval: null
   };
-  const matches = [...(week.matches||[]), newMatch];
-  await updateDoc(doc(db,'weeks',week._id),{matches});
-  week.matches = matches;
-  // Clear inputs
-  for(let i=0;i<schedMatchSize;i++){
-    const e1=document.getElementById(`amb_t1${i}`), e2=document.getElementById(`amb_t2${i}`);
-    if(e1) e1.value=''; if(e2) e2.value='';
-  }
-  renderMatchups(); toast(`${fmt} match added!`);
-};
+  const fmt = teamSize===1 ? '1v1' : `${teamSize}v${teamSize}`;
 
-window.saveScore = async function(mid){
-  if(!isAdmin()) return;
-  const week=weeksCache[currentWeekIdx];
-  const matches=[...(week.matches||[])];
-  const m=matches.find(x=>x.id===mid); if(!m) return;
-  const s1=parseInt(document.getElementById('s1_'+mid).value);
-  const s2=parseInt(document.getElementById('s2_'+mid).value);
-  if(isNaN(s1)||isNaN(s2)){toast('Enter valid scores!');return;}
-  m.score1=s1;m.score2=s2;m.played=true;
-  await updateDoc(doc(db,'weeks',week._id),{matches});
-  week.matches=matches;
-  // Update W/L for all players on each team
-  const winners = s1>s2 ? (m.team1||[m.p1]) : (m.team2||[m.p2]);
-  const losers  = s1>s2 ? (m.team2||[m.p2]) : (m.team1||[m.p1]);
-  if(s1!==s2){
-    for(const name of winners){
-      const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(p){const w=(p.wins||0)+1,l=p.losses||0;await updateDoc(doc(db,'players',p._id),{wins:w,points:w*3-l});}
-    }
-    for(const name of losers){
-      const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(p){const w=p.wins||0,l=(p.losses||0)+1;await updateDoc(doc(db,'players',p._id),{losses:l,points:w*3-l});}
-    }
-  }
-  await loadPlayers();
-  renderMatchups(); toast('Score saved! Rankings updated.');
-};
-
-window.deleteMatch = async function(mid){
-  if(!isAdmin()) return;
-  const week=weeksCache[currentWeekIdx];
-  const matches=(week.matches||[]).filter(m=>m.id!==mid);
-  await updateDoc(doc(db,'weeks',week._id),{matches});
-  week.matches=matches; renderMatchups();
-};
-
-function renderMatchups(){
-  const week=weeksCache[currentWeekIdx]; const list=document.getElementById('matchupList');
-  if(!week||!week.matches||!week.matches.length){
-    list.innerHTML=`<div class="empty-state"><span class="empty-icon">🎾</span>NO MATCHES — ADD SOME ABOVE</div>`;return;
-  }
-  list.innerHTML=week.matches.map(m=>{
-    const w1=m.played&&m.score1>m.score2, w2=m.played&&m.score2>m.score1;
-    // Support legacy p1/p2 strings and new team arrays
-    const t1names = Array.isArray(m.team1) ? m.team1 : [m.p1];
-    const t2names = Array.isArray(m.team2) ? m.team2 : [m.p2];
-    const t1disp = t1names.join('<br>');
-    const t2disp = t2names.join('<br>');
-    const fmtBadge = m.format ? `<span style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.5);display:block;margin-bottom:2px">${m.format}</span>` : '';
-    return`<div class="matchup-card ${m.played?'played':''}" style="position:relative">
-      <div class="matchup-player matchup-p1 mp ${w1?'winner':''}">
-        ${fmtBadge}
-        ${w1?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}
-        ${t1disp}
-      </div>
-      <div class="matchup-vs matchup-score mc">
-        ${m.played
-          ?`<span class="score-disp">${m.score1} — ${m.score2}</span><span class="mstatus">FINAL</span>`
-          :`<div class="score-inp">${isAdmin()?`<input type="number" id="s1_${m.id}" min="0" max="99" placeholder="0"/><span class="score-dash">—</span><input type="number" id="s2_${m.id}" min="0" max="99" placeholder="0"/>`:''}</div>${isAdmin()?`<button class="save-btn" onclick="saveScore(${m.id})">SAVE</button>`:''}<span class="mstatus">UPCOMING</span>`
-        }
-      </div>
-      <div class="matchup-player matchup-p2 mp right ${w2?'winner':''}">
-        ${t2disp}
-        ${w2?'<span style="color:var(--clay);font-size:9px;font-family:Space Mono,monospace;letter-spacing:1px;display:block">WIN ✓</span>':''}
-      </div>
-      <button class="del-btn matchup-del" onclick="deleteMatch(${m.id})" title="Delete" style="${isAdmin()?'':'display:none'}">✕</button>
-    </div>`;
-  }).join('');
-}
-
-// ============================================================
-// BRACKET — in-memory only (no need to persist to Firestore)
-// ============================================================
-let bracketState = null;
-
-function updateBracketCbs(){
-  const c=document.getElementById('bracketPlayerCbs');
-  if(!playersCache.length){c.innerHTML='<p style="color:#bbb;font-size:13px">Add players in Rankings first.</p>';return;}
-  c.innerHTML=playersCache.map(p=>`<label class="cb-label"><input type="checkbox" value="${p._id}" checked><span>${p.name}</span></label>`).join('');
-}
-
-function getSelectedPlayers(){
-  return playersCache.filter(p=>{
-    const cb=document.querySelector(`#bracketPlayerCbs input[value="${p._id}"]`);
-    return cb&&cb.checked;
+  await setDoc(doc(db,'liveMatch','current'), {
+    team1, team2, score1:0, score2:0, target:matchState.target,
+    format:fmt, active:true, startedAt:serverTimestamp(),
+    referee: currentUser.displayName||currentUser.firstName||'Referee', events:[]
   });
+
+  document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
+  document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins · ${fmt}`;
+  document.getElementById('t1Members').textContent = team1.join('\n');
+  document.getElementById('t2Members').textContent = team2.join('\n');
+  document.getElementById('t1Score').textContent = '0';
+  document.getElementById('t2Score').textContent = '0';
+  document.getElementById('eventLog').innerHTML = '<div class="log-empty">No events yet</div>';
+  document.getElementById('t1Card').className = 'team-score-card';
+  document.getElementById('t2Card').className = 'team-score-card';
+
+  startTimer();
+  showPhase('phaseScore');
+  toast(`${fmt} match started! 🎾`);
+};
+
+function startTimer() {
+  if (matchState.timerInterval) clearInterval(matchState.timerInterval);
+  matchState.timerInterval = setInterval(() => {
+    const e = Math.floor((Date.now()-matchState.startTime)/1000);
+    document.getElementById('timerDisplay').textContent =
+      `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+  }, 1000);
 }
 
-function nextPow2(n){let p=1;while(p<n)p*=2;return p;}
+window.addPoint = async function(team) {
+  if (matchState.score1>=matchState.target||matchState.score2>=matchState.target) return;
+  if (team===1) matchState.score1++; else matchState.score2++;
+  await pushScore(); checkWin();
+};
 
-function buildBracket(names){
-  const sz=nextPow2(names.length);
-  const padded=[...names,...Array(sz-names.length).fill('BYE')];
-  const numRounds=Math.log2(sz);const bracket=[];const r1=[];
-  for(let i=0;i<padded.length;i+=2){
-    const p1=padded[i],p2=padded[i+1];
-    r1.push({p1,p2,winner:p2==='BYE'?p1:null,score1:null,score2:null});
-  }
-  bracket.push(r1);
-  for(let r=1;r<numRounds;r++){
-    const prev=bracket[r-1];const round=[];
-    for(let m=0;m<prev.length/2;m++) round.push({p1:prev[m*2]?.winner||'TBD',p2:prev[m*2+1]?.winner||'TBD',winner:null,score1:null,score2:null});
-    bracket.push(round);
-  }
-  return bracket;
+window.removePoint = async function(team) {
+  if (team===1 && matchState.score1>0) matchState.score1--;
+  else if (team===2 && matchState.score2>0) matchState.score2--;
+  await pushScore(); updateScoreUI();
+};
+
+async function pushScore() {
+  updateScoreUI();
+  await updateDoc(doc(db,'liveMatch','current'),{score1:matchState.score1,score2:matchState.score2});
 }
 
-window.generateBracket = function(){
-  if(!isAdmin()) return;
-  const sel=getSelectedPlayers();
-  if(sel.length<2){toast('Select at least 2 players!');return;}
-  const names=sel.map(p=>p.name);
-  for(let i=names.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[names[i],names[j]]=[names[j],names[i]];}
-  bracketState=buildBracket(names);renderBracket();toast(`Bracket generated with ${names.length} players!`);
-};
+function updateScoreUI() {
+  const el1=document.getElementById('t1Score'), el2=document.getElementById('t2Score');
+  el1.textContent=matchState.score1; el2.textContent=matchState.score2;
+  [el1,el2].forEach(el=>{el.classList.remove('score-bump');void el.offsetWidth;el.classList.add('score-bump');setTimeout(()=>el.classList.remove('score-bump'),300);});
+  document.getElementById('t1Card').classList.toggle('leading',matchState.score1>matchState.score2);
+  document.getElementById('t2Card').classList.toggle('leading',matchState.score2>matchState.score1);
+}
 
-window.shuffleBracket = function(){
-  if(!bracketState){toast('Generate a bracket first!');return;}
-  const r0=bracketState[0];
-  const names=r0.flatMap(m=>[m.p1,m.p2]).filter(n=>n!=='BYE'&&n!=='TBD');
-  for(let i=names.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[names[i],names[j]]=[names[j],names[i]];}
-  bracketState=buildBracket(names);renderBracket();toast('Seeding shuffled!');
-};
+function checkWin() {
+  if (matchState.score1>=matchState.target) declareWinner(1);
+  else if (matchState.score2>=matchState.target) declareWinner(2);
+}
 
-window.resetBracket = function(){bracketState=null;renderBracket();toast('Bracket reset.');};
+function declareWinner(team) {
+  document.getElementById('t1Card').classList.toggle('won',team===1);
+  document.getElementById('t2Card').classList.toggle('won',team===2);
+  toast(`${(team===1?matchState.team1:matchState.team2).join(' & ')} win! 🏆`);
+}
 
-window.advance = function(ri,mi,winner){
-  bracketState[ri][mi].winner=winner;
-  const nr=ri+1;
-  if(nr<bracketState.length){
-    const nm=Math.floor(mi/2);const slot=mi%2===0?'p1':'p2';
-    bracketState[nr][nm][slot]=winner;bracketState[nr][nm].winner=null;
+window.logEvent = async function(icon, label, penaltyTeam) {
+  const e=Math.floor((Date.now()-matchState.startTime)/1000);
+  const time=`${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+  if (penaltyTeam) {
+    if (penaltyTeam===1) matchState.score1++; else matchState.score2++;
+    await pushScore(); checkWin();
   }
-  renderBracket();
-  if(nr>=bracketState.length) toast('🏆 '+winner+' WINS THE TOURNAMENT!');
+  matchState.events.push({icon,text:label,time});
+  renderEventLog();
+  await updateDoc(doc(db,'liveMatch','current'),{events:matchState.events});
 };
 
-const RND_NAMES=['Round of 64','Round of 32','Round of 16','Quarterfinals','Semifinals','Final'];
+function renderEventLog() {
+  const log=document.getElementById('eventLog');
+  if (!matchState.events.length){log.innerHTML='<div class="log-empty">No events yet</div>';return;}
+  log.innerHTML=[...matchState.events].reverse().map(e=>
+    `<div class="event-entry"><span class="ev-icon">${e.icon}</span><span class="ev-text">${e.text}</span><span class="ev-time">${e.time}</span></div>`
+  ).join('');
+}
 
-function renderBracket(){
-  const c=document.getElementById('bracketRounds');
-  if(!bracketState||!bracketState.length){
-    c.innerHTML=`<div class="empty-state" style="width:100%"><span class="empty-icon">🏆</span>SELECT PLAYERS AND GENERATE A BRACKET</div>`;return;
-  }
-  const total=bracketState.length;let html='';
-  bracketState.forEach((round,ri)=>{
-    const lIdx=Math.max(0,RND_NAMES.length-total+ri);
-    const label=ri===total-1?'FINAL':(RND_NAMES[lIdx]||`Round ${ri+1}`);
-    const gap=Math.pow(2,ri)*14+6;
-    html+=`<div class="b-round"><div class="b-round-lbl">${label}</div>`;
-    round.forEach((m,mi)=>{
-      const canPlay=m.p1!=='TBD'&&m.p2!=='TBD'&&m.p1!=='BYE'&&m.p2!=='BYE'&&!m.winner;
-      const p1w=m.winner===m.p1,p2w=m.winner===m.p2;
-      html+=`<div class="b-match" style="margin:${gap}px 0">
-        <div class="b-player ${p1w?'winner':''} ${m.p1==='TBD'?'tbd':m.p1==='BYE'?'bye':''} ${canPlay?'clickable':''}"
-          onclick="${canPlay?`advance(${ri},${mi},'${m.p1.replace(/'/g,"\\'")}')`:''}" title="${canPlay?'Click to advance '+m.p1:''}">
-          <span>${m.p1==='BYE'?'— BYE —':m.p1}</span>${p1w?'<span class="b-score">✓</span>':''}
-        </div>
-        <div class="b-div"></div>
-        <div class="b-player ${p2w?'winner':''} ${m.p2==='TBD'?'tbd':m.p2==='BYE'?'bye':''} ${canPlay?'clickable':''}"
-          onclick="${canPlay?`advance(${ri},${mi},'${m.p2.replace(/'/g,"\\'")}')`:''}" title="${canPlay?'Click to advance '+m.p2:''}">
-          <span>${m.p2==='BYE'?'— BYE —':m.p2}</span>${p2w?'<span class="b-score">✓</span>':''}
-        </div>
-      </div>`;
+window.confirmEndMatch = function() {
+  const {team1,team2,score1,score2}=matchState;
+  if (!confirm(`End match?\n${team1.join(' & ')}: ${score1}\n${team2.join(' & ')}: ${score2}\n\nSave and update player stats?`)) return;
+  endMatch();
+};
+
+window.confirmCancelMatch = function() {
+  const t1 = matchState.team1.join(' & ') || 'Team 1';
+  const t2 = matchState.team2.join(' & ') || 'Team 2';
+  if (!confirm(`Cancel the game between ${t1} and ${t2}?\n\nNo scores will be saved.`)) return;
+  cancelMatch();
+};
+
+async function cancelMatch() {
+  if (matchState.timerInterval) clearInterval(matchState.timerInterval);
+
+  // Clear liveMatch in Firestore
+  try {
+    await setDoc(doc(db, 'liveMatch', 'current'), {
+      active: false, team1: [], team2: [], score1: 0, score2: 0,
+      cancelled: true, cancelledAt: serverTimestamp()
     });
-    html+='</div>';
-    if(ri<total-1){
-      const connH=Math.pow(2,ri)*14+6+46;
-      html+=`<div style="display:flex;flex-direction:column;justify-content:space-around;width:20px;padding-top:44px">
-        ${round.map(()=>`<div style="height:${connH}px;border-right:2px solid rgba(196,98,45,0.4);border-top:2px solid rgba(196,98,45,0.4);border-bottom:2px solid rgba(196,98,45,0.4);margin:${gap}px 0"></div>`).join('')}
-      </div>`;
+  } catch(e) { console.warn('cancelMatch Firestore error', e); }
+
+  // Reset state
+  matchState = {
+    team1:[], team2:[], score1:0, score2:0,
+    target:21, events:[], weekId:null, matchId:null,
+    startTime:null, timerInterval:null
+  };
+
+  toast('Game cancelled.');
+  showPhase('phaseSelect');
+  // Re-render so the setup form is fresh
+  renderTeamsGrid();
+  renderMatchList();
+}
+
+async function endMatch() {
+  clearInterval(matchState.timerInterval);
+  const {team1,team2,score1,score2,target,weekId,matchId}=matchState;
+  const winTeam = score1>=target||score1>score2 ? 1 : 2;
+  const winners = winTeam===1?team1:team2;
+  const losers  = winTeam===1?team2:team1;
+
+  await updateDoc(doc(db,'liveMatch','current'),{active:false,score1,score2,winner:winners.join(' & '),endedAt:serverTimestamp()});
+
+  if (weekId&&matchId) {
+    const ws=await getDoc(doc(db,'weeks',weekId));
+    if (ws.exists()) {
+      const matches=(ws.data().matches||[]).map(m=>m.id===matchId?{...m,score1,score2,played:true}:m);
+      await updateDoc(doc(db,'weeks',weekId),{matches});
     }
+  }
+
+  for (const name of winners) {
+    const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(p){const w=(p.wins||0)+1,l=p.losses||0;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
+  }
+  for (const name of losers) {
+    const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(p){const w=p.wins||0,l=(p.losses||0)+1;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
+  }
+
+  await setDoc(doc(collection(db,'matchHistory')),{
+    team1,team2,score1,score2,format:`${teamSize}v${teamSize}`,
+    winner:winners.join(' & '),target,events:matchState.events,
+    referee:currentUser.displayName||currentUser.firstName||'Referee',
+    playedAt:serverTimestamp()
   });
-  const champ=bracketState[total-1][0]?.winner;
-  if(champ)html+=`<div class="b-round" style="padding:0 16px;align-items:center;justify-content:center"><div class="b-round-lbl">CHAMPION</div><div class="champion-box">🏆<br>${champ}</div></div>`;
-  c.innerHTML=html;
+
+  showCompleteScreen(winTeam);
 }
 
-// ============================================================
-// PLAYER BIOS — Firestore: collection('users') with avatar
-// ============================================================
-let biosCache = [];
-
-async function loadBios(){
-  const snap = await getDocs(collection(db,'bios'));
-  biosCache = [];
-  snap.forEach(d => biosCache.push({...d.data(), _id: d.id}));
-  renderBios();
-}
-
-let signupAvatarData = null;
-
-window.openSignup = function(){
-  document.getElementById('signupOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-};
-window.closeSignup = function(){
-  document.getElementById('signupOverlay').classList.remove('open');
-  document.body.style.overflow='';
-};
-
-window.handleAvatarUpload = function(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    signupAvatarData=e.target.result;
-    const ph=document.getElementById('avatarPlaceholder');
-    ph.outerHTML=`<img class="avatar-preview" id="avatarPlaceholder" src="${signupAvatarData}" alt="avatar"/>`;
-  };
-  reader.readAsDataURL(file);
-};
-
-window.submitSignup = async function(){
-  const first=document.getElementById('signupFirst').value.trim();
-  const last=document.getElementById('signupLast').value.trim();
-  if(!first||!last){toast('Enter at least a first and last name!');return;}
-  const name=first+' '+last;
-  const nick=document.getElementById('signupNick').value.trim();
-  const style=document.getElementById('signupStyle').value;
-  const level=document.getElementById('signupLevel').value;
-  const bio=document.getElementById('signupBio').value.trim();
-  const court=document.getElementById('signupCourt').value;
-  // Check if a players doc with this name already exists (prevent duplicate)
-  const normName = name.trim().toLowerCase();
-  let existingPlayer = playersCache.find(p => p.name.trim().toLowerCase() === normName);
-  let pId;
-  if(existingPlayer) {
-    pId = existingPlayer._id;
-    // Update avatar on existing player doc if we have one
-    if(signupAvatarData) await updateDoc(doc(db,'players',pId),{avatar:signupAvatarData});
-  } else {
-    const pRef = await addDoc(collection(db,'players'),{name,wins:0,losses:0,points:0,avatar:signupAvatarData||null});
-    pId = pRef.id;
-  }
-  // Check if bio already exists for this player — update instead of duplicating
-  const existingBio = biosCache.find(b => b.playerId === pId || b.name.trim().toLowerCase() === normName);
-  if(existingBio) {
-    await updateDoc(doc(db,'bios',existingBio._id),{nick,style,level,bio,court,avatar:signupAvatarData||null});
-  } else {
-    await addDoc(collection(db,'bios'),{name,nick,style,level,bio,court,avatar:signupAvatarData||null,playerId:pId,wins:0,losses:0,points:0});
-  }
-  await loadPlayers(); await loadBios();
-  closeSignup();
-  // Reset
-  document.getElementById('signupFirst').value='';document.getElementById('signupLast').value='';
-  document.getElementById('signupNick').value='';document.getElementById('signupBio').value='';
-  document.getElementById('signupStyle').value='';document.getElementById('signupLevel').value='Rookie';
-  signupAvatarData=null;
-  const prev=document.getElementById('avatarPlaceholder');
-  if(prev&&prev.tagName==='IMG') prev.outerHTML=`<div class="avatar-placeholder" id="avatarPlaceholder">?</div>`;
-  toast(name+' joined the roster!');
-};
-
-window.deleteBio = async function(bioId, playerId){
-  if(!isAdmin()){toast('Admin access required.');return;}
-  if(!confirm('Remove this player from the roster?')) return;
-  // Delete bio doc if it exists in bios collection
-  try { await deleteDoc(doc(db,'bios',bioId)); } catch(e){}
-  // Also delete their players doc (could be the only record if added via rankings)
-  if(playerId){
-    try { await deleteDoc(doc(db,'players',playerId)); } catch(e){}
-  }
-  await loadPlayers(); await loadBios();
-  toast('Player removed from roster.');
-};
-
-function renderBios(){
-  const grid=document.getElementById('biosGrid');
-  // Merge bios + players, deduplicating so each real person shows once.
-  // Priority: bios entries (have extra profile info) beat bare players entries.
-  // A players entry is suppressed if any bio already covers it via playerId OR name match.
-  const seenNames = new Set();
-  const seenPlayerIds = new Set();
-  const allBios = [];
-
-  // First pass: all bio docs (these carry the richest data)
-  biosCache.forEach(b => {
-    const normName = (b.name||'').trim().toLowerCase();
-    seenNames.add(normName);
-    if(b.playerId) seenPlayerIds.add(b.playerId);
-    // Attach _bioId and _playerId separately so delete knows where to look
-    allBios.push({...b, _bioId: b._id, _playerId: b.playerId || null});
-  });
-
-  // Second pass: players entries not already covered by a bio
-  playersCache.forEach(p => {
-    const normName = (p.name||'').trim().toLowerCase();
-    if(seenPlayerIds.has(p._id)) return;   // bio already has this player linked
-    if(seenNames.has(normName)) return;     // bio already has same name
-    seenNames.add(normName);
-    allBios.push({
-      _id: p._id, _bioId: null, _playerId: p._id,
-      name:p.name, avatar:p.avatar, wins:p.wins, losses:p.losses, points:p.points,
-      level:'', nick:'', bio:'', style:'', court:''
-    });
-  });
-  if(!allBios.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">👤</span>NO PLAYERS SIGNED UP YET — BE THE FIRST</div>`;return;}
-  grid.innerHTML=allBios.map(b=>{
-    // Sync stats AND avatar from playersCache (avatar stored on players doc)
-    const rp=playersCache.find(p=>p.name?.toLowerCase()===b.name?.toLowerCase());
-    const wins=rp?rp.wins||0:b.wins||0;
-    const losses=rp?rp.losses||0:b.losses||0;
-    const avatar=b.avatar||rp?.avatar||null;
-    const initials=(b.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const avatarHtml=avatar?`<img class="bio-avatar" src="${avatar}" alt="${b.name}"/>`:`<div class="bio-initials">${initials}</div>`;
-    return`<div class="bio-card">
-      <div class="bio-card-top">
-        ${avatarHtml}
-        <div class="bio-name-block">
-          <div class="bio-name">${b.name||''}</div>
-          ${b.nick?`<div class="bio-nick">"${b.nick}"</div>`:''}
-          <div class="bio-position">${b.level||'Player'}</div>
-        </div>
-        ${isAdmin()?`<button class="bio-del" onclick="deleteBio('${b._bioId||b._id}','${b._playerId||''}')" title="Remove">✕</button>`:''}
-      </div>
-      <div class="bio-body">
-        <div class="bio-stat-row">
-          <div class="bio-stat"><span class="sv">${wins}</span><span class="sk">Wins</span></div>
-          <div class="bio-stat"><span class="sv">${losses}</span><span class="sk">Losses</span></div>
-          <div class="bio-stat"><span class="sv">${wins*3-losses}</span><span class="sk">Pts</span></div>
-        </div>
-        ${b.bio?`<p class="bio-blurb">"${b.bio}"</p>`:''}
-        <div class="bio-meta">
-          ${b.style?`<span class="bio-tag style-tag">🎾 ${b.style}</span>`:''}
-          ${b.court?`<span class="bio-tag court-tag">📍 ${b.court}</span>`:''}
-        </div>
-      </div>
+function showCompleteScreen(winTeam) {
+  const {team1,team2,score1,score2}=matchState;
+  document.getElementById('completeWinner').textContent=`${(winTeam===1?team1:team2).join(' & ')} win!`;
+  document.getElementById('finalScoreRow').innerHTML=`
+    <div class="fsb ${winTeam===1?'winner-block':''}">
+      <div class="fn">Team 1</div>
+      <div class="fp">${team1.join('<br>')}</div>
+      <div class="fs">${score1}</div>
+    </div>
+    <div style="font-family:'Black Ops One',cursive;font-size:24px;color:rgba(255,255,255,0.15);align-self:center;padding-top:32px">—</div>
+    <div class="fsb ${winTeam===2?'winner-block':''}">
+      <div class="fn">Team 2</div>
+      <div class="fp">${team2.join('<br>')}</div>
+      <div class="fs">${score2}</div>
     </div>`;
-  }).join('');
+  showPhase('phaseComplete');
 }
 
-// ============================================================
-// COURTS — Firestore: collection('courts')
-// ============================================================
-let courtsCache = [];
-let courtPendingPhotos = [];
+window.resetToSelect = async function() {
+  matchState={team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null};
+  document.querySelectorAll('.match-opt').forEach(el=>el.classList.remove('selected'));
+  await Promise.all([loadPlayers(),loadWeeks()]);
+  renderTeamsGrid();
+  renderMatchList();
+  showPhase('phaseSelect');
+};
 
-async function loadCourts(){
-  const snap = await getDocs(collection(db,'courts'));
-  courtsCache = [];
-  snap.forEach(d => courtsCache.push({...d.data(), _id: d.id}));
-  renderCourts();
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-window.handleCourtPhotos = function(input){
-  const files=Array.from(input.files);
-  const thumbs=document.getElementById('courtPhotoThumbs');
-  files.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      courtPendingPhotos.push(e.target.result);
-      const img=document.createElement('img');img.className='photo-thumb';img.src=e.target.result;thumbs.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-  });
-};
-
-window.addCourt = async function(){
-  if(!isAdmin()){toast('Admin access required.');return;}
-  const name=document.getElementById('courtName').value.trim();
-  if(!name){toast('Enter a court name!');return;}
-  const court={
-    name, loc:document.getElementById('courtLocation').value.trim(),
-    surface:document.getElementById('courtSurface').value,
-    mode:document.getElementById('courtMode').value,
-    desc:document.getElementById('courtDesc').value.trim(),
-    photos:[...courtPendingPhotos], photoIndex:0
-  };
-  await addDoc(collection(db,'courts'),court);
-  document.getElementById('courtName').value='';document.getElementById('courtLocation').value='';
-  document.getElementById('courtDesc').value='';document.getElementById('courtPhotoThumbs').innerHTML='';
-  courtPendingPhotos=[];
-  await loadCourts(); toast(name+' added!');
-};
-
-window.deleteCourt = async function(id){
-  if(!isAdmin()){toast('Admin access required.');return;}
-  await deleteDoc(doc(db,'courts',id));
-  await loadCourts(); toast('Court removed.');
-};
-
-window.courtPhotoNav = async function(id, dir){
-  const court=courtsCache.find(c=>c._id===id); if(!court||!court.photos?.length) return;
-  court.photoIndex=((court.photoIndex||0)+dir+court.photos.length)%court.photos.length;
-  await updateDoc(doc(db,'courts',id),{photoIndex:court.photoIndex});
-  renderCourts();
-};
-
-function renderCourts(){
-  const grid=document.getElementById('courtsGrid');
-  if(!courtsCache.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🎾</span>NO COURTS ADDED YET</div>`;return;}
-  grid.innerHTML=courtsCache.map(c=>{
-    const idx=c.photoIndex||0;
-    const hasPhotos=c.photos&&c.photos.length>0;
-    const photoHtml=hasPhotos?`<img src="${c.photos[idx]}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover"/>`:`<div class="court-photo-placeholder">🎾</div>`;
-    const dotsHtml=hasPhotos&&c.photos.length>1?`<div class="court-photo-dots">${c.photos.map((_,i)=>`<div class="cpd ${i===idx?'active':''}"></div>`).join('')}</div>`:'';
-    const navHtml=hasPhotos&&c.photos.length>1?`<div class="court-photo-nav"><button class="cpn-btn" onclick="courtPhotoNav('${c._id}',-1)">&#8249;</button><button class="cpn-btn" onclick="courtPhotoNav('${c._id}',1)">&#8250;</button></div>`:'';
-    const surfaceClass=c.surface==='Grass'||c.surface==='Hard Court'?'green':'';
-    return`<div class="court-card">
-      <div class="court-photo-strip">${photoHtml}${navHtml}${dotsHtml}</div>
-      <div class="court-info">
-        <div class="court-name">${c.name}</div>
-        ${c.loc?`<div class="court-loc">📍 ${c.loc}</div>`:''}
-        ${c.desc?`<p class="court-desc">${c.desc}</p>`:''}
-        <div class="court-tags"><span class="court-tag ${surfaceClass}">${c.surface}</span></div>
-        <div class="court-footer">
-          <span class="court-mode-badge">${c.mode}</span>
-          ${isAdmin()?`<button class="court-del" onclick="deleteCourt('${c._id}')" title="Remove">✕ Remove</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
 }
-
-// ============================================================
-// REVEAL OBSERVER
-// ============================================================
-function initReveal(){
-  const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
-  },{threshold:0.08});
-  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-}
-
-// ============================================================
-// INIT
-// ============================================================
-renderRules();
-await loadPlayers();
-await loadWeeks();
-await loadBios();
-await loadCourts();
-renderBracket();
-initReveal();
-
-  // ── MOBILE MENU ────────────────────────────────────────
-  window.toggleMobileMenu = function() {
-    const menu = document.getElementById('mobileMenu');
-    const ham  = document.getElementById('hamburger');
-    const open = menu.classList.toggle('open');
-    ham.classList.toggle('open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
-  };
-  window.closeMobileMenu = function() {
-    document.getElementById('mobileMenu').classList.remove('open');
-    document.getElementById('hamburger').classList.remove('open');
-    document.body.style.overflow = '';
-  };
-  // Close on ESC
-  document.addEventListener('keydown', e => { if(e.key==='Escape') window.closeMobileMenu(); });
 </script>
-<!-- LIVE SCORE BANNER -->
-<div id="liveBanner">
-  <div class="lb-live"><div class="lb-dot"></div>Live</div>
-  <div class="lb-match" id="lbMatch">—</div>
-  <div class="lb-score" id="lbScore">0 — 0</div>
-  <a href="scoreboard.html" class="lb-link" target="_blank">Full Scoreboard →</a>
-</div>
-
-<div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
 </body>
 </html>
