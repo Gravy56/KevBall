@@ -1570,7 +1570,7 @@ initReveal();
     ham.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   };
-  window.toggleMobileMenu = function() {
+  window.closeMobileMenu = function() {
     document.getElementById('mobileMenu').classList.remove('open');
     document.getElementById('hamburger').classList.remove('open');
     document.body.style.overflow = '';
