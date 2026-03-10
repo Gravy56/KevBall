@@ -6,54 +6,30 @@
 <title>Watch Live — Kevball</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink:#1a1a18; --clay:#c4622d; --clay-light:#d4794a;
-    --gold:#d4a843; --green:#2d5a27; --white:#fafaf8; --red:#c0392b;
-  }
+  :root{--ink:#1a1a18;--clay:#c4622d;--clay-light:#d4794a;--gold:#d4a843;--white:#fafaf8;--red:#c0392b;}
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{height:100%;overflow-x:hidden;}
   body{font-family:'DM Sans',sans-serif;background:#000;color:var(--white);}
-
-  /* NAV */
   nav{background:rgba(0,0,0,0.8);border-bottom:2px solid var(--clay);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
   .logo{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;color:var(--white);text-decoration:none;}
   .logo span{color:var(--gold);}
   .nav-right{display:flex;align-items:center;gap:10px;}
   .live-pill{display:none;align-items:center;gap:6px;background:var(--red);color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;padding:5px 12px;text-transform:uppercase;}
   .live-pill.show{display:flex;}
-  .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:livepulse 1.2s ease-in-out infinite;}
+  @keyframes livepulse{0%,100%{opacity:1}50%{opacity:0.3}}
   .offline-pill{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;}
-
-  /* MAIN LAYOUT */
   .watch-layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 53px);}
-
-  /* VIDEO COLUMN */
   .video-col{display:flex;flex-direction:column;background:#000;overflow:hidden;}
-
-  /* VIDEO */
   .video-wrap{position:relative;flex:1;background:#000;overflow:hidden;}
   #remoteVideo{width:100%;height:100%;object-fit:contain;display:block;}
-
-  /* OFFLINE SCREEN */
-  .offline-screen{position:absolute;inset:0;overflow:hidden;background:#2d5a27;}
+  .offline-screen{position:absolute;inset:0;overflow:hidden;background:#1a3d14;}
   .offline-screen.hidden{display:none;}
-  /* Grass stripes — repaint as mowers pass */
-  .grass-field{position:absolute;inset:0;}
-  .grass-stripe{position:absolute;top:0;bottom:0;transition:background 0.3s;}
-  /* Mower track */
-  .mower-track{position:absolute;inset:0;pointer-events:none;}
-  .mower{position:absolute;font-size:clamp(18px,3vw,28px);line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));transition:transform 0.05s linear;}
-  /* Offline text overlay */
-  .offline-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;}
-  .offline-title{font-family:'Black Ops One',cursive;font-size:clamp(20px,4vw,32px);letter-spacing:3px;color:rgba(255,255,255,0.85);text-shadow:0 2px 12px rgba(0,0,0,0.6);}
-  .offline-sub{font-family:'Space Mono',monospace;font-size:clamp(8px,1.5vw,11px);letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,0.5);}
-  .offline-icon{font-size:clamp(28px,5vw,44px);margin-bottom:4px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4));}
-  .connecting-spinner{display:none;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* SCORE OVERLAY */
-  .score-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);padding:24px 20px 16px;pointer-events:none;}
+  #grassCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
+  .offline-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;z-index:2;}
+  .offline-title{font-family:'Black Ops One',cursive;font-size:clamp(20px,4vw,32px);letter-spacing:3px;color:rgba(255,255,255,0.9);text-shadow:0 2px 16px rgba(0,0,0,0.8);}
+  .offline-sub{font-family:'Space Mono',monospace;font-size:clamp(8px,1.5vw,11px);letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,0.6);}
+  .score-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);padding:24px 20px 16px;pointer-events:none;}
   .so-match-info{display:none;}
   .so-match-info.show{display:block;}
   .so-format{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--clay);text-transform:uppercase;margin-bottom:6px;}
@@ -65,19 +41,13 @@
   .so-score{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,52px);color:var(--white);letter-spacing:3px;line-height:1;}
   .so-target{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;display:block;margin-top:3px;}
   .so-event-ticker{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-top:8px;height:16px;overflow:hidden;}
-
-  /* NO MATCH */
   .so-no-match{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.2);text-transform:uppercase;text-align:center;padding:12px 0;}
-
-  /* SIDEBAR */
   .sidebar{background:#0e0e0c;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;}
   .sidebar-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);}
   .stab{flex:1;padding:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-align:center;cursor:pointer;color:rgba(255,255,255,0.3);border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;}
   .stab.active{color:var(--gold);border-bottom-color:var(--gold);}
   .sidebar-panel{flex:1;overflow-y:auto;padding:16px;}
   .sidebar-panel.hidden{display:none;}
-
-  /* MATCH INFO PANEL */
   .mi-section{margin-bottom:20px;}
   .mi-section-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);}
   .mi-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
@@ -85,22 +55,15 @@
   .mi-key{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;}
   .mi-val{font-family:'Black Ops One',cursive;font-size:14px;letter-spacing:1px;color:var(--white);}
   .mi-idle{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:2px;text-align:center;padding:20px 0;text-transform:uppercase;}
-
-  /* EVENTS */
   .ev-entry{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;}
   .ev-entry:last-child{border-bottom:none;}
   .ev-time{font-family:'Space Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);flex-shrink:0;}
   .ev-text{color:rgba(255,255,255,0.55);flex:1;}
-  .ev-icon{flex-shrink:0;}
-
-  /* HISTORY PANEL */
   .hist-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:12px;margin-bottom:8px;}
   .hist-teams{font-family:'Black Ops One',cursive;font-size:13px;letter-spacing:1px;color:var(--white);margin-bottom:4px;}
   .hist-score{font-family:'Black Ops One',cursive;font-size:20px;color:var(--gold);}
   .hist-meta{font-family:'Space Mono',monospace;font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
   .hist-empty{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:2px;text-align:center;padding:20px 0;text-transform:uppercase;}
-
-  /* MOBILE */
   @media(max-width:700px){
     .watch-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;}
     .video-col{height:56vw;min-height:240px;}
@@ -113,7 +76,7 @@
 <body>
 
 <nav>
-  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <a href="index.html" class="logo">KEV<span>&#9679;</span>BALL</a>
   <div class="nav-right">
     <div class="live-pill" id="livePill"><div class="live-dot"></div> LIVE</div>
     <div class="offline-pill" id="offlinePill">Offline</div>
@@ -121,32 +84,25 @@
 </nav>
 
 <div class="watch-layout">
-
-  <!-- VIDEO COLUMN -->
   <div class="video-col">
     <div class="video-wrap">
       <video id="remoteVideo" autoplay playsinline></video>
 
-      <!-- OFFLINE / CONNECTING STATE -->
       <div class="offline-screen" id="offlineScreen">
-        <canvas class="grass-field" id="grassCanvas"></canvas>
-        <div class="mower-track" id="mowerTrack"></div>
+        <canvas id="grassCanvas"></canvas>
         <div class="offline-overlay">
-          <div class="offline-icon" id="offlineIcon">📺</div>
-          <div class="offline-title" id="offlineTitle">No Stream</div>
+          <div class="offline-title" id="offlineTitle">NO STREAM</div>
           <div class="offline-sub" id="offlineSub">Stream will appear here when live</div>
         </div>
-        <div class="connecting-spinner" id="connectingSpinner"></div>
       </div>
 
-      <!-- SCORE OVERLAY -->
       <div class="score-overlay">
         <div class="so-match-info" id="scoreOverlay">
           <div class="so-format" id="soFormat"></div>
           <div class="so-teams">
             <div class="so-team" id="soT1">Team 1</div>
             <div class="so-score-block">
-              <div class="so-score" id="soScore">0 — 0</div>
+              <div class="so-score" id="soScore">0 - 0</div>
               <span class="so-target" id="soTarget"></span>
             </div>
             <div class="so-team right" id="soT2">Team 2</div>
@@ -158,14 +114,11 @@
     </div>
   </div>
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-tabs">
       <button class="stab active" onclick="switchTab('info',this)">Match</button>
       <button class="stab" onclick="switchTab('history',this)">History</button>
     </div>
-
-    <!-- MATCH INFO -->
     <div class="sidebar-panel" id="panelInfo">
       <div class="mi-section">
         <div class="mi-section-label">Live Match</div>
@@ -173,22 +126,215 @@
       </div>
       <div class="mi-section">
         <div class="mi-section-label">Recent Events</div>
-        <div id="matchEventsRows"><div class="mi-idle">—</div></div>
+        <div id="matchEventsRows"><div class="mi-idle">-</div></div>
       </div>
     </div>
-
-    <!-- HISTORY -->
     <div class="sidebar-panel hidden" id="panelHistory">
       <div id="historyRows"><div class="hist-empty">Loading...</div></div>
     </div>
   </div>
-
 </div>
+
+<script>
+/* ── LAWNMOWER ANIMATION ─────────────────────────────────── */
+(function () {
+  var canvas, ctx, W, H, animId;
+  var running = false;
+  var ANGLE = 35 * Math.PI / 180;
+  var SW = 44; /* stripe width */
+  var SA = '#2a5c22', SB = '#336b29'; /* uncut */
+  var CA = '#3d8530', CB = '#4da83e'; /* cut */
+  var mowers = [], stripes = {};
+
+  function ppj(x, y) { return x * (-Math.sin(ANGLE)) + y * Math.cos(ANGLE); }
+  function sid(x, y) { return Math.floor(ppj(x, y) / SW); }
+
+  function build() {
+    stripes = {};
+    var cs = [[0,0],[W,0],[W,H],[0,H]].map(function(c){return sid(c[0],c[1]);});
+    for (var i = Math.min.apply(null,cs)-2; i <= Math.max.apply(null,cs)+2; i++) {
+      stripes[i] = { cut: false, p: ((i%2)+2)%2 };
+    }
+  }
+
+  function field() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+    var dx = Math.cos(ANGLE), dy = Math.sin(ANGLE);
+    var px = -Math.sin(ANGLE), py = Math.cos(ANGLE);
+    var ext = W + H + 300;
+    var cs = [[0,0],[W,0],[W,H],[0,H]].map(function(c){return sid(c[0],c[1]);});
+    var mn = Math.min.apply(null,cs)-2, mx = Math.max.apply(null,cs)+2;
+    for (var i = mn; i <= mx; i++) {
+      var s = stripes[i] || {cut:false,p:((i%2)+2)%2};
+      var col = s.cut ? (s.p===0?CA:CB) : (s.p===0?SA:SB);
+      var d0 = i*SW, d1 = (i+1)*SW;
+      ctx.beginPath();
+      ctx.moveTo(d0*px-ext*dx, d0*py-ext*dy);
+      ctx.lineTo(d1*px-ext*dx, d1*py-ext*dy);
+      ctx.lineTo(d1*px+ext*dx, d1*py+ext*dy);
+      ctx.lineTo(d0*px+ext*dx, d0*py+ext*dy);
+      ctx.closePath();
+      ctx.fillStyle = col;
+      ctx.fill();
+    }
+    /* stripe seams */
+    ctx.strokeStyle = 'rgba(0,0,0,0.09)';
+    ctx.lineWidth = 0.8;
+    for (var i = mn; i <= mx; i++) {
+      var d = i*SW;
+      ctx.beginPath();
+      ctx.moveTo(d*px-ext*dx, d*py-ext*dy);
+      ctx.lineTo(d*px+ext*dx, d*py+ext*dy);
+      ctx.stroke();
+    }
+    /* vignette */
+    var vg = ctx.createRadialGradient(W/2,H/2,H*0.05,W/2,H/2,H*0.88);
+    vg.addColorStop(0,'rgba(0,0,0,0)');
+    vg.addColorStop(1,'rgba(0,0,0,0.62)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  function mower(x, y, dir) {
+    var MW = 30, MH = 20;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(dir);
+    /* shadow */
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 5;
+    /* body */
+    ctx.fillStyle = '#b80f1e';
+    ctx.fillRect(-MW/2,-MH/2,MW,MH);
+    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    /* hood */
+    ctx.fillStyle = '#d41525';
+    ctx.fillRect(-MW/2+2,-MH/2+2,MW-4,5);
+    /* engine */
+    ctx.fillStyle = '#181818';
+    ctx.fillRect(-MW/2+2,-MH/2+2,11,MH-4);
+    /* exhaust stub */
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(-MW/2-4,-MH/2+5,5,3);
+    /* deck ring */
+    ctx.strokeStyle = 'rgba(255,255,255,0.13)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(4,0,9,0,Math.PI*2);
+    ctx.stroke();
+    /* blades */
+    var t = Date.now()/36;
+    ctx.strokeStyle = 'rgba(215,215,215,0.65)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    for (var b = 0; b < 3; b++) {
+      var a = t + b*(Math.PI*2/3);
+      ctx.beginPath();
+      ctx.moveTo(4,0);
+      ctx.lineTo(4+Math.cos(a)*8, Math.sin(a)*8);
+      ctx.stroke();
+    }
+    /* grass spray */
+    var ag = (Date.now()/110)%1;
+    for (var c = 0; c < 4; c++) {
+      var ca = Math.PI+(c-1.5)*0.45+ag*0.4;
+      var cd = 5+ag*12+c*2.5;
+      ctx.fillStyle = 'rgba(80,195,55,'+(0.48*(1-ag))+')';
+      ctx.beginPath();
+      ctx.arc(4+Math.cos(ca)*cd, Math.sin(ca)*cd, 1.5, 0, Math.PI*2);
+      ctx.fill();
+    }
+    /* wheels */
+    var wp = [[-MW/2+3,-MH/2+3],[MW/2-3,-MH/2+3],[-MW/2+3,MH/2-3],[MW/2-3,MH/2-3]];
+    for (var w = 0; w < 4; w++) {
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(wp[w][0],wp[w][1],4,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = '#333'; ctx.lineWidth = 0.8; ctx.stroke();
+    }
+    /* exhaust puff */
+    var pf = (Date.now()/155)%1;
+    ctx.fillStyle = 'rgba(200,200,182,'+(0.30*(1-pf))+')';
+    ctx.beginPath();
+    ctx.arc(-MW/2-4-pf*12,-1,1.5+pf*3.5,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function initM() {
+    mowers = [];
+    var cp = ppj(W/2,H/2);
+    var tl = (W+H)*1.55;
+    for (var i = 0; i < 3; i++) {
+      var lo = i - 1;
+      mowers.push({lp: cp + lo*SW*3.2, t:(i/3)*tl, dir:1, spd:1.0+i*0.22, tl:tl});
+    }
+  }
+
+  function pos(m) {
+    var dx = Math.cos(ANGLE), dy = Math.sin(ANGLE);
+    var px = -Math.sin(ANGLE), py = Math.cos(ANGLE);
+    var al = -(W+H)*0.38 + m.t;
+    return {x: m.lp*px+al*dx, y: m.lp*py+al*dy, dir: m.dir>0?ANGLE:ANGLE+Math.PI};
+  }
+
+  function cut(x,y) {
+    var i = sid(x,y);
+    for (var d=-1;d<=1;d++) { if(stripes[i+d]) stripes[i+d].cut=true; }
+  }
+
+  function tick() {
+    if (!running) return;
+    for (var i=0;i<mowers.length;i++) {
+      var m = mowers[i];
+      m.t += m.spd*m.dir;
+      if (m.t>=m.tl){m.t=m.tl;m.dir=-1;}
+      if (m.t<=0)   {m.t=0;   m.dir= 1;}
+    }
+    field();
+    for (var i=0;i<mowers.length;i++){
+      var p=pos(mowers[i]); cut(p.x,p.y); mower(p.x,p.y,p.dir);
+    }
+    animId = requestAnimationFrame(tick);
+  }
+
+  function resize() {
+    if (!canvas) return;
+    W = canvas.offsetWidth  || (canvas.parentElement && canvas.parentElement.offsetWidth)  || 640;
+    H = canvas.offsetHeight || (canvas.parentElement && canvas.parentElement.offsetHeight) || 360;
+    canvas.width = W; canvas.height = H;
+    build(); initM();
+  }
+
+  window._startMowers = function() {
+    if (running) return;
+    canvas = document.getElementById('grassCanvas');
+    if (!canvas) return;
+    ctx = canvas.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
+    running = true;
+    tick();
+  };
+
+  window._stopMowers = function() {
+    running = false;
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+  };
+
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(window._startMowers, 80);
+  });
+}());
+</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
-import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -202,405 +348,158 @@ const app = initializeApp(firebaseConfig);
 initializeAppCheck(app, { provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'), isTokenAutoRefreshEnabled: true });
 const db = getFirestore(app);
 
-const ICE_SERVERS = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+const ICE = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302','stun:stun2.l.google.com:19302'] }] };
 const viewerId = Math.random().toString(36).slice(2);
+let pc = null, isConnected = false;
 
-let pc = null;
-let isConnected = false;
-
-// ── INIT ──────────────────────────────────────────────────
 async function init() {
-  watchStreamState();
-  watchLiveMatch();
+  watchStream();
+  watchMatch();
   loadHistory();
 }
 
-// ── STREAM STATE ──────────────────────────────────────────
-function watchStreamState() {
-  onSnapshot(doc(db, 'stream', 'current'), async snap => {
+function watchStream() {
+  onSnapshot(doc(db,'stream','current'), async snap => {
     if (!snap.exists() || !snap.data().live) {
       showOffline();
       if (pc) { pc.close(); pc = null; isConnected = false; }
-      await cleanupViewer();
+      await cleanup();
       return;
     }
-    // Stream is live
     document.getElementById('livePill').classList.add('show');
     document.getElementById('offlinePill').style.display = 'none';
-    if (!isConnected) connectToStream();
-
-    // Update viewer count
-    const v = (snap.data().viewers || 0);
-    // Already tracked via presence
+    if (!isConnected) connect();
   });
 }
 
-async function connectToStream() {
+async function connect() {
   isConnected = true;
   setConnecting();
-
-  pc = new RTCPeerConnection(ICE_SERVERS);
-
+  pc = new RTCPeerConnection(ICE);
   pc.ontrack = e => {
-    const vid = document.getElementById('remoteVideo');
-    if (vid.srcObject !== e.streams[0]) {
-      vid.srcObject = e.streams[0];
-      showLive();
-    }
+    const v = document.getElementById('remoteVideo');
+    if (v.srcObject !== e.streams[0]) { v.srcObject = e.streams[0]; showLive(); }
   };
-
   pc.onicecandidate = async e => {
-    if (e.candidate) {
-      await updateDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
-        candidate: JSON.stringify(e.candidate.toJSON())
-      });
-    }
+    if (e.candidate) await updateDoc(doc(db,'stream','current','viewers',viewerId),{candidate:JSON.stringify(e.candidate.toJSON())});
   };
-
   pc.onconnectionstatechange = () => {
-    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-      showOffline();
-    }
+    if (pc.connectionState==='disconnected'||pc.connectionState==='failed') showOffline();
   };
-
-  // Add transceiver to receive video + audio
-  pc.addTransceiver('video', { direction: 'recvonly' });
-  pc.addTransceiver('audio', { direction: 'recvonly' });
-
+  pc.addTransceiver('video',{direction:'recvonly'});
+  pc.addTransceiver('audio',{direction:'recvonly'});
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
-
-  // Write offer to Firestore
-  await setDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
-    offer: JSON.stringify(pc.localDescription), joinedAt: serverTimestamp()
-  });
-
-  // Update viewer count
-  await updateViewerCount(1);
-
-  // Wait for broadcaster answer
-  onSnapshot(doc(db, 'stream', 'current', 'viewers', viewerId), async snap => {
+  await setDoc(doc(db,'stream','current','viewers',viewerId),{offer:JSON.stringify(pc.localDescription),joinedAt:serverTimestamp()});
+  await countViewers();
+  onSnapshot(doc(db,'stream','current','viewers',viewerId), async snap => {
     if (!snap.exists()) return;
-    const data = snap.data();
-    if (data.answer && !pc.remoteDescription) {
-      try {
-        await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)));
-      } catch(e) { console.warn('setRemoteDescription failed', e); }
+    const d = snap.data();
+    if (d.answer && !pc.remoteDescription) {
+      try { await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(d.answer))); } catch(e){}
     }
-    if (data.broadcasterCandidate) {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(data.broadcasterCandidate)));
-      } catch(e) {}
+    if (d.broadcasterCandidate) {
+      try { await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(d.broadcasterCandidate))); } catch(e){}
     }
   });
 }
 
-async function updateViewerCount(delta) {
+async function countViewers() {
   try {
-    const snap = await getDocs(collection(db, 'stream', 'current', 'viewers'));
-    await updateDoc(doc(db, 'stream', 'current'), { viewers: snap.size });
-  } catch(e) {}
+    const s = await getDocs(collection(db,'stream','current','viewers'));
+    await updateDoc(doc(db,'stream','current'),{viewers:s.size});
+  } catch(e){}
 }
-
-async function cleanupViewer() {
-  try {
-    await deleteDoc(doc(db, 'stream', 'current', 'viewers', viewerId));
-    await updateViewerCount(-1);
-  } catch(e) {}
+async function cleanup() {
+  try { await deleteDoc(doc(db,'stream','current','viewers',viewerId)); await countViewers(); } catch(e){}
 }
+window.addEventListener('beforeunload', cleanup);
 
-window.addEventListener('beforeunload', cleanupViewer);
-
-// ── UI STATES ─────────────────────────────────────────────
 function setConnecting() {
   document.getElementById('offlineScreen').classList.remove('hidden');
-  document.getElementById('offlineIcon').style.display = 'none';
-  document.getElementById('connectingSpinner').style.display = 'block';
   document.getElementById('offlineTitle').textContent = 'Connecting...';
   document.getElementById('offlineSub').textContent = 'Joining live stream';
+  if (window._startMowers) window._startMowers();
 }
-
 function showLive() {
   document.getElementById('offlineScreen').classList.add('hidden');
+  if (window._stopMowers) window._stopMowers();
 }
-
 function showOffline() {
   document.getElementById('livePill').classList.remove('show');
   document.getElementById('offlinePill').style.display = 'block';
   document.getElementById('offlineScreen').classList.remove('hidden');
-  document.getElementById('offlineIcon').style.display = 'block';
-  document.getElementById('connectingSpinner').style.display = 'none';
-  document.getElementById('offlineTitle').textContent = 'No Stream';
+  document.getElementById('offlineTitle').textContent = 'NO STREAM';
   document.getElementById('offlineSub').textContent = 'Stream will appear here when live';
   document.getElementById('remoteVideo').srcObject = null;
+  if (window._startMowers) window._startMowers();
 }
 
-// ── LIVE MATCH ────────────────────────────────────────────
-function watchLiveMatch() {
-  onSnapshot(doc(db, 'liveMatch', 'current'), snap => {
-    const overlay = document.getElementById('scoreOverlay');
-    const noMatch = document.getElementById('soNoMatch');
-    const infoRows = document.getElementById('matchInfoRows');
-    const eventsRows = document.getElementById('matchEventsRows');
-
+function watchMatch() {
+  onSnapshot(doc(db,'liveMatch','current'), snap => {
+    const ov = document.getElementById('scoreOverlay');
+    const nm = document.getElementById('soNoMatch');
     if (!snap.exists() || !snap.data().active) {
-      overlay.classList.remove('show');
-      noMatch.style.display = 'block';
-      infoRows.innerHTML = '<div class="mi-idle">No match in progress</div>';
-      eventsRows.innerHTML = '<div class="mi-idle">—</div>';
+      ov.classList.remove('show'); nm.style.display='block';
+      document.getElementById('matchInfoRows').innerHTML='<div class="mi-idle">No match in progress</div>';
+      document.getElementById('matchEventsRows').innerHTML='<div class="mi-idle">-</div>';
       return;
     }
-
     const d = snap.data();
-    const t1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1 || '?');
-    const t2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2 || '?');
-    const s1 = d.score1 ?? 0, s2 = d.score2 ?? 0;
-    const fmt = d.format || '1v1';
-
-    // Score overlay
-    overlay.classList.add('show');
-    noMatch.style.display = 'none';
+    const t1 = Array.isArray(d.team1)?d.team1.join(' & '):(d.p1||'?');
+    const t2 = Array.isArray(d.team2)?d.team2.join(' & '):(d.p2||'?');
+    const s1 = d.score1??0, s2 = d.score2??0, fmt = d.format||'1v1';
+    ov.classList.add('show'); nm.style.display='none';
     document.getElementById('soFormat').textContent = fmt;
     document.getElementById('soT1').textContent = t1;
     document.getElementById('soT2').textContent = t2;
-    document.getElementById('soT1').className = 'so-team' + (s1 > s2 ? ' leading' : '');
-    document.getElementById('soT2').className = 'so-team right' + (s2 > s1 ? ' leading' : '');
-    document.getElementById('soScore').textContent = `${s1} — ${s2}`;
-    document.getElementById('soTarget').textContent = `First to ${d.target || 21}`;
-
-    // Event ticker
-    const events = d.events || [];
-    if (events.length) {
-      const last = events[events.length - 1];
-      document.getElementById('soTicker').textContent = `${last.icon || ''} ${last.text || ''} · ${last.time || ''}`;
+    document.getElementById('soT1').className = 'so-team'+(s1>s2?' leading':'');
+    document.getElementById('soT2').className = 'so-team right'+(s2>s1?' leading':'');
+    document.getElementById('soScore').textContent = s1+' - '+s2;
+    document.getElementById('soTarget').textContent = 'First to '+(d.target||21);
+    const evs = d.events||[];
+    if (evs.length) {
+      const last = evs[evs.length-1];
+      document.getElementById('soTicker').textContent = (last.text||'')+' · '+(last.time||'');
     }
-
-    // Sidebar match info
-    const t1members = Array.isArray(d.team1) ? d.team1 : [d.p1||''];
-    const t2members = Array.isArray(d.team2) ? d.team2 : [d.p2||''];
-    infoRows.innerHTML = `
-      <div class="mi-row"><span class="mi-key">Format</span><span class="mi-val">${fmt}</span></div>
-      <div class="mi-row"><span class="mi-key">Team 1</span><span class="mi-val" style="text-align:right;max-width:160px">${t1members.join(', ')}</span></div>
-      <div class="mi-row"><span class="mi-key">Score</span><span class="mi-val">${s1} — ${s2}</span></div>
-      <div class="mi-row"><span class="mi-key">Team 2</span><span class="mi-val" style="text-align:right;max-width:160px">${t2members.join(', ')}</span></div>
-      <div class="mi-row"><span class="mi-key">Target</span><span class="mi-val">${d.target || 21}</span></div>
-      <div class="mi-row"><span class="mi-key">Referee</span><span class="mi-val">${d.referee || '—'}</span></div>`;
-
-    // Events log
-    if (!events.length) {
-      eventsRows.innerHTML = '<div class="mi-idle">No events yet</div>';
-    } else {
-      eventsRows.innerHTML = [...events].reverse().slice(0,10).map(e =>
-        `<div class="ev-entry"><span class="ev-icon">${e.icon||''}</span><span class="ev-text">${e.text||''}</span><span class="ev-time">${e.time||''}</span></div>`
-      ).join('');
-    }
+    const t1m = Array.isArray(d.team1)?d.team1:[d.p1||''];
+    const t2m = Array.isArray(d.team2)?d.team2:[d.p2||''];
+    document.getElementById('matchInfoRows').innerHTML =
+      '<div class="mi-row"><span class="mi-key">Format</span><span class="mi-val">'+fmt+'</span></div>'+
+      '<div class="mi-row"><span class="mi-key">Team 1</span><span class="mi-val" style="text-align:right">'+t1m.join(', ')+'</span></div>'+
+      '<div class="mi-row"><span class="mi-key">Score</span><span class="mi-val">'+s1+' - '+s2+'</span></div>'+
+      '<div class="mi-row"><span class="mi-key">Team 2</span><span class="mi-val" style="text-align:right">'+t2m.join(', ')+'</span></div>'+
+      '<div class="mi-row"><span class="mi-key">Target</span><span class="mi-val">'+(d.target||21)+'</span></div>'+
+      '<div class="mi-row"><span class="mi-key">Referee</span><span class="mi-val">'+(d.referee||'-')+'</span></div>';
+    document.getElementById('matchEventsRows').innerHTML = !evs.length
+      ? '<div class="mi-idle">No events yet</div>'
+      : [...evs].reverse().slice(0,10).map(e=>'<div class="ev-entry"><span class="ev-text">'+(e.text||'')+'</span><span class="ev-time">'+(e.time||'')+'</span></div>').join('');
   });
 }
 
-// ── HISTORY ───────────────────────────────────────────────
 async function loadHistory() {
   const panel = document.getElementById('historyRows');
   try {
-    const snap = await getDocs(query(collection(db, 'matchHistory'), orderBy('playedAt', 'desc')));
-    const matches = [];
-    snap.forEach(d => matches.push(d.data()));
-    if (!matches.length) { panel.innerHTML = '<div class="hist-empty">No matches yet</div>'; return; }
-    panel.innerHTML = matches.slice(0, 20).map(m => {
-      const t1 = Array.isArray(m.team1) ? m.team1.join(' & ') : (m.p1 || '?');
-      const t2 = Array.isArray(m.team2) ? m.team2.join(' & ') : (m.p2 || '?');
-      const date = m.playedAt?.toDate ? m.playedAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-      const fmt = m.format || '1v1';
-      return `<div class="hist-card">
-        <div class="hist-teams">${t1} vs ${t2}</div>
-        <div class="hist-score">${m.score1 ?? '—'} — ${m.score2 ?? '—'}</div>
-        <div class="hist-meta">${fmt}${date?' · '+date:''}${m.referee?' · '+m.referee:''}</div>
-      </div>`;
+    const snap = await getDocs(query(collection(db,'matchHistory'),orderBy('playedAt','desc')));
+    const ms = []; snap.forEach(d => ms.push(d.data()));
+    if (!ms.length) { panel.innerHTML='<div class="hist-empty">No matches yet</div>'; return; }
+    panel.innerHTML = ms.slice(0,20).map(m => {
+      const t1 = Array.isArray(m.team1)?m.team1.join(' & '):(m.p1||'?');
+      const t2 = Array.isArray(m.team2)?m.team2.join(' & '):(m.p2||'?');
+      const dt = m.playedAt?.toDate?m.playedAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+      return '<div class="hist-card"><div class="hist-teams">'+t1+' vs '+t2+'</div><div class="hist-score">'+(m.score1??'-')+' - '+(m.score2??'-')+'</div><div class="hist-meta">'+(m.format||'1v1')+(dt?' - '+dt:'')+(m.referee?' - '+m.referee:'')+'</div></div>';
     }).join('');
-  } catch(e) { panel.innerHTML = '<div class="hist-empty">Failed to load</div>'; }
+  } catch(e) { panel.innerHTML='<div class="hist-empty">Failed to load</div>'; }
 }
 
-// ── TABS ──────────────────────────────────────────────────
 window.switchTab = function(tab, btn) {
   document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('panelInfo').classList.toggle('hidden', tab !== 'info');
-  document.getElementById('panelHistory').classList.toggle('hidden', tab !== 'history');
+  document.getElementById('panelInfo').classList.toggle('hidden', tab!=='info');
+  document.getElementById('panelHistory').classList.toggle('hidden', tab!=='history');
 };
 
 init();
-
-// ── LAWNMOWER ANIMATION ───────────────────────────────────
-(function() {
-  const NUM_MOWERS = 3;
-  const MOWER_EMOJIS = ['🚜','🚜','🚜'];
-  const LIGHT_GREEN = '#3a7a30';
-  const DARK_GREEN  = '#2d5a27';
-  const CUT_GREEN   = '#4a9e3f';
-
-  let canvas, ctx, W, H;
-  let stripeWidth = 40;
-  let stripes = [];
-  let mowers = [];
-  let animId = null;
-  let running = false;
-
-  function initCanvas() {
-    const screen = document.getElementById('offlineScreen');
-    canvas = document.getElementById('grassCanvas');
-    if (!canvas) return;
-    canvas.style.position = 'absolute';
-    canvas.style.inset = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    resize();
-    window.addEventListener('resize', resize);
-  }
-
-  function resize() {
-    if (!canvas) return;
-    W = canvas.offsetWidth;
-    H = canvas.offsetHeight;
-    canvas.width  = W;
-    canvas.height = H;
-    stripeWidth = Math.max(24, Math.floor(W / 18));
-    buildStripes();
-    if (!running) drawGrass();
-  }
-
-  function buildStripes() {
-    stripes = [];
-    const count = Math.ceil(W / stripeWidth) + 1;
-    for (let i = 0; i < count; i++) {
-      stripes.push({ x: i * stripeWidth, cut: false });
-    }
-  }
-
-  function drawGrass() {
-    if (!ctx) return;
-    ctx.clearRect(0, 0, W, H);
-    stripes.forEach((s, i) => {
-      const base = i % 2 === 0 ? LIGHT_GREEN : DARK_GREEN;
-      ctx.fillStyle = s.cut ? CUT_GREEN : base;
-      ctx.fillRect(s.x, 0, stripeWidth, H);
-    });
-    // subtle vignette
-    const vg = ctx.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.9);
-    vg.addColorStop(0, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0,0,0,0.45)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  // Each mower loops around the perimeter at a different offset
-  function initMowers() {
-    const track = document.getElementById('mowerTrack');
-    if (!track) return;
-    track.innerHTML = '';
-    mowers = [];
-    // Spread mowers evenly around the perimeter
-    const perim = 2 * (W + H);
-    for (let i = 0; i < NUM_MOWERS; i++) {
-      const el = document.createElement('div');
-      el.className = 'mower';
-      el.textContent = MOWER_EMOJIS[i];
-      track.appendChild(el);
-      mowers.push({
-        el,
-        t: (i / NUM_MOWERS) * perim, // start offset
-        speed: 1.4 + i * 0.18,
-        emoji: MOWER_EMOJIS[i]
-      });
-    }
-  }
-
-  // Given position along perimeter, return {x,y,angle,side}
-  function perimPos(t) {
-    const perim = 2 * (W + H);
-    t = ((t % perim) + perim) % perim;
-    const pad = 18;
-    // top: left→right
-    if (t < W) return { x: t, y: pad, angle: 90 };
-    t -= W;
-    // right: top→bottom
-    if (t < H) return { x: W - pad, y: t, angle: 180 };
-    t -= H;
-    // bottom: right→left
-    if (t < W) return { x: W - t, y: H - pad, angle: 270 };
-    t -= W;
-    // left: bottom→top
-    return { x: pad, y: H - t, angle: 0 };
-  }
-
-  function markCut(x) {
-    stripes.forEach((s, i) => {
-      if (x >= s.x && x < s.x + stripeWidth) s.cut = true;
-    });
-  }
-
-  function step() {
-    if (!running) return;
-    const perim = 2 * (W + H);
-    mowers.forEach(m => {
-      m.t += m.speed;
-      const pos = perimPos(m.t);
-      // Position emoji element
-      const size = parseInt(getComputedStyle(m.el).fontSize) || 24;
-      m.el.style.left = (pos.x - size/2) + 'px';
-      m.el.style.top  = (pos.y - size/2) + 'px';
-      // Rotate to face direction of travel
-      // angle: 90=right, 180=down, 270=left, 0=up
-      let scaleX = 1;
-      let rotate = 0;
-      if (pos.angle === 90)  { rotate = 0;   scaleX =  1; } // moving right
-      if (pos.angle === 180) { rotate = 90;  scaleX =  1; } // moving down
-      if (pos.angle === 270) { rotate = 0;   scaleX = -1; } // moving left (flip)
-      if (pos.angle === 0)   { rotate = -90; scaleX =  1; } // moving up
-      m.el.style.transform = `rotate(${rotate}deg) scaleX(${scaleX})`;
-      markCut(pos.x);
-    });
-    drawGrass();
-    // draw mower trails (faint lines)
-    mowers.forEach(m => {
-      const pos = perimPos(m.t);
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.fill();
-    });
-    animId = requestAnimationFrame(step);
-  }
-
-  function startMowers() {
-    if (running) return;
-    if (!canvas) initCanvas();
-    if (!ctx) ctx = canvas.getContext('2d');
-    resize();
-    initMowers();
-    running = true;
-    step();
-  }
-
-  function stopMowers() {
-    running = false;
-    if (animId) { cancelAnimationFrame(animId); animId = null; }
-    const track = document.getElementById('mowerTrack');
-    if (track) track.innerHTML = '';
-    mowers = [];
-  }
-
-  // Expose so showOffline/showLive can call them
-  window._startMowers = startMowers;
-  window._stopMowers  = stopMowers;
-
-  // Auto-start if offline screen is visible on load
-  window.addEventListener('DOMContentLoaded', () => {
-    initCanvas();
-    ctx = canvas ? canvas.getContext('2d') : null;
-    // Start after tiny delay so dimensions are settled
-    setTimeout(startMowers, 100);
-  });
-})();
-
 </script>
 </body>
 </html>
