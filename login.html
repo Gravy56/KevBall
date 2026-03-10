@@ -8,7 +8,7 @@
 <style>
   :root{--clay:#c4622d;--clay-light:#d4794a;--clay-dark:#8b3a1a;--clay-bg:#f5e6d3;--ink:#1a1a18;--gold:#d4a843;--white:#fafaf8;}
   *{margin:0;padding:0;box-sizing:border-box;}
-  html, body {height: 100%;height: -webkit-fill-available;}
+  html,body{height:100%;}
   body{font-family:'DM Sans',sans-serif;background:#1a2e18;color:var(--white);min-height:100vh;display:flex;flex-direction:column;}
   nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:relative;z-index:10;}
   .logo{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:var(--white);text-decoration:none;}
@@ -62,6 +62,14 @@
   .toast.show{transform:translateY(0);opacity:1;}
   @media(max-width:600px){nav{padding:16px 20px;}.form-card{padding:24px 20px;}.field-row{grid-template-columns:1fr;}}
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c4622d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kevball">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -154,7 +162,8 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -168,6 +177,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 // App Check — replace with your reCAPTCHA v3 site key from Firebase Console
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'),
+  isTokenAutoRefreshEnabled: true
+});
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
@@ -185,25 +198,24 @@ function hideErr(id){document.getElementById(id).classList.remove('show');}
 // Single navigation function — always goes straight to the right page.
 // Never call location.href anywhere else.
 async function goToApp(uid){
-  s// Handle redirect result first
-try {
-  showLoading('Signing in...');
-  const result = await getRedirectResult(auth);
-  if(result?.user){
-    await ensureUserDoc(result.user);
-    await goToApp(result.user.uid);
-    return;
+  showLoading('Loading...');
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    const data = snap.exists() ? snap.data() : {};
+    location.href = data.isAdmin ? 'index.html' : 'profile.html';
+  } catch(e){
+    hideLoading();
+    showErr('signinError', 'Error loading profile. Please try again.');
   }
-  hideLoading();
-} catch(e){
-  hideLoading();
-  console.error(e);
-  toast('Google sign-in failed: ' + e.message);
 }
 
+// Auto-redirect ONLY if already logged in when the page first loads.
+// We use a one-time listener that unsubscribes immediately so it never
+// fires again after the user signs in (which would cause the loop).
 const unsubscribe = onAuthStateChanged(auth, user => {
-  unsubscribe();
+  unsubscribe(); // stop listening after the very first state check
   if(user) goToApp(user.uid);
+  // If no user, just show the login form — do nothing
 });
 
 window.switchTab = function(tab){
@@ -256,10 +268,12 @@ async function ensureUserDoc(user, extraData={}){
 window.doGoogleAuth = async function(){
   showLoading('Opening Google sign-in...');
   try {
-    await signInWithRedirect(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+    await ensureUserDoc(result.user);
+    await goToApp(result.user.uid);
   } catch(e){
     hideLoading();
-    toast('Google sign-in failed. Try again.');
+    if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
   }
 };
 
@@ -305,5 +319,12 @@ window.doSignin = async function(){
 };
 </script>
 <div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
+      });
+    }
+  </script>
 </body>
 </html>
