@@ -135,7 +135,7 @@
 
   <!-- CONTROLS -->
   <div class="controls-row">
-    <button class="ctrl-btn start" id="startBtn" onclick="startBroadcast()">📡 Go Live</button>
+    <button class="ctrl-btn start" id="startBtn" onclick="startBroadcast()" disabled style="opacity:0.4;cursor:not-allowed" title="Start a match first">📡 Go Live</button>
     <button class="ctrl-btn stop" id="stopBtn" onclick="stopBroadcast()">⏹ End Stream</button>
     <button class="ctrl-btn flip" onclick="flipCamera()">🔄 Flip Camera</button>
   </div>
@@ -183,6 +183,7 @@ const ICE_SERVERS = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'st
 let localStream = null;
 let peerConnections = {}; // viewerId -> RTCPeerConnection
 let isLive = false;
+let hasActiveMatch = false;
 let facingMode = 'environment';
 let offersUnsub = null;
 let viewersUnsub = null;
@@ -225,6 +226,10 @@ async function populateCameras() {
 
 // ── BROADCAST ─────────────────────────────────────────────
 window.startBroadcast = async function() {
+  if (!hasActiveMatch) {
+    toast('No match in progress — start a match in the referee page first.');
+    return;
+  }
   try {
     const deviceId = document.getElementById('camSelect').value;
     const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode }, audio: true };
@@ -353,8 +358,24 @@ function watchViewerCount() {
 function watchLiveMatch() {
   liveMatchUnsub = onSnapshot(doc(db, 'liveMatch', 'current'), snap => {
     const el = document.getElementById('matchStatusDisplay');
+    const btn = document.getElementById('startBtn');
     if (!snap.exists() || !snap.data().active) {
-      el.innerHTML = '<div class="mc-idle">No active match</div>'; return;
+      hasActiveMatch = false;
+      el.innerHTML = '<div class="mc-idle">No active match — start a match in the referee page to enable broadcasting.</div>';
+      if (!isLive) {
+        btn.disabled = true;
+        btn.title = 'Start a match first';
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+      }
+      return;
+    }
+    hasActiveMatch = true;
+    if (!isLive) {
+      btn.disabled = false;
+      btn.title = '';
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
     }
     const d = snap.data();
     const t1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1 || '?');
