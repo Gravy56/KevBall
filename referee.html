@@ -259,7 +259,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -309,6 +309,61 @@ async function init() {
   await Promise.all([loadPlayers(), loadWeeks()]);
   renderTeamsGrid();
   renderMatchList();
+
+  // ── RESTORE active match if referee navigated away ──
+  const liveSnap = await getDoc(doc(db, 'liveMatch', 'current'));
+  if (liveSnap.exists()) {
+    const live = liveSnap.data();
+    if (live.active) {
+      const resume = confirm(
+        `Active match in progress:\n` +
+        `${(live.team1||[live.p1]).join(' & ')} vs ${(live.team2||[live.p2]).join(' & ')}\n` +
+        `Score: ${live.score1} — ${live.score2}\n\n` +
+        `Resume this match?`
+      );
+      if (resume) {
+        restoreMatch(live);
+        return;
+      }
+    }
+  }
+}
+
+function restoreMatch(live) {
+  const team1 = Array.isArray(live.team1) ? live.team1 : [live.p1||'Team 1'];
+  const team2 = Array.isArray(live.team2) ? live.team2 : [live.p2||'Team 2'];
+  const size = Math.max(team1.length, team2.length, 1);
+
+  // Restore matchState
+  matchState.team1 = team1;
+  matchState.team2 = team2;
+  matchState.score1 = live.score1 || 0;
+  matchState.score2 = live.score2 || 0;
+  matchState.target = live.target || 21;
+  matchState.events = live.events || [];
+  // Approximate startTime from elapsed: use startedAt if available
+  if (live.startedAt?.seconds) {
+    matchState.startTime = live.startedAt.seconds * 1000;
+  } else {
+    matchState.startTime = Date.now();
+  }
+  teamSize = size;
+  const fmt = size === 1 ? '1v1' : `${size}v${size}`;
+
+  // Update scoring UI
+  document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
+  document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins · ${fmt}`;
+  document.getElementById('t1Members').textContent = team1.join('\n');
+  document.getElementById('t2Members').textContent = team2.join('\n');
+  document.getElementById('t1Score').textContent = matchState.score1;
+  document.getElementById('t2Score').textContent = matchState.score2;
+  document.getElementById('t1Card').className = 'team-score-card';
+  document.getElementById('t2Card').className = 'team-score-card';
+  renderEventLog();
+  updateScoreUI();
+  startTimer();
+  showPhase('phaseScore');
+  toast('Match restored! ✓');
 }
 
 async function loadPlayers() {
