@@ -964,7 +964,6 @@ async function loadPlayers(){
   snap.forEach(d => playersCache.push({...d.data(), _id: d.id}));
   renderRankings();
   updateDatalist();
-  updateBracketCbs();
 }
 
 window.addPlayer = async function(){
@@ -1559,7 +1558,6 @@ await loadPlayers();
 await loadWeeks();
 await loadBios();
 await loadCourts();
-renderBracket();
 initReveal();
 
   // ── MOBILE MENU ────────────────────────────────────────
