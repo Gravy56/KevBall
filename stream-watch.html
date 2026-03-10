@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch Live — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#1a1a18; --clay:#c4622d; --clay-light:#d4794a;
+    --gold:#d4a843; --green:#2d5a27; --white:#fafaf8; --red:#c0392b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow-x:hidden;}
+  body{font-family:'DM Sans',sans-serif;background:#000;color:var(--white);}
+
+  /* NAV */
+  nav{background:rgba(0,0,0,0.8);border-bottom:2px solid var(--clay);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
+  .logo{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .live-pill{display:none;align-items:center;gap:6px;background:var(--red);color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;padding:5px 12px;text-transform:uppercase;}
+  .live-pill.show{display:flex;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .offline-pill{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;}
+
+  /* MAIN LAYOUT */
+  .watch-layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 53px);}
+
+  /* VIDEO COLUMN */
+  .video-col{display:flex;flex-direction:column;background:#000;overflow:hidden;}
+
+  /* VIDEO */
+  .video-wrap{position:relative;flex:1;background:#000;overflow:hidden;}
+  #remoteVideo{width:100%;height:100%;object-fit:contain;display:block;}
+
+  /* OFFLINE SCREEN */
+  .offline-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse at center, #1a0f08 0%, #000 100%);}
+  .offline-screen.hidden{display:none;}
+  .offline-icon{font-size:56px;opacity:0.3;}
+  .offline-title{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:rgba(255,255,255,0.2);}
+  .offline-sub{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.1);text-transform:uppercase;}
+  .connecting-spinner{width:32px;height:32px;border:2px solid rgba(196,98,45,0.2);border-top-color:var(--clay);border-radius:50%;animation:spin 0.8s linear infinite;display:none;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* SCORE OVERLAY */
+  .score-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);padding:24px 20px 16px;pointer-events:none;}
+  .so-match-info{display:none;}
+  .so-match-info.show{display:block;}
+  .so-format{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--clay);text-transform:uppercase;margin-bottom:6px;}
+  .so-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;}
+  .so-team{font-family:'Black Ops One',cursive;font-size:clamp(14px,3vw,22px);letter-spacing:1px;line-height:1.1;}
+  .so-team.right{text-align:right;}
+  .so-team.leading{color:var(--gold);}
+  .so-score-block{text-align:center;}
+  .so-score{font-family:'Black Ops One',cursive;font-size:clamp(28px,6vw,52px);color:var(--white);letter-spacing:3px;line-height:1;}
+  .so-target{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;display:block;margin-top:3px;}
+  .so-event-ticker{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-top:8px;height:16px;overflow:hidden;}
+
+  /* NO MATCH */
+  .so-no-match{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.2);text-transform:uppercase;text-align:center;padding:12px 0;}
+
+  /* SIDEBAR */
+  .sidebar{background:#0e0e0c;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;}
+  .sidebar-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .stab{flex:1;padding:12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-align:center;cursor:pointer;color:rgba(255,255,255,0.3);border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;}
+  .stab.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .sidebar-panel{flex:1;overflow-y:auto;padding:16px;}
+  .sidebar-panel.hidden{display:none;}
+
+  /* MATCH INFO PANEL */
+  .mi-section{margin-bottom:20px;}
+  .mi-section-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .mi-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .mi-row:last-child{border-bottom:none;}
+  .mi-key{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;}
+  .mi-val{font-family:'Black Ops One',cursive;font-size:14px;letter-spacing:1px;color:var(--white);}
+  .mi-idle{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:2px;text-align:center;padding:20px 0;text-transform:uppercase;}
+
+  /* EVENTS */
+  .ev-entry{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;}
+  .ev-entry:last-child{border-bottom:none;}
+  .ev-time{font-family:'Space Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);flex-shrink:0;}
+  .ev-text{color:rgba(255,255,255,0.55);flex:1;}
+  .ev-icon{flex-shrink:0;}
+
+  /* HISTORY PANEL */
+  .hist-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:12px;margin-bottom:8px;}
+  .hist-teams{font-family:'Black Ops One',cursive;font-size:13px;letter-spacing:1px;color:var(--white);margin-bottom:4px;}
+  .hist-score{font-family:'Black Ops One',cursive;font-size:20px;color:var(--gold);}
+  .hist-meta{font-family:'Space Mono',monospace;font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
+  .hist-empty{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:2px;text-align:center;padding:20px 0;text-transform:uppercase;}
+
+  /* MOBILE */
+  @media(max-width:700px){
+    .watch-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;}
+    .video-col{height:56vw;min-height:240px;}
+    .sidebar{height:300px;border-left:none;border-top:1px solid rgba(255,255,255,0.06);}
+    .so-team{font-size:12px;}
+    .so-score{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-right">
+    <div class="live-pill" id="livePill"><div class="live-dot"></div> LIVE</div>
+    <div class="offline-pill" id="offlinePill">Offline</div>
+  </div>
+</nav>
+
+<div class="watch-layout">
+
+  <!-- VIDEO COLUMN -->
+  <div class="video-col">
+    <div class="video-wrap">
+      <video id="remoteVideo" autoplay playsinline></video>
+
+      <!-- OFFLINE / CONNECTING STATE -->
+      <div class="offline-screen" id="offlineScreen">
+        <div class="connecting-spinner" id="connectingSpinner"></div>
+        <div class="offline-icon" id="offlineIcon">📺</div>
+        <div class="offline-title" id="offlineTitle">No Stream</div>
+        <div class="offline-sub" id="offlineSub">Stream will appear here when live</div>
+      </div>
+
+      <!-- SCORE OVERLAY -->
+      <div class="score-overlay">
+        <div class="so-match-info" id="scoreOverlay">
+          <div class="so-format" id="soFormat"></div>
+          <div class="so-teams">
+            <div class="so-team" id="soT1">Team 1</div>
+            <div class="so-score-block">
+              <div class="so-score" id="soScore">0 — 0</div>
+              <span class="so-target" id="soTarget"></span>
+            </div>
+            <div class="so-team right" id="soT2">Team 2</div>
+          </div>
+          <div class="so-event-ticker" id="soTicker"></div>
+        </div>
+        <div class="so-no-match" id="soNoMatch">No active match</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="switchTab('info',this)">Match</button>
+      <button class="stab" onclick="switchTab('history',this)">History</button>
+    </div>
+
+    <!-- MATCH INFO -->
+    <div class="sidebar-panel" id="panelInfo">
+      <div class="mi-section">
+        <div class="mi-section-label">Live Match</div>
+        <div id="matchInfoRows"><div class="mi-idle">No match in progress</div></div>
+      </div>
+      <div class="mi-section">
+        <div class="mi-section-label">Recent Events</div>
+        <div id="matchEventsRows"><div class="mi-idle">—</div></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="sidebar-panel hidden" id="panelHistory">
+      <div id="historyRows"><div class="hist-empty">Loading...</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
+import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+initializeAppCheck(app, { provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'), isTokenAutoRefreshEnabled: true });
+const db = getFirestore(app);
+
+const ICE_SERVERS = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+const viewerId = Math.random().toString(36).slice(2);
+
+let pc = null;
+let isConnected = false;
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  watchStreamState();
+  watchLiveMatch();
+  loadHistory();
+}
+
+// ── STREAM STATE ──────────────────────────────────────────
+function watchStreamState() {
+  onSnapshot(doc(db, 'stream', 'current'), async snap => {
+    if (!snap.exists() || !snap.data().live) {
+      showOffline();
+      if (pc) { pc.close(); pc = null; isConnected = false; }
+      await cleanupViewer();
+      return;
+    }
+    // Stream is live
+    document.getElementById('livePill').classList.add('show');
+    document.getElementById('offlinePill').style.display = 'none';
+    if (!isConnected) connectToStream();
+
+    // Update viewer count
+    const v = (snap.data().viewers || 0);
+    // Already tracked via presence
+  });
+}
+
+async function connectToStream() {
+  isConnected = true;
+  setConnecting();
+
+  pc = new RTCPeerConnection(ICE_SERVERS);
+
+  pc.ontrack = e => {
+    const vid = document.getElementById('remoteVideo');
+    if (vid.srcObject !== e.streams[0]) {
+      vid.srcObject = e.streams[0];
+      showLive();
+    }
+  };
+
+  pc.onicecandidate = async e => {
+    if (e.candidate) {
+      await updateDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
+        candidate: JSON.stringify(e.candidate.toJSON())
+      });
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      showOffline();
+    }
+  };
+
+  // Add transceiver to receive video + audio
+  pc.addTransceiver('video', { direction: 'recvonly' });
+  pc.addTransceiver('audio', { direction: 'recvonly' });
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  // Write offer to Firestore
+  await setDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
+    offer: JSON.stringify(pc.localDescription), joinedAt: serverTimestamp()
+  });
+
+  // Update viewer count
+  await updateViewerCount(1);
+
+  // Wait for broadcaster answer
+  onSnapshot(doc(db, 'stream', 'current', 'viewers', viewerId), async snap => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (data.answer && !pc.remoteDescription) {
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)));
+      } catch(e) { console.warn('setRemoteDescription failed', e); }
+    }
+    if (data.broadcasterCandidate) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(data.broadcasterCandidate)));
+      } catch(e) {}
+    }
+  });
+}
+
+async function updateViewerCount(delta) {
+  try {
+    const snap = await getDocs(collection(db, 'stream', 'current', 'viewers'));
+    await updateDoc(doc(db, 'stream', 'current'), { viewers: snap.size });
+  } catch(e) {}
+}
+
+async function cleanupViewer() {
+  try {
+    await deleteDoc(doc(db, 'stream', 'current', 'viewers', viewerId));
+    await updateViewerCount(-1);
+  } catch(e) {}
+}
+
+window.addEventListener('beforeunload', cleanupViewer);
+
+// ── UI STATES ─────────────────────────────────────────────
+function setConnecting() {
+  document.getElementById('offlineScreen').classList.remove('hidden');
+  document.getElementById('offlineIcon').style.display = 'none';
+  document.getElementById('connectingSpinner').style.display = 'block';
+  document.getElementById('offlineTitle').textContent = 'Connecting...';
+  document.getElementById('offlineSub').textContent = 'Joining live stream';
+}
+
+function showLive() {
+  document.getElementById('offlineScreen').classList.add('hidden');
+}
+
+function showOffline() {
+  document.getElementById('livePill').classList.remove('show');
+  document.getElementById('offlinePill').style.display = 'block';
+  document.getElementById('offlineScreen').classList.remove('hidden');
+  document.getElementById('offlineIcon').style.display = 'block';
+  document.getElementById('connectingSpinner').style.display = 'none';
+  document.getElementById('offlineTitle').textContent = 'No Stream';
+  document.getElementById('offlineSub').textContent = 'Stream will appear here when live';
+  document.getElementById('remoteVideo').srcObject = null;
+}
+
+// ── LIVE MATCH ────────────────────────────────────────────
+function watchLiveMatch() {
+  onSnapshot(doc(db, 'liveMatch', 'current'), snap => {
+    const overlay = document.getElementById('scoreOverlay');
+    const noMatch = document.getElementById('soNoMatch');
+    const infoRows = document.getElementById('matchInfoRows');
+    const eventsRows = document.getElementById('matchEventsRows');
+
+    if (!snap.exists() || !snap.data().active) {
+      overlay.classList.remove('show');
+      noMatch.style.display = 'block';
+      infoRows.innerHTML = '<div class="mi-idle">No match in progress</div>';
+      eventsRows.innerHTML = '<div class="mi-idle">—</div>';
+      return;
+    }
+
+    const d = snap.data();
+    const t1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1 || '?');
+    const t2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2 || '?');
+    const s1 = d.score1 ?? 0, s2 = d.score2 ?? 0;
+    const fmt = d.format || '1v1';
+
+    // Score overlay
+    overlay.classList.add('show');
+    noMatch.style.display = 'none';
+    document.getElementById('soFormat').textContent = fmt;
+    document.getElementById('soT1').textContent = t1;
+    document.getElementById('soT2').textContent = t2;
+    document.getElementById('soT1').className = 'so-team' + (s1 > s2 ? ' leading' : '');
+    document.getElementById('soT2').className = 'so-team right' + (s2 > s1 ? ' leading' : '');
+    document.getElementById('soScore').textContent = `${s1} — ${s2}`;
+    document.getElementById('soTarget').textContent = `First to ${d.target || 21}`;
+
+    // Event ticker
+    const events = d.events || [];
+    if (events.length) {
+      const last = events[events.length - 1];
+      document.getElementById('soTicker').textContent = `${last.icon || ''} ${last.text || ''} · ${last.time || ''}`;
+    }
+
+    // Sidebar match info
+    const t1members = Array.isArray(d.team1) ? d.team1 : [d.p1||''];
+    const t2members = Array.isArray(d.team2) ? d.team2 : [d.p2||''];
+    infoRows.innerHTML = `
+      <div class="mi-row"><span class="mi-key">Format</span><span class="mi-val">${fmt}</span></div>
+      <div class="mi-row"><span class="mi-key">Team 1</span><span class="mi-val" style="text-align:right;max-width:160px">${t1members.join(', ')}</span></div>
+      <div class="mi-row"><span class="mi-key">Score</span><span class="mi-val">${s1} — ${s2}</span></div>
+      <div class="mi-row"><span class="mi-key">Team 2</span><span class="mi-val" style="text-align:right;max-width:160px">${t2members.join(', ')}</span></div>
+      <div class="mi-row"><span class="mi-key">Target</span><span class="mi-val">${d.target || 21}</span></div>
+      <div class="mi-row"><span class="mi-key">Referee</span><span class="mi-val">${d.referee || '—'}</span></div>`;
+
+    // Events log
+    if (!events.length) {
+      eventsRows.innerHTML = '<div class="mi-idle">No events yet</div>';
+    } else {
+      eventsRows.innerHTML = [...events].reverse().slice(0,10).map(e =>
+        `<div class="ev-entry"><span class="ev-icon">${e.icon||''}</span><span class="ev-text">${e.text||''}</span><span class="ev-time">${e.time||''}</span></div>`
+      ).join('');
+    }
+  });
+}
+
+// ── HISTORY ───────────────────────────────────────────────
+async function loadHistory() {
+  const panel = document.getElementById('historyRows');
+  try {
+    const snap = await getDocs(query(collection(db, 'matchHistory'), orderBy('playedAt', 'desc')));
+    const matches = [];
+    snap.forEach(d => matches.push(d.data()));
+    if (!matches.length) { panel.innerHTML = '<div class="hist-empty">No matches yet</div>'; return; }
+    panel.innerHTML = matches.slice(0, 20).map(m => {
+      const t1 = Array.isArray(m.team1) ? m.team1.join(' & ') : (m.p1 || '?');
+      const t2 = Array.isArray(m.team2) ? m.team2.join(' & ') : (m.p2 || '?');
+      const date = m.playedAt?.toDate ? m.playedAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+      const fmt = m.format || '1v1';
+      return `<div class="hist-card">
+        <div class="hist-teams">${t1} vs ${t2}</div>
+        <div class="hist-score">${m.score1 ?? '—'} — ${m.score2 ?? '—'}</div>
+        <div class="hist-meta">${fmt}${date?' · '+date:''}${m.referee?' · '+m.referee:''}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { panel.innerHTML = '<div class="hist-empty">Failed to load</div>'; }
+}
+
+// ── TABS ──────────────────────────────────────────────────
+window.switchTab = function(tab, btn) {
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panelInfo').classList.toggle('hidden', tab !== 'info');
+  document.getElementById('panelHistory').classList.toggle('hidden', tab !== 'history');
+};
+
+init();
+</script>
+</body>
+</html>
