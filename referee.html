@@ -116,6 +116,8 @@
 
   .end-btn { width:100%; background:var(--red); color:#fff; border:none; padding:15px; font-family:'Black Ops One',cursive; font-size:17px; letter-spacing:3px; cursor:pointer; transition:background 0.2s; clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%); }
   .end-btn:hover { background:#e74c3c; }
+  .cancel-btn { width:100%; background:none; color:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.1); padding:11px; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; margin-top:10px; }
+  .cancel-btn:hover { border-color:#e74c3c; color:#e74c3c; }
 
   .complete-screen { text-align:center; padding:40px 16px; }
   .complete-icon { font-size:64px; display:block; margin-bottom:16px; animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1); }
@@ -238,6 +240,7 @@
     </div>
 
     <button class="end-btn" onclick="confirmEndMatch()">⏹ End Match & Save Score</button>
+    <button class="cancel-btn" onclick="confirmCancelMatch()">✕ Cancel Game</button>
   </div>
 
   <!-- PHASE 3: COMPLETE -->
@@ -578,6 +581,38 @@ window.confirmEndMatch = function() {
   if (!confirm(`End match?\n${team1.join(' & ')}: ${score1}\n${team2.join(' & ')}: ${score2}\n\nSave and update player stats?`)) return;
   endMatch();
 };
+
+window.confirmCancelMatch = function() {
+  const t1 = matchState.team1.join(' & ') || 'Team 1';
+  const t2 = matchState.team2.join(' & ') || 'Team 2';
+  if (!confirm(`Cancel the game between ${t1} and ${t2}?\n\nNo scores will be saved.`)) return;
+  cancelMatch();
+};
+
+async function cancelMatch() {
+  if (matchState.timerInterval) clearInterval(matchState.timerInterval);
+
+  // Clear liveMatch in Firestore
+  try {
+    await setDoc(doc(db, 'liveMatch', 'current'), {
+      active: false, team1: [], team2: [], score1: 0, score2: 0,
+      cancelled: true, cancelledAt: serverTimestamp()
+    });
+  } catch(e) { console.warn('cancelMatch Firestore error', e); }
+
+  // Reset state
+  matchState = {
+    team1:[], team2:[], score1:0, score2:0,
+    target:21, events:[], weekId:null, matchId:null,
+    startTime:null, timerInterval:null
+  };
+
+  toast('Game cancelled.');
+  showPhase('phaseSelect');
+  // Re-render so the setup form is fresh
+  renderTeamsGrid();
+  renderMatchList();
+}
 
 async function endMatch() {
   clearInterval(matchState.timerInterval);
