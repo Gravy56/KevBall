@@ -862,6 +862,8 @@ function applyAdminState(){
     const canRef  = currentUser.isReferee||currentUser.isAdmin;
     if(refLink) refLink.style.display = canRef ? 'block' : 'none';
     if(mmRef)   mmRef.classList.toggle('show', canRef);
+    const mmBroadcast = document.getElementById('mmBroadcastLink');
+    if(mmBroadcast) mmBroadcast.classList.toggle('show', canRef);
     if(mmAuth){ mmAuth.href='profile.html'; mmAuth.textContent='👤 My Profile'; }
     if(mmAdmin && currentUser.isAdmin) mmAdmin.style.display = 'block';
   } else {
