@@ -51,6 +51,16 @@
   .match-result-l{color:#c0392b;font-size:9px;font-family:'Space Mono',monospace;letter-spacing:1px;display:block;}
   .week-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:8px;margin-top:16px;}
   .week-label:first-child{margin-top:0;}
+  .mi-win{border-left:3px solid #2d5a27;}
+  .mi-loss{border-left:3px solid #c0392b;}
+  .match-fmt{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--clay);display:block;margin-top:2px;text-transform:uppercase;}
+  .match-date{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:#bbb;display:block;margin-top:1px;}
+  .match-teammates{font-size:11px;font-weight:400;color:var(--clay);font-family:'Space Mono',monospace;letter-spacing:0;}
+  .match-summary-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--clay-bg);border:1px solid #e8d4be;margin-bottom:16px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;}
+  .msb-w{color:#2d5a27;font-weight:700;}
+  .msb-l{color:#c0392b;font-weight:700;}
+  .msb-sep{color:#ccc;}
+  .msb-rate{color:var(--clay-dark);}
   .edit-field{margin-bottom:16px;}
   .edit-field label{display:block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(0,0,0,0.4);margin-bottom:6px;}
   .edit-field input,.edit-field select,.edit-field textarea{width:100%;padding:11px 14px;border:1.5px solid #d4c4b0;background:#fdfaf7;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color 0.2s;resize:vertical;}
@@ -232,38 +242,60 @@ async function renderStats(){
 
 async function renderMyMatches(){
   const panel = document.getElementById('myMatchesPanel');
-  const weeksSnap = await getDocs(collection(db,'weeks'));
-  const myName = (currentUser.displayName||'').toLowerCase();
-  let html = '';
-  const weeks = [];
-  weeksSnap.forEach(d => weeks.push(d.data()));
-  weeks.sort((a,b) => (a.order||0)-(b.order||0));
-  for(const week of weeks){
-    const myMatches = (week.matches||[]).filter(m =>
-      m.p1.toLowerCase()===myName || m.p2.toLowerCase()===myName
-    );
-    if(!myMatches.length) continue;
-    html += `<div class="week-label">${week.label}</div>`;
-    myMatches.forEach(m => {
-      const isP1 = m.p1.toLowerCase()===myName;
-      const myScore = m.played ? (isP1?m.score1:m.score2) : null;
-      const oppScore = m.played ? (isP1?m.score2:m.score1) : null;
-      const opp = isP1 ? m.p2 : m.p1;
-      const won = m.played && myScore > oppScore;
-      html += `<div class="match-item">
-        <div class="match-player me">${currentUser.firstName}</div>
-        <div class="match-center">
-          ${m.played
-            ? `<span class="match-score">${myScore} — ${oppScore}</span>
-               <span class="${won?'match-result-w':'match-result-l'}">${won?'WIN ✓':'LOSS'}</span>`
-            : `<span class="match-score" style="font-size:14px;color:#bbb">vs</span>
-               <span class="match-status">Upcoming</span>`}
-        </div>
-        <div class="match-player right">${opp}</div>
-      </div>`;
-    });
+  panel.innerHTML = '<div class="empty-p" style="padding:16px">Loading...</div>';
+
+  const myName = (currentUser.displayName || '').toLowerCase();
+  const snap = await getDocs(query(collection(db,'matchHistory'), orderBy('playedAt','desc')));
+  const myMatches = [];
+  snap.forEach(d => {
+    const m = {...d.data(), _id: d.id};
+    const t1 = (Array.isArray(m.team1) ? m.team1 : [m.p1||'']).map(n=>n.toLowerCase());
+    const t2 = (Array.isArray(m.team2) ? m.team2 : [m.p2||'']).map(n=>n.toLowerCase());
+    if(t1.includes(myName) || t2.includes(myName)) myMatches.push({...m, _t1:t1, _t2:t2});
+  });
+
+  if(!myMatches.length){
+    panel.innerHTML='<div class="empty-p">No completed matches yet</div>';
+    return;
   }
-  panel.innerHTML = html || '<div class="empty-p">No matches scheduled yet</div>';
+
+  let wins=0, losses=0;
+  let html = '';
+  myMatches.forEach(m => {
+    const onT1 = m._t1.includes(myName);
+    const myTeam  = onT1 ? (Array.isArray(m.team1)?m.team1:[m.p1]) : (Array.isArray(m.team2)?m.team2:[m.p2]);
+    const oppTeam = onT1 ? (Array.isArray(m.team2)?m.team2:[m.p2]) : (Array.isArray(m.team1)?m.team1:[m.p1]);
+    const myScore  = onT1 ? m.score1 : m.score2;
+    const oppScore = onT1 ? m.score2 : m.score1;
+    const won = myScore > oppScore;
+    if(won) wins++; else losses++;
+    const oppLabel = oppTeam.join(' & ');
+    const myLabel  = myTeam.filter(n=>n.toLowerCase()!==myName).join(' & ') || 'You';
+    const date = m.playedAt?.toDate ? m.playedAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    const fmt = m.format ? `<span class="match-fmt">${m.format}</span>` : '';
+    html += `<div class="match-item ${won?'mi-win':'mi-loss'}">
+      <div class="match-player me">You${myTeam.length>1?'<br><span class="match-teammates">+ '+myLabel+'</span>':''}</div>
+      <div class="match-center">
+        <span class="match-score">${myScore} — ${oppScore}</span>
+        <span class="${won?'match-result-w':'match-result-l'}">${won?'WIN ✓':'LOSS'}</span>
+        ${fmt}
+        ${date?`<span class="match-date">${date}</span>`:''}
+      </div>
+      <div class="match-player right">${oppLabel}</div>
+    </div>`;
+  });
+
+  // summary bar
+  const rate = myMatches.length ? Math.round(wins/myMatches.length*100) : 0;
+  html = `<div class="match-summary-bar">
+    <span class="msb-w">${wins}W</span>
+    <span class="msb-sep">·</span>
+    <span class="msb-l">${losses}L</span>
+    <span class="msb-sep">·</span>
+    <span class="msb-rate">${rate}% win rate</span>
+  </div>` + html;
+
+  panel.innerHTML = html;
 }
 
 async function renderStandings(){
