@@ -76,7 +76,6 @@
   .section-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--clay); margin-bottom: 12px; display: block; }
   .section-title { font-family: 'Black Ops One', cursive; font-size: clamp(38px,7vw,78px); color: var(--ink); line-height: 1; }
   .section-title span { color: var(--clay); }
-
   /* RULES */
   #rules { padding-bottom: 80px; }
   .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 2px; padding: 0 48px; max-width: 1400px; margin: 0 auto; }
@@ -359,6 +358,11 @@
   .mm-divider{width:40px;height:2px;background:var(--clay);margin:6px 0;}
 
   @media(max-width:768px){
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
     /* NAV */
     nav{padding:14px 20px;}
     nav ul{display:none;}
@@ -1538,8 +1542,17 @@ function renderCourts(){
 function initReveal(){
   const obs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
-  },{threshold:0.08});
-  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+  },{threshold:0.01, rootMargin:'0px 0px -10px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>{
+    obs.observe(el);
+  });
+  // Fallback: force-show anything already in viewport after a short delay
+  setTimeout(()=>{
+    document.querySelectorAll('.reveal:not(.visible)').forEach(el=>{
+      const rect=el.getBoundingClientRect();
+      if(rect.top < window.innerHeight) el.classList.add('visible');
+    });
+  }, 300);
 }
 
 // ============================================================
