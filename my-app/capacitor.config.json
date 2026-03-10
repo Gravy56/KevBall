@@ -1,0 +1,10 @@
+{
+  "appId": "kevball.online",
+  "appName": "Kevball",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}
