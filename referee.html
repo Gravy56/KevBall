@@ -136,6 +136,14 @@
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(26,26,24,0.98); color:#fff; padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; z-index:1000; border-left:4px solid var(--gold); opacity:0; transition:all 0.3s; white-space:nowrap; }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c4622d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kevball">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -290,6 +298,8 @@ let matchState = {
   target:21, events:[], weekId:null, matchId:null,
   startTime:null, timerInterval:null
 };
+let tournamentData = null; // current tournament snapshot
+let tournamentUnsub = null;
 
 // ── AUTH GATE ──────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
@@ -312,6 +322,7 @@ async function init() {
   await Promise.all([loadPlayers(), loadWeeks()]);
   renderTeamsGrid();
   renderMatchList();
+  watchTournament();
 
   // ── RESTORE active match if referee navigated away ──
   const liveSnap = await getDoc(doc(db, 'liveMatch', 'current'));
@@ -614,6 +625,146 @@ async function cancelMatch() {
   renderMatchList();
 }
 
+// ── TOURNAMENT INTEGRATION ───────────────────────────────
+function watchTournament() {
+  if (tournamentUnsub) tournamentUnsub();
+  tournamentUnsub = onSnapshot(doc(db,'tournament','current'), snap => {
+    if (!snap.exists() || snap.data().status === 'deleted') {
+      tournamentData = null;
+      renderTournamentBanner(null);
+      return;
+    }
+    tournamentData = snap.data();
+    renderTournamentBanner(tournamentData);
+  });
+}
+
+function renderTournamentBanner(t) {
+  let banner = document.getElementById('tournamentBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'tournamentBanner';
+    banner.style.cssText = 'background:rgba(212,168,67,0.10);border:1px solid rgba(212,168,67,0.25);padding:14px 18px;margin-bottom:18px;border-left:4px solid var(--gold);';
+    // Insert before phaseSelect
+    const ps = document.getElementById('phaseSelect');
+    if (ps) ps.parentNode.insertBefore(banner, ps);
+  }
+  if (!t || !t.currentMatchId || t.winner) {
+    banner.style.display = 'none'; return;
+  }
+  const match = findTourneyMatch(t.rounds, t.currentMatchId);
+  if (!match) { banner.style.display = 'none'; return; }
+  banner.style.display = 'block';
+  banner.innerHTML = `
+    <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:6px">
+      🏆 ${t.name} — Tournament Match
+    </div>
+    <div style="font-family:'Black Ops One',cursive;font-size:18px;letter-spacing:1px;margin-bottom:10px">
+      ${match.p1 || 'TBD'} vs ${match.p2 || 'TBD'}
+    </div>
+    <button onclick="loadTournamentMatch()" style="background:var(--gold);color:var(--ink);border:none;padding:8px 18px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;">
+      ▶ Load This Match
+    </button>`;
+}
+
+function findTourneyMatch(rounds, id) {
+  for (const round of rounds) {
+    for (const m of round) { if (m.id === id) return m; }
+  }
+  return null;
+}
+
+window.loadTournamentMatch = function() {
+  if (!tournamentData) return;
+  const match = findTourneyMatch(tournamentData.rounds, tournamentData.currentMatchId);
+  if (!match || !match.p1 || !match.p2) { toast('Match players not set yet'); return; }
+  // Pre-fill team slots
+  const fmt = tournamentData.format || '1v1';
+  const size = parseInt(fmt[0]) || 1;
+  teamSize = size;
+  // Set format buttons
+  document.querySelectorAll('.format-btn').forEach(b => b.classList.toggle('active', b.dataset.size == size));
+  renderTeamsGrid();
+  // Fill slots
+  const t1slots = document.querySelectorAll('#team1Slots select');
+  const t2slots = document.querySelectorAll('#team2Slots select');
+  if (t1slots[0]) t1slots[0].value = match.p1;
+  if (t2slots[0]) t2slots[0].value = match.p2;
+  // Set target
+  matchState.target = tournamentData.target || 21;
+  document.getElementById('winTarget').value = matchState.target;
+  // Store tournament match reference
+  matchState._tourneyMatchId = tournamentData.currentMatchId;
+  toast('Tournament match loaded ✓');
+};
+
+async function advanceBracket(winnerName) {
+  if (!tournamentData || !matchState._tourneyMatchId) return;
+  const rounds = JSON.parse(JSON.stringify(tournamentData.rounds)); // deep copy
+  const score1 = matchState.score1, score2 = matchState.score2;
+
+  // Mark match as played
+  for (const round of rounds) {
+    for (const m of round) {
+      if (m.id === matchState._tourneyMatchId) {
+        m.winner = winnerName;
+        m.score1 = score1;
+        m.score2 = score2;
+        m.played = true;
+      }
+    }
+  }
+
+  // Propagate winners into next round
+  for (let r = 0; r < rounds.length - 1; r++) {
+    for (let i = 0; i < rounds[r].length; i += 2) {
+      const m1 = rounds[r][i];
+      const m2 = rounds[r][i+1];
+      const nextMatch = rounds[r+1][Math.floor(i/2)];
+      if (nextMatch) {
+        nextMatch.p1 = m1.winner || nextMatch.p1;
+        nextMatch.p2 = m2?.winner || nextMatch.p2;
+        // auto-advance bye in next round
+        if (nextMatch.p1 && !nextMatch.p2) {
+          nextMatch.winner = nextMatch.p1; nextMatch.played = true; nextMatch.bye = true;
+        }
+        if (nextMatch.p2 && !nextMatch.p1) {
+          nextMatch.winner = nextMatch.p2; nextMatch.played = true; nextMatch.bye = true;
+        }
+      }
+    }
+  }
+
+  // Find next unplayed match
+  let nextMatchId = null;
+  for (const round of rounds) {
+    for (const m of round) {
+      if (!m.played && !m.bye && m.p1 && m.p2) { nextMatchId = m.id; break; }
+    }
+    if (nextMatchId) break;
+  }
+
+  // Check for tournament winner (final match played)
+  const finalMatch = rounds[rounds.length-1][0];
+  const tourneyWinner = finalMatch.played ? finalMatch.winner : null;
+
+  await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js").then(async ({updateDoc}) => {
+    const { getFirestore, doc } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+  });
+
+  // Use already-imported db
+  const { updateDoc: ud } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+  await ud(doc(db,'tournament','current'), {
+    rounds, currentMatchId: nextMatchId,
+    winner: tourneyWinner || null,
+    status: tourneyWinner ? 'complete' : 'active'
+  });
+
+  matchState._tourneyMatchId = null;
+  if (tourneyWinner) toast(`🏆 Tournament complete! ${tourneyWinner} wins!`);
+  else toast('Bracket advanced ✓');
+}
+
 async function endMatch() {
   clearInterval(matchState.timerInterval);
   const {team1,team2,score1,score2,target,weekId,matchId}=matchState;
@@ -647,6 +798,9 @@ async function endMatch() {
     playedAt:serverTimestamp()
   });
 
+  // Advance tournament bracket if this was a tournament match
+  if (matchState._tourneyMatchId) await advanceBracket(winners.join(' & '));
+
   showCompleteScreen(winTeam);
 }
 
@@ -669,7 +823,7 @@ function showCompleteScreen(winTeam) {
 }
 
 window.resetToSelect = async function() {
-  matchState={team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null};
+  matchState={team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null,_tourneyMatchId:null};
   document.querySelectorAll('.match-opt').forEach(el=>el.classList.remove('selected'));
   await Promise.all([loadPlayers(),loadWeeks()]);
   renderTeamsGrid();
@@ -688,5 +842,12 @@ function toast(msg) {
   setTimeout(()=>t.classList.remove('show'),2400);
 }
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
+      });
+    }
+  </script>
 </body>
 </html>
