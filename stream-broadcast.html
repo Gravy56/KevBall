@@ -90,6 +90,14 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(26,26,24,0.98);color:#fff;padding:12px 24px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;z-index:1000;border-left:4px solid var(--gold);opacity:0;transition:all 0.3s;white-space:nowrap;}
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c4622d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kevball">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -149,6 +157,23 @@
     </div>
   </div>
 
+  <!-- RECORDING -->
+  <div class="match-card" id="recordCard">
+    <div class="mc-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Recording</span>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase;">Save to Firebase</span>
+        <input type="checkbox" id="recordToggle" checked style="width:16px;height:16px;accent-color:var(--clay);cursor:pointer;">
+      </label>
+    </div>
+    <div id="recordStatus" style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px;text-transform:uppercase;margin-top:8px;">Recording will start when you go live</div>
+    <div id="uploadProgress" style="display:none;margin-top:10px;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--clay);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Uploading...</div>
+      <div style="background:rgba(255,255,255,0.08);height:6px;"><div id="uploadBar" style="height:6px;background:var(--clay);width:0%;transition:width 0.3s;"></div></div>
+      <div id="uploadPct" style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);margin-top:4px;letter-spacing:1px;">0%</div>
+    </div>
+  </div>
+
   <!-- LIVE MATCH STATUS -->
   <div class="match-card">
     <div class="mc-label">Current Match (from Referee)</div>
@@ -163,6 +188,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -176,6 +202,7 @@ const app = initializeApp(firebaseConfig);
 initializeAppCheck(app, { provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'), isTokenAutoRefreshEnabled: true });
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 const STREAM_DOC = 'stream/current';
 const ICE_SERVERS = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
@@ -184,6 +211,10 @@ let localStream = null;
 let peerConnections = {}; // viewerId -> RTCPeerConnection
 let isLive = false;
 let hasActiveMatch = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordingEnabled = true; // toggled by checkbox
+let streamMatchLabel = ''; // e.g. "Kevin vs AJ — 1v1"
 let facingMode = 'environment';
 let offersUnsub = null;
 let viewersUnsub = null;
@@ -256,6 +287,7 @@ window.startBroadcast = async function() {
   // Listen for viewer join requests (offers)
   listenForViewers();
   watchViewerCount();
+  startRecording();
   toast('You are live! 🔴');
 };
 
@@ -276,7 +308,8 @@ window.stopBroadcast = async function() {
   document.getElementById('liveBadge').classList.remove('show');
   document.getElementById('viewerBadge').classList.remove('show');
   document.getElementById('shareCard').classList.remove('show');
-  toast('Stream ended.');
+  await stopRecordingAndUpload();
+  toast('Stream ended. Saving recording...');
 };
 
 window.flipCamera = async function() {
@@ -296,6 +329,93 @@ window.copyLink = function() {
   navigator.clipboard.writeText(document.getElementById('shareUrl').value);
   toast('Link copied! 🔗');
 };
+
+// ── RECORDING ────────────────────────────────────────────
+function startRecording() {
+  recordingEnabled = document.getElementById('recordToggle').checked;
+  if (!recordingEnabled || !localStream) return;
+  recordedChunks = [];
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+    ? 'video/webm;codecs=vp9,opus'
+    : MediaRecorder.isTypeSupported('video/webm')
+    ? 'video/webm'
+    : '';
+  try {
+    mediaRecorder = new MediaRecorder(localStream, mimeType ? { mimeType } : {});
+  } catch(e) {
+    console.warn('MediaRecorder init failed:', e);
+    document.getElementById('recordStatus').textContent = 'Recording not supported on this device';
+    return;
+  }
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.start(5000); // collect chunks every 5s
+  document.getElementById('recordStatus').textContent = '⏺ Recording in progress...';
+  document.getElementById('recordStatus').style.color = '#e74c3c';
+}
+
+async function stopRecordingAndUpload() {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  return new Promise(resolve => {
+    mediaRecorder.onstop = async () => {
+      if (!recordingEnabled || recordedChunks.length === 0) { resolve(); return; }
+      const blob = new Blob(recordedChunks, { type: recordedChunks[0]?.type || 'video/webm' });
+      recordedChunks = [];
+      document.getElementById('recordStatus').textContent = 'Preparing upload...';
+      document.getElementById('recordStatus').style.color = 'rgba(255,255,255,0.25)';
+      await uploadRecording(blob);
+      resolve();
+    };
+    mediaRecorder.stop();
+  });
+}
+
+async function uploadRecording(blob) {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0,10);
+  const timeStr = now.toTimeString().slice(0,8).replace(/:/g,'-');
+  const label = streamMatchLabel.replace(/[^a-zA-Z0-9 &]/g,'').replace(/\s+/g,'-').slice(0,60);
+  const filename = `recordings/${dateStr}_${timeStr}${label ? '_'+label : ''}.webm`;
+
+  const storageRef = ref(storage, filename);
+  const uploadTask = uploadBytesResumable(storageRef, blob, {
+    contentType: blob.type || 'video/webm',
+    customMetadata: { matchLabel: streamMatchLabel, recordedAt: now.toISOString() }
+  });
+
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('recordStatus').textContent = 'Uploading to Firebase Storage...';
+  document.getElementById('recordStatus').style.color = 'var(--clay)';
+
+  return new Promise((resolve, reject) => {
+    uploadTask.on('state_changed',
+      snap => {
+        const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+        document.getElementById('uploadBar').style.width = pct + '%';
+        document.getElementById('uploadPct').textContent = pct + '%';
+      },
+      err => {
+        console.error('Upload failed:', err);
+        document.getElementById('recordStatus').textContent = 'Upload failed: ' + err.message;
+        document.getElementById('recordStatus').style.color = '#e74c3c';
+        resolve();
+      },
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        // Save metadata to Firestore
+        await addDoc(collection(db, 'recordings'), {
+          filename, url, matchLabel: streamMatchLabel,
+          size: blob.size, recordedAt: serverTimestamp(),
+          path: uploadTask.snapshot.ref.fullPath
+        });
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('recordStatus').textContent = 'Saved to Firebase ✓';
+        document.getElementById('recordStatus').style.color = '#2d8a2d';
+        toast('Recording saved! ✓');
+        resolve();
+      }
+    );
+  });
+}
 
 // ── WEBRTC SIGNALING ──────────────────────────────────────
 function listenForViewers() {
@@ -381,6 +501,7 @@ function watchLiveMatch() {
     const t1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1 || '?');
     const t2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2 || '?');
     const fmt = d.format || '1v1';
+    streamMatchLabel = `${t1} vs ${t2} ${fmt}`;
     el.innerHTML = `
       <div class="mc-status">${t1} vs ${t2} <span style="font-size:11px;color:var(--clay);font-family:'Space Mono',monospace;letter-spacing:2px">${fmt}</span></div>
       <div class="mc-score">${d.score1 ?? 0} — ${d.score2 ?? 0}</div>
@@ -401,5 +522,12 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
+      });
+    }
+  </script>
 </body>
 </html>
