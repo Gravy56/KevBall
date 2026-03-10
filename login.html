@@ -185,29 +185,20 @@ function hideErr(id){document.getElementById(id).classList.remove('show');}
 // Single navigation function — always goes straight to the right page.
 // Never call location.href anywhere else.
 async function goToApp(uid){
-  showLoading('Loading...');
-  try {
-    const snap = await getDoc(doc(db,'users',uid));
-    const data = snap.exists() ? snap.data() : {};
-    location.href = data.isAdmin ? 'index.html' : 'profile.html';
-  } catch(e){
-    hideLoading();
-    showErr('signinError', 'Error loading profile. Please try again.');
-  }
-}
-
-// Auto-redirect ONLY if already logged in when the page first loads.
-// We use a one-time listener that unsubscribes immediately so it never
-// fires again after the user signs in (which would cause the loop).
-// Handle redirect result first
+  s// Handle redirect result first
 try {
+  showLoading('Signing in...');
   const result = await getRedirectResult(auth);
   if(result?.user){
     await ensureUserDoc(result.user);
     await goToApp(result.user.uid);
+    return;
   }
+  hideLoading();
 } catch(e){
-  toast('Google sign-in failed. Try again.');
+  hideLoading();
+  console.error(e);
+  toast('Google sign-in failed: ' + e.message);
 }
 
 const unsubscribe = onAuthStateChanged(auth, user => {
