@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broadcast — Kevball</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#1a1a18; --clay:#c4622d; --clay-light:#d4794a;
+    --gold:#d4a843; --green:#2d5a27; --white:#fafaf8; --red:#c0392b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--white);min-height:100vh;}
+
+  /* AUTH GATE */
+  #authGate{position:fixed;inset:0;background:var(--ink);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  #authGate.hidden{display:none;}
+  .gate-logo{font-family:'Black Ops One',cursive;font-size:36px;letter-spacing:3px;}
+  .gate-logo span{color:var(--gold);}
+  .gate-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase;}
+  .gate-denied{color:var(--red);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;text-align:center;padding:0 40px;display:none;line-height:2;}
+  .gate-link{color:var(--gold);text-decoration:none;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;}
+
+  /* NAV */
+  nav{background:rgba(0,0,0,0.6);border-bottom:2px solid var(--clay);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+  .logo{font-family:'Black Ops One',cursive;font-size:20px;letter-spacing:2px;color:var(--white);text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .nav-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:6px 12px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+  .nav-btn:hover{border-color:var(--clay);color:var(--white);}
+
+  /* MAIN LAYOUT */
+  .broadcast-wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px;}
+
+  /* PAGE TITLE */
+  .bc-header{margin-bottom:24px;}
+  .bc-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--clay);margin-bottom:6px;}
+  .bc-title{font-family:'Black Ops One',cursive;font-size:32px;letter-spacing:3px;color:var(--white);}
+
+  /* CAMERA PREVIEW */
+  .camera-section{position:relative;background:#000;aspect-ratio:16/9;margin-bottom:18px;overflow:hidden;border:2px solid rgba(255,255,255,0.08);}
+  #localVideo{width:100%;height:100%;object-fit:cover;display:block;}
+  .camera-idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#0a0a08;}
+  .camera-idle-icon{font-size:48px;opacity:0.3;}
+  .camera-idle-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.2);text-transform:uppercase;}
+
+  /* LIVE BADGE */
+  .live-badge{position:absolute;top:14px;left:14px;background:var(--red);color:#fff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;padding:5px 12px;text-transform:uppercase;display:none;align-items:center;gap:6px;}
+  .live-badge.show{display:flex;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  /* VIEWER COUNT */
+  .viewer-badge{position:absolute;top:14px;right:14px;background:rgba(0,0,0,0.6);color:rgba(255,255,255,0.7);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:5px 12px;display:none;}
+  .viewer-badge.show{display:block;}
+
+  /* CONTROLS */
+  .controls-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .ctrl-btn{flex:1;min-width:140px;padding:13px 20px;border:none;font-family:'Black Ops One',cursive;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .ctrl-btn.start{background:var(--clay);color:#fff;}
+  .ctrl-btn.start:hover{background:var(--clay-light);}
+  .ctrl-btn.stop{background:var(--red);color:#fff;display:none;}
+  .ctrl-btn.stop:hover{background:#e74c3c;}
+  .ctrl-btn.flip{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);}
+  .ctrl-btn.flip:hover{background:rgba(255,255,255,0.14);color:var(--white);}
+
+  /* SHARE LINK */
+  .share-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:18px 20px;margin-bottom:18px;display:none;}
+  .share-card.show{display:block;}
+  .share-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:10px;}
+  .share-link-row{display:flex;gap:8px;align-items:center;}
+  .share-url{flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-family:'Space Mono',monospace;font-size:11px;padding:10px 14px;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .copy-btn{background:var(--clay);color:#fff;border:none;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 16px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:background 0.2s;}
+  .copy-btn:hover{background:var(--clay-light);}
+
+  /* MATCH STATUS */
+  .match-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:18px 20px;margin-bottom:18px;}
+  .mc-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:10px;}
+  .mc-status{font-family:'Black Ops One',cursive;font-size:15px;letter-spacing:1px;color:var(--white);}
+  .mc-score{font-family:'Black Ops One',cursive;font-size:28px;color:var(--gold);margin-top:4px;}
+  .mc-idle{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase;}
+
+  /* CAMERA SELECT */
+  .cam-select-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
+  .cam-select-row label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;white-space:nowrap;}
+  .cam-select{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;}
+  .cam-select option{background:var(--ink);}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(26,26,24,0.98);color:#fff;padding:12px 24px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;z-index:1000;border-left:4px solid var(--gold);opacity:0;transition:all 0.3s;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<div id="authGate">
+  <div class="gate-logo">KEV<span>●</span>BALL</div>
+  <p class="gate-sub">Checking admin access...</p>
+  <div class="gate-denied" id="gateDenied">
+    ⛔ Admin access required.<br><br>
+    <a href="index.html" class="gate-link">← Back to Kevball</a>
+  </div>
+</div>
+
+<nav>
+  <a href="index.html" class="logo">KEV<span>●</span>BALL</a>
+  <div class="nav-right">
+    <a href="stream-watch.html" target="_blank" class="nav-btn">👁 Watch Page</a>
+    <button class="nav-btn" onclick="doSignOut()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="broadcast-wrap">
+  <div class="bc-header">
+    <div class="bc-label">Admin Only</div>
+    <div class="bc-title">BROADCAST</div>
+  </div>
+
+  <!-- CAMERA -->
+  <div class="camera-section" id="cameraSection">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <div class="camera-idle" id="cameraIdle">
+      <div class="camera-idle-icon">📷</div>
+      <div class="camera-idle-text">Camera not started</div>
+    </div>
+    <div class="live-badge" id="liveBadge"><div class="live-dot"></div> LIVE</div>
+    <div class="viewer-badge" id="viewerBadge">0 watching</div>
+  </div>
+
+  <!-- CAMERA SELECT -->
+  <div class="cam-select-row">
+    <label>Camera</label>
+    <select class="cam-select" id="camSelect" onchange="switchCamera()"></select>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-row">
+    <button class="ctrl-btn start" id="startBtn" onclick="startBroadcast()">📡 Go Live</button>
+    <button class="ctrl-btn stop" id="stopBtn" onclick="stopBroadcast()">⏹ End Stream</button>
+    <button class="ctrl-btn flip" onclick="flipCamera()">🔄 Flip Camera</button>
+  </div>
+
+  <!-- SHARE LINK -->
+  <div class="share-card" id="shareCard">
+    <div class="share-label">Share with viewers</div>
+    <div class="share-link-row">
+      <input class="share-url" id="shareUrl" readonly/>
+      <button class="copy-btn" onclick="copyLink()">Copy</button>
+    </div>
+  </div>
+
+  <!-- LIVE MATCH STATUS -->
+  <div class="match-card">
+    <div class="mc-label">Current Match (from Referee)</div>
+    <div id="matchStatusDisplay"><div class="mc-idle">No active match</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app-check.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
+  authDomain: "kevball-d7dcc.firebaseapp.com",
+  projectId: "kevball-d7dcc",
+  storageBucket: "kevball-d7dcc.firebasestorage.app",
+  messagingSenderId: "625931758016",
+  appId: "1:625931758016:web:21091bceb2adedca418025"
+};
+const app = initializeApp(firebaseConfig);
+initializeAppCheck(app, { provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_V3_SITE_KEY'), isTokenAutoRefreshEnabled: true });
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const STREAM_DOC = 'stream/current';
+const ICE_SERVERS = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+
+let localStream = null;
+let peerConnections = {}; // viewerId -> RTCPeerConnection
+let isLive = false;
+let facingMode = 'environment';
+let offersUnsub = null;
+let viewersUnsub = null;
+let liveMatchUnsub = null;
+let currentUser = null;
+
+// ── AUTH ──────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (!user) { showDenied(); return; }
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  const data = snap.exists() ? snap.data() : {};
+  if (!data.isAdmin) { showDenied(); return; }
+  currentUser = data;
+  document.getElementById('authGate').classList.add('hidden');
+  init();
+});
+
+function showDenied() {
+  document.getElementById('authGate').querySelector('.gate-sub').style.display = 'none';
+  document.getElementById('gateDenied').style.display = 'block';
+}
+window.doSignOut = async () => { await signOut(auth); location.href = 'login.html'; };
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  await populateCameras();
+  watchLiveMatch();
+  document.getElementById('shareUrl').value = `${location.origin}/stream-watch.html`;
+}
+
+async function populateCameras() {
+  try {
+    await navigator.mediaDevices.getUserMedia({ video: true }); // trigger permission
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === 'videoinput');
+    const sel = document.getElementById('camSelect');
+    sel.innerHTML = cams.map((c,i) => `<option value="${c.deviceId}">${c.label || 'Camera '+(i+1)}</option>`).join('');
+  } catch(e) { console.warn('Camera enumerate failed', e); }
+}
+
+// ── BROADCAST ─────────────────────────────────────────────
+window.startBroadcast = async function() {
+  try {
+    const deviceId = document.getElementById('camSelect').value;
+    const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode }, audio: true };
+    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const vid = document.getElementById('localVideo');
+    vid.srcObject = localStream;
+    document.getElementById('cameraIdle').style.display = 'none';
+  } catch(e) {
+    toast('Camera access denied. Check browser permissions.'); return;
+  }
+
+  isLive = true;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'block';
+  document.getElementById('liveBadge').classList.add('show');
+  document.getElementById('viewerBadge').classList.add('show');
+  document.getElementById('shareCard').classList.add('show');
+
+  // Write stream state to Firestore
+  await setDoc(doc(db, 'stream', 'current'), {
+    live: true, startedAt: serverTimestamp(), viewers: 0, broadcasterOnline: true
+  });
+
+  // Listen for viewer join requests (offers)
+  listenForViewers();
+  watchViewerCount();
+  toast('You are live! 🔴');
+};
+
+window.stopBroadcast = async function() {
+  isLive = false;
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  Object.values(peerConnections).forEach(pc => pc.close());
+  peerConnections = {};
+  if (offersUnsub) offersUnsub();
+  if (viewersUnsub) viewersUnsub();
+
+  await setDoc(doc(db, 'stream', 'current'), { live: false, broadcasterOnline: false });
+
+  document.getElementById('localVideo').srcObject = null;
+  document.getElementById('cameraIdle').style.display = 'flex';
+  document.getElementById('startBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+  document.getElementById('liveBadge').classList.remove('show');
+  document.getElementById('viewerBadge').classList.remove('show');
+  document.getElementById('shareCard').classList.remove('show');
+  toast('Stream ended.');
+};
+
+window.flipCamera = async function() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  if (isLive) {
+    const wasLive = isLive;
+    await stopBroadcast();
+    if (wasLive) await startBroadcast();
+  }
+};
+
+window.switchCamera = async function() {
+  if (isLive) { await stopBroadcast(); await startBroadcast(); }
+};
+
+window.copyLink = function() {
+  navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+  toast('Link copied! 🔗');
+};
+
+// ── WEBRTC SIGNALING ──────────────────────────────────────
+function listenForViewers() {
+  // Each viewer creates a doc in stream/current/viewers/{viewerId} with their offer
+  offersUnsub = onSnapshot(collection(db, 'stream', 'current', 'viewers'), async snap => {
+    snap.docChanges().forEach(async change => {
+      const viewerId = change.doc.id;
+      const data = change.doc.data();
+
+      if (change.type === 'added' && data.offer && !peerConnections[viewerId]) {
+        await handleViewerOffer(viewerId, data.offer);
+      }
+      if (change.type === 'modified' && data.candidate) {
+        const pc = peerConnections[viewerId];
+        if (pc) {
+          try { await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(data.candidate))); } catch(e){}
+        }
+      }
+      if (change.type === 'removed') {
+        if (peerConnections[viewerId]) { peerConnections[viewerId].close(); delete peerConnections[viewerId]; }
+      }
+    });
+  });
+}
+
+async function handleViewerOffer(viewerId, offerStr) {
+  const pc = new RTCPeerConnection(ICE_SERVERS);
+  peerConnections[viewerId] = pc;
+
+  // Add local tracks to this peer connection
+  if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+
+  // Send ICE candidates to viewer
+  pc.onicecandidate = async e => {
+    if (e.candidate) {
+      await updateDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
+        broadcasterCandidate: JSON.stringify(e.candidate.toJSON())
+      });
+    }
+  };
+
+  await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(offerStr)));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await updateDoc(doc(db, 'stream', 'current', 'viewers', viewerId), {
+    answer: JSON.stringify(pc.localDescription)
+  });
+}
+
+function watchViewerCount() {
+  viewersUnsub = onSnapshot(doc(db, 'stream', 'current'), snap => {
+    if (snap.exists()) {
+      const v = snap.data().viewers || 0;
+      document.getElementById('viewerBadge').textContent = `${v} watching`;
+    }
+  });
+}
+
+// ── LIVE MATCH ────────────────────────────────────────────
+function watchLiveMatch() {
+  liveMatchUnsub = onSnapshot(doc(db, 'liveMatch', 'current'), snap => {
+    const el = document.getElementById('matchStatusDisplay');
+    if (!snap.exists() || !snap.data().active) {
+      el.innerHTML = '<div class="mc-idle">No active match</div>'; return;
+    }
+    const d = snap.data();
+    const t1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1 || '?');
+    const t2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2 || '?');
+    const fmt = d.format || '1v1';
+    el.innerHTML = `
+      <div class="mc-status">${t1} vs ${t2} <span style="font-size:11px;color:var(--clay);font-family:'Space Mono',monospace;letter-spacing:2px">${fmt}</span></div>
+      <div class="mc-score">${d.score1 ?? 0} — ${d.score2 ?? 0}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:2px;margin-top:6px;text-transform:uppercase">First to ${d.target || 21}</div>`;
+  });
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', async () => {
+  if (isLive) {
+    await setDoc(doc(db, 'stream', 'current'), { live: false, broadcasterOnline: false });
+  }
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
