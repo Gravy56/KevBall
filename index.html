@@ -430,6 +430,14 @@
   .lb-link { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.4); text-decoration:none; white-space:nowrap; flex-shrink:0; }
   .lb-link:hover { color:var(--clay); }
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c4622d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kevball">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -1573,5 +1581,12 @@ initReveal();
 </div>
 
 <div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
+      });
+    }
+  </script>
 </body>
 </html>
