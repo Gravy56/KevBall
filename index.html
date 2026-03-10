@@ -788,8 +788,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-setPersistence(auth, browserLocalPersistence);
+import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
   collection, getDocs, addDoc, query, orderBy, onSnapshot, serverTimestamp
@@ -804,8 +803,8 @@ const firebaseConfig = {
   appId: "1:625931758016:web:21091bceb2adedca418025"
 };
 const app = initializeApp(firebaseConfig);
-// App Check — replace with your reCAPTCHA v3 site key from Firebase Console
 const auth = getAuth(app);
+await setPersistence(auth, browserLocalPersistence);
 const db = getFirestore(app);
 
 // ============================================================
