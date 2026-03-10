@@ -9,13 +9,13 @@
   "theme_color": "#c4622d",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -23,13 +23,13 @@
   ],
   "screenshots": [
     {
-      "src": "icons/screenshot-wide.png",
+      "src": "/screenshot-wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "icons/screenshot-narrow.png",
+      "src": "/screenshot-narrow.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow"
@@ -41,21 +41,21 @@
       "short_name": "Live",
       "description": "Watch the live scoreboard",
       "url": "/scoreboard.html",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Rankings",
       "short_name": "Rankings",
       "description": "View player rankings",
       "url": "/index.html#rankings",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "My Profile",
       "short_name": "Profile",
       "description": "View your profile",
       "url": "/profile.html",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
