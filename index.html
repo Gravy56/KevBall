@@ -823,7 +823,9 @@ onSnapshot(doc(db,'liveMatch','current'), snap => {
   if(!snap.exists()) { banner.classList.remove('show'); return; }
   const d = snap.data();
   if(!d.active) { banner.classList.remove('show'); return; }
-  document.getElementById('lbMatch').textContent = `${d.p1} vs ${d.p2}`;
+  const lb1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1||'?');
+  const lb2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2||'?');
+  document.getElementById('lbMatch').textContent = `${lb1} vs ${lb2}`;
   document.getElementById('lbScore').textContent = `${d.score1} — ${d.score2}`;
   banner.classList.add('show');
 });
