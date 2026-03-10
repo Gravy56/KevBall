@@ -154,7 +154,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -199,10 +199,20 @@ async function goToApp(uid){
 // Auto-redirect ONLY if already logged in when the page first loads.
 // We use a one-time listener that unsubscribes immediately so it never
 // fires again after the user signs in (which would cause the loop).
+// Handle redirect result first
+try {
+  const result = await getRedirectResult(auth);
+  if(result?.user){
+    await ensureUserDoc(result.user);
+    await goToApp(result.user.uid);
+  }
+} catch(e){
+  toast('Google sign-in failed. Try again.');
+}
+
 const unsubscribe = onAuthStateChanged(auth, user => {
-  unsubscribe(); // stop listening after the very first state check
+  unsubscribe();
   if(user) goToApp(user.uid);
-  // If no user, just show the login form — do nothing
 });
 
 window.switchTab = function(tab){
@@ -255,12 +265,10 @@ async function ensureUserDoc(user, extraData={}){
 window.doGoogleAuth = async function(){
   showLoading('Opening Google sign-in...');
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    await ensureUserDoc(result.user);
-    await goToApp(result.user.uid);
+    await signInWithRedirect(auth, googleProvider);
   } catch(e){
     hideLoading();
-    if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
+    toast('Google sign-in failed. Try again.');
   }
 };
 
