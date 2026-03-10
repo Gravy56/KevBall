@@ -472,7 +472,7 @@
 
 <!-- MOBILE MENU OVERLAY -->
 <div class="mobile-menu" id="mobileMenu">
-  <button onclick="window.closeMobileMenu()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:28px;cursor:pointer;line-height:1;padding:4px;">✕</button>
+  <button onclick="window.toggleMobileMenu()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:28px;cursor:pointer;line-height:1;padding:4px;">✕</button>
   <a href="#rules" onclick="closeMobileMenu()">Rules</a>
   <a href="#rankings" onclick="closeMobileMenu()">Rankings</a>
   <a href="#bios" onclick="closeMobileMenu()">Players</a>
@@ -490,7 +490,7 @@
   <a href="https://instagram.com/kevballofficial" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📸 Instagram</a>
   <div class="mm-divider"></div>
   <a href="login.html" id="mmAuthLink">👤 Sign In</a>
-  <button class="mm-btn mm-admin" id="mmAdminBtn" onclick="openAdminModal();closeMobileMenu()" style="display:none">🔒 Admin</button>
+  <button class="mm-btn mm-admin" id="mmAdminBtn" onclick="openAdminModal();toggleMobileMenu()" style="display:none">🔒 Admin</button>
 </div>
 
 <!-- HERO -->
@@ -1561,7 +1561,7 @@ initReveal();
     ham.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   };
-  window.closeMobileMenu = function() {
+  window.toggleMobileMenu = function() {
     document.getElementById('mobileMenu').classList.remove('open');
     document.getElementById('hamburger').classList.remove('open');
     document.body.style.overflow = '';
