@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEVBALL PONG — Secret Court</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --clay: #c4622d;
+    --clay-light: #d4794a;
+    --gold: #d4a843;
+    --green: #2d5a27;
+    --green-light: #3a7a32;
+    --white: #fafaf8;
+    --line: rgba(200,230,192,0.5);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; background:var(--ink); overflow:hidden; font-family:'Space Mono',monospace; }
+
+  #screen {
+    position:relative; width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ── COURT BACKGROUND ── */
+  #courtBg {
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 50% 50%, #2d5a27 0%, #1e3d1a 60%, #111 100%);
+  }
+  #courtBg canvas {
+    position:absolute; inset:0; width:100%; height:100%; opacity:0.4;
+  }
+
+  /* ── OVERLAYS ── */
+  .overlay {
+    position:absolute; inset:0; z-index:10;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0;
+    background:rgba(10,10,8,0.82);
+    backdrop-filter:blur(4px);
+    transition:opacity 0.4s;
+  }
+  .overlay.hidden { opacity:0; pointer-events:none; }
+
+  .game-logo {
+    font-family:'Black Ops One',cursive;
+    font-size:clamp(48px,10vw,96px);
+    letter-spacing:4px; color:var(--white);
+    text-shadow: 0 0 60px rgba(212,168,67,0.5), 0 4px 0 rgba(0,0,0,0.5);
+    line-height:1;
+    margin-bottom:8px;
+  }
+  .game-logo .dot { color:var(--gold); display:inline-block; animation:spin 6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .game-sub {
+    font-size:11px; letter-spacing:5px; text-transform:uppercase;
+    color:rgba(255,255,255,0.35); margin-bottom:40px;
+  }
+
+  .secret-label {
+    font-size:9px; letter-spacing:4px; text-transform:uppercase;
+    color:var(--clay); margin-bottom:32px;
+    border:1px solid rgba(196,98,45,0.3);
+    padding:6px 18px;
+  }
+
+  .big-btn {
+    background:var(--gold); color:var(--ink);
+    border:none; padding:16px 48px;
+    font-family:'Black Ops One',cursive; font-size:20px; letter-spacing:3px;
+    cursor:pointer; transition:all 0.2s;
+    clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+    margin-bottom:16px;
+  }
+  .big-btn:hover { background:#e8b84d; transform:translateY(-2px) scale(1.02); }
+
+  .mode-row { display:flex; gap:12px; margin-bottom:24px; }
+  .mode-btn {
+    background:transparent; color:rgba(255,255,255,0.45);
+    border:1.5px solid rgba(255,255,255,0.15);
+    padding:10px 24px; font-family:'Space Mono',monospace;
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .mode-btn.active, .mode-btn:hover {
+    border-color:var(--clay); color:var(--clay);
+    background:rgba(196,98,45,0.08);
+  }
+
+  .controls-hint {
+    font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.2);
+    text-align:center; line-height:2.2;
+  }
+  .controls-hint span { color:rgba(255,255,255,0.45); }
+
+  /* ── SCORE HUD ── */
+  #hud {
+    position:absolute; top:0; left:0; right:0; z-index:5;
+    display:flex; align-items:stretch; justify-content:space-between;
+    padding:0; pointer-events:none;
+  }
+  .hud-side {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    padding:16px 0 12px;
+    border-bottom:2px solid rgba(255,255,255,0.06);
+  }
+  .hud-name {
+    font-size:9px; letter-spacing:3px; text-transform:uppercase;
+    color:rgba(255,255,255,0.3); margin-bottom:4px;
+  }
+  .hud-score {
+    font-family:'Black Ops One',cursive; font-size:clamp(36px,7vw,64px);
+    color:var(--white); line-height:1;
+    transition:color 0.2s;
+  }
+  .hud-score.point { animation:scorePop 0.3s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes scorePop { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+  .hud-center {
+    width:120px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:12px 0;
+    border-bottom:2px solid rgba(255,255,255,0.06);
+  }
+  .hud-logo-sm {
+    font-family:'Black Ops One',cursive; font-size:13px; letter-spacing:2px;
+    color:rgba(255,255,255,0.15);
+  }
+  .hud-timer {
+    font-size:9px; letter-spacing:2px; color:rgba(255,255,255,0.2);
+    margin-top:2px;
+  }
+
+  /* ── GAME CANVAS ── */
+  #gameCanvas {
+    position:absolute; inset:0; z-index:2;
+  }
+
+  /* ── WIN SCREEN ── */
+  #winScreen .win-title {
+    font-family:'Black Ops One',cursive;
+    font-size:clamp(36px,8vw,80px); letter-spacing:2px;
+    color:var(--gold); margin-bottom:8px; text-align:center;
+    text-shadow:0 0 40px rgba(212,168,67,0.6);
+  }
+  #winScreen .win-sub {
+    font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.4);
+    text-transform:uppercase; margin-bottom:36px; text-align:center;
+  }
+  .win-score {
+    font-family:'Black Ops One',cursive; font-size:clamp(28px,5vw,52px);
+    color:var(--white); margin-bottom:36px; letter-spacing:4px;
+  }
+  .win-score .w { color:var(--gold); }
+
+  /* ── FLASH ── */
+  #flash {
+    position:absolute; inset:0; z-index:20; pointer-events:none;
+    opacity:0; transition:opacity 0.05s;
+    background:rgba(255,255,255,0.06);
+  }
+
+  /* ── PAUSE LABEL ── */
+  #pauseLabel {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:15; font-family:'Black Ops One',cursive; font-size:20px;
+    letter-spacing:6px; color:rgba(255,255,255,0.3);
+    display:none;
+  }
+
+  /* ── MOBILE TOUCH ZONES ── */
+  #touchLeft, #touchRight {
+    position:absolute; top:0; bottom:0; z-index:8;
+    width:30%; display:none;
+  }
+  #touchLeft { left:0; }
+  #touchRight { right:0; }
+
+  @media(max-width:600px) {
+    #touchLeft, #touchRight { display:block; }
+    .controls-hint .kb { display:none; }
+    .controls-hint .touch-hint { display:inline !important; }
+  }
+  .touch-hint { display:none; }
+
+  /* back link */
+  #backLink {
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    z-index:15; font-size:9px; letter-spacing:3px; text-transform:uppercase;
+    color:rgba(255,255,255,0.15); text-decoration:none; transition:color 0.2s;
+  }
+  #backLink:hover { color:var(--clay); }
+</style>
+</head>
+<body>
+
+<div id="screen">
+
+  <!-- Court background -->
+  <div id="courtBg"><canvas id="bgCanvas"></canvas></div>
+
+  <!-- Game canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Flash effect -->
+  <div id="flash"></div>
+
+  <!-- Pause label -->
+  <div id="pauseLabel">PAUSED</div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-side">
+      <div class="hud-name" id="p1Name">PLAYER 1</div>
+      <div class="hud-score" id="p1Score">0</div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-logo-sm">KEV●BALL</div>
+      <div class="hud-timer" id="hudTimer">00:00</div>
+    </div>
+    <div class="hud-side">
+      <div class="hud-name" id="p2Name">PLAYER 2</div>
+      <div class="hud-score" id="p2Score">0</div>
+    </div>
+  </div>
+
+  <!-- Start screen -->
+  <div class="overlay" id="startScreen">
+    <div class="game-logo">KEV<span class="dot">●</span>BALL</div>
+    <div class="game-sub">Secret Court · Pong Edition</div>
+    <div class="secret-label">🔒 Hidden Feature Unlocked</div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="modeVsCPU" onclick="setMode('cpu')">vs CPU</button>
+      <button class="mode-btn" id="mode2P" onclick="setMode('2p')">2 Player</button>
+    </div>
+    <button class="big-btn" onclick="startGame()">SERVE IT UP 🎾</button>
+    <div class="controls-hint">
+      <span class="kb">
+        <span>W / S</span> — Player 1 &nbsp;·&nbsp; <span>↑ / ↓</span> — Player 2<br>
+        <span>SPACE</span> — Pause &nbsp;·&nbsp; <span>R</span> — Restart
+      </span>
+      <span class="touch-hint">Tap left / right sides to move paddles</span>
+    </div>
+  </div>
+
+  <!-- Win screen -->
+  <div class="overlay hidden" id="winScreen">
+    <div class="win-title" id="winTitle">PLAYER 1 WINS!</div>
+    <div class="win-sub">Match Point</div>
+    <div class="win-score" id="winScoreDisp"></div>
+    <button class="big-btn" onclick="resetGame()">PLAY AGAIN</button>
+    <button class="mode-btn" onclick="goMenu()" style="margin-top:8px">← Menu</button>
+  </div>
+
+  <!-- Mobile touch zones -->
+  <div id="touchLeft"></div>
+  <div id="touchRight"></div>
+
+  <a href="tos.html" id="backLink">← Back to Terms</a>
+
+</div>
+
+<script>
+// ── COURT BACKGROUND LINES ────────────────────────────────
+const bgCanvas = document.getElementById('bgCanvas');
+function drawCourtBg() {
+  const W = bgCanvas.width = bgCanvas.offsetWidth;
+  const H = bgCanvas.height = bgCanvas.offsetHeight;
+  const ctx = bgCanvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = 'rgba(200,230,192,0.6)';
+  ctx.lineWidth = 2;
+  const pad = W * 0.08, vpad = H * 0.08;
+  // outer rect
+  ctx.strokeRect(pad, vpad, W - pad*2, H - vpad*2);
+  // inner rect
+  ctx.strokeRect(pad+W*0.04, vpad, W - (pad+W*0.04)*2, H - vpad*2);
+  // center line
+  ctx.beginPath(); ctx.moveTo(pad, H/2); ctx.lineTo(W-pad, H/2); ctx.stroke();
+  // center verticals
+  ctx.beginPath(); ctx.moveTo(W/2, vpad+H*0.12); ctx.lineTo(W/2, H-vpad-H*0.12); ctx.stroke();
+  // service lines
+  ctx.beginPath(); ctx.moveTo(pad, vpad+H*0.12); ctx.lineTo(W-pad, vpad+H*0.12); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad, H-vpad-H*0.12); ctx.lineTo(W-pad, H-vpad-H*0.12); ctx.stroke();
+}
+drawCourtBg();
+window.addEventListener('resize', drawCourtBg);
+
+// ── GAME STATE ────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const WIN_SCORE = 11;
+let gameMode = 'cpu'; // 'cpu' | '2p'
+let gameState = 'menu'; // 'menu' | 'playing' | 'paused' | 'win'
+let gameTime = 0, timerInterval = null;
+
+const state = {
+  p1: { y:0, vy:0, score:0 },
+  p2: { y:0, vy:0, score:0 },
+  ball: { x:0, y:0, vx:0, vy:0, spin:0 },
+  serving: 1,
+  rally: 0,
+};
+
+// Input
+const keys = {};
+const touch = { left:false, right:false };
+
+// ── DIMENSIONS (recalculated on resize) ──────────────────
+let W, H, PAD_W, PAD_H, PAD_SPEED, BALL_R, PAD_OFFSET;
+
+function resize() {
+  canvas.width  = W = window.innerWidth;
+  canvas.height = H = window.innerHeight;
+  PAD_W     = Math.max(12, W * 0.016);
+  PAD_H     = Math.max(60, H * 0.14);
+  PAD_SPEED = H * 0.012;
+  BALL_R    = Math.max(8, W * 0.012);
+  PAD_OFFSET = PAD_W * 2 + W * 0.02;
+  // Clamp paddles
+  state.p1.y = Math.min(Math.max(state.p1.y, PAD_H/2), H - PAD_H/2);
+  state.p2.y = Math.min(Math.max(state.p2.y, PAD_H/2), H - PAD_H/2);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── INIT / RESET ─────────────────────────────────────────
+function initPositions() {
+  state.p1.y = H / 2; state.p1.vy = 0;
+  state.p2.y = H / 2; state.p2.vy = 0;
+  serveBall();
+}
+
+function serveBall() {
+  state.ball.x = W / 2;
+  state.ball.y = H / 2;
+  const speed = W * 0.006;
+  const angle = (Math.random() * 0.6 - 0.3); // slight angle
+  const dir = state.serving === 1 ? 1 : -1;
+  state.ball.vx = speed * dir * Math.cos(angle);
+  state.ball.vy = speed * Math.sin(angle);
+  state.ball.spin = 0;
+  state.rally = 0;
+}
+
+function setMode(m) {
+  gameMode = m;
+  document.getElementById('modeVsCPU').classList.toggle('active', m==='cpu');
+  document.getElementById('mode2P').classList.toggle('active', m==='2p');
+  document.getElementById('p2Name').textContent = m==='cpu' ? 'CPU' : 'PLAYER 2';
+}
+
+function startGame() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('winScreen').classList.add('hidden');
+  state.p1.score = 0; state.p2.score = 0;
+  state.serving = 1;
+  gameState = 'playing';
+  gameTime = 0;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (gameState === 'playing') gameTime++;
+    const m = String(Math.floor(gameTime/60)).padStart(2,'0');
+    const s = String(gameTime%60).padStart(2,'0');
+    document.getElementById('hudTimer').textContent = `${m}:${s}`;
+  }, 1000);
+  initPositions();
+  updateScoreHUD();
+}
+
+function resetGame() {
+  document.getElementById('winScreen').classList.add('hidden');
+  startGame();
+}
+
+function goMenu() {
+  gameState = 'menu';
+  document.getElementById('winScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+  clearInterval(timerInterval);
+}
+
+// ── INPUT ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (gameState === 'playing') { gameState = 'paused'; document.getElementById('pauseLabel').style.display='block'; }
+    else if (gameState === 'paused') { gameState = 'playing'; document.getElementById('pauseLabel').style.display='none'; }
+  }
+  if (e.key === 'r' || e.key === 'R') { if (gameState !== 'menu') resetGame(); }
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Touch
+document.getElementById('touchLeft').addEventListener('touchstart', () => touch.left=true, {passive:true});
+document.getElementById('touchLeft').addEventListener('touchend',   () => touch.left=false, {passive:true});
+document.getElementById('touchRight').addEventListener('touchstart',() => touch.right=true, {passive:true});
+document.getElementById('touchRight').addEventListener('touchend',  () => touch.right=false, {passive:true});
+
+// ── CPU AI ────────────────────────────────────────────────
+function cpuMove() {
+  const diff = state.ball.y - state.p2.y;
+  // Difficulty ramps with score
+  const diff_speed = PAD_SPEED * (0.55 + Math.min(state.rally * 0.015, 0.35));
+  if (Math.abs(diff) > PAD_H * 0.15) {
+    state.p2.vy = diff > 0 ? diff_speed : -diff_speed;
+  } else {
+    state.p2.vy *= 0.7;
+  }
+}
+
+// ── PHYSICS ──────────────────────────────────────────────
+function update() {
+  if (gameState !== 'playing') return;
+
+  // ── P1 input ──
+  const upP1  = keys['w'] || keys['W'] || keys['ArrowUp'] && gameMode==='2p'? false : keys['ArrowUp'];
+  const downP1 = keys['s'] || keys['S'] || keys['ArrowDown'] && gameMode==='2p' ? false : keys['ArrowDown'];
+
+  // simpler explicit checks
+  let p1Up   = keys['w'] || keys['W'];
+  let p1Down = keys['s'] || keys['S'];
+  // on mobile: left touch = p1
+  if (touch.left) { if (state.p1.y > H/2) p1Down=true; else p1Up=true; }
+
+  if (p1Up)   state.p1.vy = -PAD_SPEED;
+  else if (p1Down) state.p1.vy = PAD_SPEED;
+  else state.p1.vy *= 0.75;
+
+  // ── P2 input / CPU ──
+  if (gameMode === '2p') {
+    let p2Up   = keys['ArrowUp'];
+    let p2Down = keys['ArrowDown'];
+    if (touch.right) { if (state.p2.y > H/2) p2Down=true; else p2Up=true; }
+    if (p2Up)   state.p2.vy = -PAD_SPEED;
+    else if (p2Down) state.p2.vy = PAD_SPEED;
+    else state.p2.vy *= 0.75;
+  } else {
+    cpuMove();
+  }
+
+  // Move paddles
+  state.p1.y = Math.min(Math.max(state.p1.y + state.p1.vy, PAD_H/2), H - PAD_H/2);
+  state.p2.y = Math.min(Math.max(state.p2.y + state.p2.vy, PAD_H/2), H - PAD_H/2);
+
+  // Move ball
+  state.ball.x += state.ball.vx;
+  state.ball.y += state.ball.vy + state.ball.spin * 0.3;
+  state.ball.spin *= 0.98;
+
+  // Top/bottom walls
+  if (state.ball.y - BALL_R < 0) { state.ball.y = BALL_R; state.ball.vy = Math.abs(state.ball.vy); flash(); }
+  if (state.ball.y + BALL_R > H) { state.ball.y = H - BALL_R; state.ball.vy = -Math.abs(state.ball.vy); flash(); }
+
+  // P1 paddle (left)
+  const p1x = PAD_OFFSET + PAD_W;
+  if (state.ball.vx < 0 &&
+      state.ball.x - BALL_R < p1x &&
+      state.ball.x + BALL_R > PAD_OFFSET &&
+      state.ball.y > state.p1.y - PAD_H/2 &&
+      state.ball.y < state.p1.y + PAD_H/2) {
+    const hitPos = (state.ball.y - state.p1.y) / (PAD_H/2); // -1 to 1
+    const angle  = hitPos * 0.8;
+    const speed  = Math.min(Math.hypot(state.ball.vx, state.ball.vy) * 1.04, W * 0.015);
+    state.ball.vx = Math.abs(Math.cos(angle) * speed);
+    state.ball.vy = Math.sin(angle) * speed;
+    state.ball.spin = state.p1.vy * 0.25;
+    state.ball.x = p1x + BALL_R;
+    state.rally++;
+    flash();
+  }
+
+  // P2 paddle (right)
+  const p2x = W - PAD_OFFSET - PAD_W;
+  if (state.ball.vx > 0 &&
+      state.ball.x + BALL_R > p2x &&
+      state.ball.x - BALL_R < W - PAD_OFFSET &&
+      state.ball.y > state.p2.y - PAD_H/2 &&
+      state.ball.y < state.p2.y + PAD_H/2) {
+    const hitPos = (state.ball.y - state.p2.y) / (PAD_H/2);
+    const angle  = hitPos * 0.8;
+    const speed  = Math.min(Math.hypot(state.ball.vx, state.ball.vy) * 1.04, W * 0.015);
+    state.ball.vx = -Math.abs(Math.cos(angle) * speed);
+    state.ball.vy = Math.sin(angle) * speed;
+    state.ball.spin = state.p2.vy * 0.25;
+    state.ball.x = p2x - BALL_R;
+    state.rally++;
+    flash();
+  }
+
+  // Scoring
+  if (state.ball.x + BALL_R < 0) {
+    state.p2.score++;
+    state.serving = 2;
+    pointScored(2);
+  } else if (state.ball.x - BALL_R > W) {
+    state.p1.score++;
+    state.serving = 1;
+    pointScored(1);
+  }
+}
+
+function pointScored(scorer) {
+  updateScoreHUD(scorer);
+  if (state.p1.score >= WIN_SCORE || state.p2.score >= WIN_SCORE) {
+    showWin();
+    return;
+  }
+  setTimeout(serveBall, 800);
+}
+
+function showWin() {
+  gameState = 'win';
+  clearInterval(timerInterval);
+  const p1wins = state.p1.score >= WIN_SCORE;
+  const name = p1wins ? (gameMode==='cpu'?'YOU WIN':'PLAYER 1') : (gameMode==='cpu'?'CPU WINS':'PLAYER 2');
+  document.getElementById('winTitle').textContent = name + (p1wins ? ' 🏆' : ' 🎾');
+  document.getElementById('winScoreDisp').innerHTML =
+    `<span class="${state.p1.score>=WIN_SCORE?'w':''}">${state.p1.score}</span> — <span class="${state.p2.score>=WIN_SCORE?'w':''}">${state.p2.score}</span>`;
+  document.getElementById('winScreen').classList.remove('hidden');
+}
+
+function updateScoreHUD(lastScorer) {
+  const s1 = document.getElementById('p1Score');
+  const s2 = document.getElementById('p2Score');
+  s1.textContent = state.p1.score;
+  s2.textContent = state.p2.score;
+  if (lastScorer === 1) { s1.classList.remove('point'); void s1.offsetWidth; s1.classList.add('point'); }
+  if (lastScorer === 2) { s2.classList.remove('point'); void s2.offsetWidth; s2.classList.add('point'); }
+}
+
+// ── FLASH EFFECT ─────────────────────────────────────────
+let flashTimeout;
+function flash() {
+  const el = document.getElementById('flash');
+  el.style.opacity = '1';
+  clearTimeout(flashTimeout);
+  flashTimeout = setTimeout(() => el.style.opacity = '0', 80);
+}
+
+// ── DRAW ─────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  if (gameState === 'menu') return;
+
+  // Center dashed line
+  ctx.setLineDash([12, 10]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Paddle glow
+  const drawPaddle = (p, x, color) => {
+    // Glow
+    const grd = ctx.createRadialGradient(x, p.y, 0, x, p.y, PAD_H * 0.8);
+    grd.addColorStop(0, color + '33');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(x - PAD_H * 0.8, p.y - PAD_H * 0.8, PAD_H * 1.6, PAD_H * 1.6);
+
+    // Paddle body
+    const rx = 4;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x - PAD_W/2, p.y - PAD_H/2, PAD_W, PAD_H, rx);
+    ctx.fill();
+
+    // Kevball logo mark on paddle
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.font = `bold ${PAD_W * 1.2}px 'Space Mono'`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('●', x, p.y);
+  };
+
+  drawPaddle(state.p1, PAD_OFFSET + PAD_W/2, '#c4622d');
+  drawPaddle(state.p2, W - PAD_OFFSET - PAD_W/2, '#d4a843');
+
+  // Ball trail
+  const trailLen = 6;
+  for (let i = trailLen; i >= 1; i--) {
+    const alpha = (trailLen - i + 1) / trailLen * 0.18;
+    const r = BALL_R * (i / trailLen);
+    ctx.beginPath();
+    ctx.arc(
+      state.ball.x - state.ball.vx * i * 1.5,
+      state.ball.y - state.ball.vy * i * 1.5,
+      r, 0, Math.PI * 2
+    );
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  }
+
+  // Ball
+  const ballGrd = ctx.createRadialGradient(
+    state.ball.x - BALL_R*0.3, state.ball.y - BALL_R*0.3, BALL_R*0.1,
+    state.ball.x, state.ball.y, BALL_R
+  );
+  ballGrd.addColorStop(0, '#fff');
+  ballGrd.addColorStop(0.6, '#e8e4d8');
+  ballGrd.addColorStop(1, '#c8c0aa');
+  ctx.beginPath();
+  ctx.arc(state.ball.x, state.ball.y, BALL_R, 0, Math.PI * 2);
+  ctx.fillStyle = ballGrd;
+  ctx.fill();
+
+  // Ball spin indicator (subtle curved line)
+  if (Math.abs(state.ball.spin) > 0.5) {
+    ctx.strokeStyle = 'rgba(212,168,67,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(state.ball.x, state.ball.y, BALL_R * 0.6, 0, Math.PI * (state.ball.spin > 0 ? 1 : -1));
+    ctx.stroke();
+  }
+
+  // Rally streak indicator
+  if (state.rally > 5) {
+    const streakAlpha = Math.min((state.rally - 5) / 15, 0.7);
+    ctx.font = `700 ${Math.min(state.rally * 2, 28)}px 'Space Mono'`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = `rgba(212,168,67,${streakAlpha})`;
+    ctx.fillText(`${state.rally} RALLY`, W/2, 80);
+  }
+}
+
+// ── LOOP ─────────────────────────────────────────────────
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+// ── AJ EASTER EGG ────────────────────────────────────────
+// Type "AJ" anywhere to get a surprise
+let ajBuffer = '';
+document.addEventListener('keydown', e => {
+  ajBuffer = (ajBuffer + e.key).slice(-2).toUpperCase();
+  if (ajBuffer === 'AJ') {
+    const msg = document.createElement('div');
+    msg.style.cssText = `position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;cursor:pointer;`;
+    msg.innerHTML = `
+      <div style="font-family:'Black Ops One',cursive;font-size:clamp(36px,8vw,72px);color:#c4622d;letter-spacing:2px;text-align:center">🚫 AJ IS BANNED 🚫</div>
+      <div style="font-family:'Space Mono',monospace;font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-align:center">RULE 10 IS NON-NEGOTIABLE</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:2px;margin-top:8px">click to dismiss</div>`;
+    msg.onclick = () => document.body.removeChild(msg);
+    document.body.appendChild(msg);
+    ajBuffer = '';
+  }
+});
+</script>
+</body>
+</html>
