@@ -803,17 +803,59 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ── LIVE SCORE BANNER ──────────────────────────────────────
-onSnapshot(doc(db,'liveMatch','current'), snap => {
-  const banner = document.getElementById('liveBanner');
-  if(!snap.exists()) { banner.classList.remove('show'); return; }
-  const d = snap.data();
-  if(!d.active) { banner.classList.remove('show'); return; }
-  const lb1 = Array.isArray(d.team1) ? d.team1.join(' & ') : (d.p1||'?');
-  const lb2 = Array.isArray(d.team2) ? d.team2.join(' & ') : (d.p2||'?');
-  document.getElementById('lbMatch').textContent = `${lb1} vs ${lb2}`;
-  document.getElementById('lbScore').textContent = `${d.score1} — ${d.score2}`;
-  banner.classList.add('show');
+// ── LIVE SCORE BANNER — scrolling ticker (multiple games) ──
+let liveGames = [];        // all active games from liveMatch collection
+let bannerTickIdx = 0;
+let bannerTickInterval = null;
+
+onSnapshot(collection(db,'liveMatch'), snap => {
+  liveGames = [];
+  snap.forEach(d => {
+    const game = d.data();
+    if (game.active) liveGames.push(game);
+  });
+  updateBanner();
 });
+
+function updateBanner() {
+  const banner = document.getElementById('liveBanner');
+  if (!liveGames.length) {
+    banner.classList.remove('show');
+    clearInterval(bannerTickInterval);
+    bannerTickInterval = null;
+    return;
+  }
+  banner.classList.add('show');
+  // Show the current tick's game
+  bannerTickIdx = bannerTickIdx % liveGames.length;
+  const g = liveGames[bannerTickIdx];
+  const lb1 = Array.isArray(g.team1) ? g.team1.join(' & ') : (g.p1||'?');
+  const lb2 = Array.isArray(g.team2) ? g.team2.join(' & ') : (g.p2||'?');
+  const matchEl = document.getElementById('lbMatch');
+  const scoreEl = document.getElementById('lbScore');
+  const countEl = document.getElementById('lbCount');
+  // Fade out → update → fade in
+  matchEl.style.opacity = '0';
+  scoreEl.style.opacity = '0';
+  setTimeout(() => {
+    matchEl.textContent = `${lb1} vs ${lb2}`;
+    scoreEl.textContent = `${g.score1} — ${g.score2}`;
+    if (countEl) countEl.textContent = liveGames.length > 1 ? `${bannerTickIdx+1}/${liveGames.length}` : '';
+    matchEl.style.opacity = '1';
+    scoreEl.style.opacity = '1';
+  }, 200);
+  // Auto-advance ticker if multiple games
+  if (liveGames.length > 1 && !bannerTickInterval) {
+    bannerTickInterval = setInterval(() => {
+      bannerTickIdx = (bannerTickIdx + 1) % liveGames.length;
+      updateBanner();
+    }, 4000);
+  }
+  if (liveGames.length <= 1 && bannerTickInterval) {
+    clearInterval(bannerTickInterval);
+    bannerTickInterval = null;
+  }
+}
 
 function isAdmin(){
   return !!(currentUser && currentUser.isAdmin);
@@ -1554,10 +1596,12 @@ initReveal();
   document.addEventListener('keydown', e => { if(e.key==='Escape') window.closeMobileMenu(); });
 </script>
 <!-- LIVE SCORE BANNER -->
+<!-- LIVE SCORE BANNER -->
 <div id="liveBanner">
   <div class="lb-live"><div class="lb-dot"></div>Live</div>
-  <div class="lb-match" id="lbMatch">—</div>
-  <div class="lb-score" id="lbScore">0 — 0</div>
+  <div class="lb-match" id="lbMatch" style="transition:opacity 0.2s">—</div>
+  <div class="lb-score" id="lbScore" style="transition:opacity 0.2s">0 — 0</div>
+  <span id="lbCount" style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.3);flex-shrink:0"></span>
   <a href="scoreboard.html" class="lb-link" target="_blank">Full Scoreboard →</a>
 </div>
 
