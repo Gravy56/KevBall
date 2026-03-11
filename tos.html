@@ -6,127 +6,62 @@
 <title>Terms of Service — Kevball</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink: #1a1a18;
-    --clay: #c4622d;
-    --clay-bg: #f5e6d3;
-    --gold: #d4a843;
-    --paper: #faf7f2;
-    --rule: rgba(196,98,45,0.15);
-    --muted: #888;
-    --green: #2d5a27;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body { background:var(--paper); color:var(--ink); font-family:'Libre Baskerville',Georgia,serif; }
-
-  nav {
-    position:fixed; top:0; left:0; right:0; z-index:100;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 48px;
-    background:rgba(26,26,24,0.95);
-    backdrop-filter:blur(10px);
-    border-bottom:2px solid var(--clay);
-  }
-  .logo { font-family:'Black Ops One',cursive; font-size:22px; letter-spacing:3px; color:#fff; text-decoration:none; }
-  .logo span { color:var(--gold); }
-  .nav-links { display:flex; gap:24px; align-items:center; }
-  .nav-links a { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); text-decoration:none; transition:color 0.2s; }
-  .nav-links a:hover { color:var(--gold); }
-  .nav-links .active { color:var(--clay); }
-
-  .doc-hero {
-    background:var(--green); padding:120px 48px 60px;
-    border-bottom:4px solid var(--clay);
-    position:relative; overflow:hidden;
-  }
-  .doc-hero::before {
-    content:'TERMS'; position:absolute; right:-20px; top:50%; transform:translateY(-50%);
-    font-family:'Black Ops One',cursive; font-size:clamp(80px,15vw,180px);
-    color:rgba(255,255,255,0.04); pointer-events:none; letter-spacing:-4px; line-height:1;
-  }
-  .doc-hero-inner { max-width:780px; margin:0 auto; position:relative; z-index:1; }
-  .doc-eyebrow { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:5px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:block; }
-  .doc-title { font-family:'Black Ops One',cursive; font-size:clamp(36px,7vw,72px); color:#fff; line-height:1; letter-spacing:1px; margin-bottom:16px; }
-  .doc-meta { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.35); }
-  .doc-meta span { color:var(--gold); }
-
-  .doc-layout {
-    max-width:1060px; margin:0 auto; padding:64px 48px;
-    display:grid; grid-template-columns:220px 1fr; gap:60px; align-items:start;
-  }
-
-  .toc { position:sticky; top:90px; }
-  .toc-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--clay); margin-bottom:16px; }
-  .toc ul { list-style:none; border-left:2px solid var(--rule); }
-  .toc ul li a {
-    display:block; padding:8px 0 8px 16px;
-    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px;
-    color:var(--muted); text-decoration:none; transition:all 0.2s; line-height:1.4;
-  }
-  .toc ul li a:hover { color:var(--clay); border-left:2px solid var(--clay); margin-left:-2px; padding-left:18px; }
-  .toc ul li a.active { color:var(--clay); font-weight:700; }
-
-  .doc-content { min-width:0; }
-  .doc-section { margin-bottom:56px; padding-bottom:56px; border-bottom:1px solid var(--rule); }
-  .doc-section:last-child { border-bottom:none; }
-
-  .section-num { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--clay); margin-bottom:10px; display:block; }
-  h2 { font-family:'Black Ops One',cursive; font-size:28px; letter-spacing:1px; color:var(--ink); margin-bottom:20px; line-height:1.1; }
-  p { font-size:15px; line-height:1.85; color:#444; margin-bottom:16px; }
-  p:last-child { margin-bottom:0; }
-
-  ul.doc-list { margin:16px 0; padding-left:0; list-style:none; }
-  ul.doc-list li {
-    font-size:15px; line-height:1.75; color:#444; padding:8px 0 8px 24px;
-    position:relative; border-bottom:1px solid var(--rule);
-  }
-  ul.doc-list li:last-child { border-bottom:none; }
-  ul.doc-list li::before { content:'—'; position:absolute; left:0; color:var(--clay); font-weight:700; }
-
-  .highlight-box {
-    background:var(--clay-bg); border-left:4px solid var(--clay);
-    padding:18px 22px; margin:20px 0;
-  }
-  .highlight-box p { font-size:14px; color:var(--ink); margin:0; font-style:italic; }
-
-  /* Special AJ rule box */
-  .aj-box {
-    background:var(--ink); border:2px solid var(--clay);
-    padding:22px 28px; margin:20px 0; position:relative; overflow:hidden;
-  }
-  .aj-box::after {
-    content:'🚫'; position:absolute; right:20px; top:50%; transform:translateY(-50%);
-    font-size:48px; opacity:0.15;
-  }
-  .aj-box p { color:rgba(255,255,255,0.7); font-size:14px; margin:0; }
-  .aj-box strong { color:var(--clay); font-family:'Black Ops One',cursive; letter-spacing:1px; font-style:normal; }
-
-  .contact-block {
-    background:var(--ink); color:#fff; padding:28px 32px; margin-top:24px;
-  }
-  .contact-block p { color:rgba(255,255,255,0.6); font-size:14px; }
-  .contact-block a { color:var(--gold); text-decoration:none; }
-  .contact-block a:hover { text-decoration:underline; }
-
-  footer {
-    background:var(--ink); color:rgba(255,255,255,0.3);
-    text-align:center; padding:40px 48px;
-    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px;
-  }
-  footer a { color:var(--clay); text-decoration:none; }
-  footer a:hover { color:var(--gold); }
-  footer strong { color:rgba(255,255,255,0.6); }
-
-  .reveal { opacity:0; transform:translateY(20px); transition:opacity 0.5s ease, transform 0.5s ease; }
-  .reveal.visible { opacity:1; transform:none; }
-
-  @media(max-width:800px) {
-    nav { padding:14px 20px; }
-    .doc-hero { padding:100px 20px 48px; }
-    .doc-layout { grid-template-columns:1fr; padding:40px 20px; gap:0; }
-    .toc { display:none; }
-  }
+  :root{--ink:#1a1a18;--clay:#c4622d;--clay-bg:#f5e6d3;--gold:#d4a843;--paper:#faf7f2;--rule:rgba(196,98,45,0.15);--muted:#888;--green:#2d5a27;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:'Libre Baskerville',Georgia,serif;}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:rgba(26,26,24,0.95);backdrop-filter:blur(10px);border-bottom:2px solid var(--clay);}
+  .logo{font-family:'Black Ops One',cursive;font-size:22px;letter-spacing:3px;color:#fff;text-decoration:none;}
+  .logo span{color:var(--gold);}
+  .nav-links{display:flex;gap:24px;align-items:center;}
+  .nav-links a{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s;}
+  .nav-links a:hover{color:var(--gold);}
+  .nav-links .active{color:var(--clay);}
+  .doc-hero{background:var(--green);padding:120px 48px 60px;border-bottom:4px solid var(--clay);position:relative;overflow:hidden;}
+  .doc-hero::before{content:'TERMS';position:absolute;right:-20px;top:50%;transform:translateY(-50%);font-family:'Black Ops One',cursive;font-size:clamp(80px,15vw,180px);color:rgba(255,255,255,0.04);pointer-events:none;letter-spacing:-4px;line-height:1;}
+  .doc-hero-inner{max-width:780px;margin:0 auto;position:relative;z-index:1;}
+  .doc-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:block;}
+  .doc-title{font-family:'Black Ops One',cursive;font-size:clamp(36px,7vw,72px);color:#fff;line-height:1;letter-spacing:1px;margin-bottom:16px;}
+  .doc-meta{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.35);}
+  .doc-meta span{color:var(--gold);}
+  .doc-layout{max-width:1060px;margin:0 auto;padding:64px 48px;display:grid;grid-template-columns:220px 1fr;gap:60px;align-items:start;}
+  .toc{position:sticky;top:90px;}
+  .toc-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--clay);margin-bottom:16px;}
+  .toc ul{list-style:none;border-left:2px solid var(--rule);}
+  .toc ul li a{display:block;padding:8px 0 8px 16px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-decoration:none;transition:all 0.2s;line-height:1.4;}
+  .toc ul li a:hover{color:var(--clay);border-left:2px solid var(--clay);margin-left:-2px;padding-left:18px;}
+  .toc ul li a.active{color:var(--clay);font-weight:700;}
+  .doc-content{min-width:0;}
+  .doc-section{margin-bottom:56px;padding-bottom:56px;border-bottom:1px solid var(--rule);}
+  .doc-section:last-child{border-bottom:none;}
+  .section-num{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--clay);margin-bottom:10px;display:block;}
+  h2{font-family:'Black Ops One',cursive;font-size:28px;letter-spacing:1px;color:var(--ink);margin-bottom:20px;line-height:1.1;}
+  p{font-size:15px;line-height:1.85;color:#444;margin-bottom:16px;}
+  p:last-child{margin-bottom:0;}
+  ul.doc-list{margin:16px 0;padding-left:0;list-style:none;}
+  ul.doc-list li{font-size:15px;line-height:1.75;color:#444;padding:8px 0 8px 24px;position:relative;border-bottom:1px solid var(--rule);}
+  ul.doc-list li:last-child{border-bottom:none;}
+  ul.doc-list li::before{content:'—';position:absolute;left:0;color:var(--clay);font-weight:700;}
+  .highlight-box{background:var(--clay-bg);border-left:4px solid var(--clay);padding:18px 22px;margin:20px 0;}
+  .highlight-box p{font-size:14px;color:var(--ink);margin:0;font-style:italic;}
+  .aj-box{background:var(--ink);border:2px solid var(--clay);padding:22px 28px;margin:20px 0;position:relative;overflow:hidden;}
+  .aj-box::after{content:'🚫';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:48px;opacity:0.15;}
+  .aj-box p{color:rgba(255,255,255,0.7);font-size:14px;margin:0;}
+  .aj-box strong{color:var(--clay);font-family:'Black Ops One',cursive;letter-spacing:1px;font-style:normal;}
+  .contact-block{background:var(--ink);color:#fff;padding:28px 32px;margin-top:24px;}
+  .contact-block p{color:rgba(255,255,255,0.6);font-size:14px;}
+  .contact-block a{color:var(--gold);text-decoration:none;}
+  .contact-block a:hover{text-decoration:underline;}
+  footer{background:var(--ink);color:rgba(255,255,255,0.3);text-align:center;padding:40px 48px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;}
+  footer a{color:var(--clay);text-decoration:none;}
+  footer a:hover{color:var(--gold);}
+  footer strong{color:rgba(255,255,255,0.6);}
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease;}
+  .reveal.visible{opacity:1;transform:none;}
+  /* secret link — invisible period, same color as text, no underline, no cursor change */
+  .secret-pong{color:inherit;text-decoration:none;cursor:text;}
+  .secret-pong:hover{color:inherit;text-decoration:none;}
+  @media(max-width:800px){nav{padding:14px 20px;}.doc-hero{padding:100px 20px 48px;}.doc-layout{grid-template-columns:1fr;padding:40px 20px;gap:0;}.toc{display:none;}}
 </style>
 </head>
 <body>
@@ -150,7 +85,6 @@
 </div>
 
 <div class="doc-layout">
-
   <aside class="toc">
     <div class="toc-label">Contents</div>
     <ul>
@@ -174,9 +108,7 @@
     <div class="doc-section reveal" id="acceptance">
       <span class="section-num">01 — Acceptance</span>
       <h2>Agreement to These Terms</h2>
-      <div class="highlight-box">
-        <p>By accessing kevball.online or creating an account, you agree to these Terms of Service. If you don't agree, don't use the platform.</p>
-      </div>
+      <div class="highlight-box"><p>By accessing kevball.online or creating an account, you agree to these Terms of Service. If you don't agree, don't use the platform.</p></div>
       <p>These Terms of Service ("Terms") govern your use of kevball.online and all related services operated by Kevball ("we," "us," "our"). These terms apply to all visitors, registered players, and anyone who interacts with the platform in any way.</p>
     </div>
 
@@ -249,7 +181,7 @@
         <li>We reserve the right to cancel a pre-order campaign if minimum quantities are not met</li>
         <li>Pricing is estimated and may change before the final order is placed</li>
       </ul>
-      <p>We are not responsible for any losses resulting from a cancelled or unfulfilled pre-order campaign.</p>
+      <p>We are not responsible for any losses resulting from a cancelled or unfulfilled pre-order campaign<a href="pong.html" class="secret-pong" title="">.</a></p>
     </div>
 
     <div class="doc-section reveal" id="admin">
@@ -317,13 +249,12 @@
     entries.forEach(e => {
       if(e.isIntersecting) {
         tocLinks.forEach(a => a.classList.remove('active'));
-        const link = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        const link = document.querySelector('.toc a[href="#'+e.target.id+'"]');
         if(link) link.classList.add('active');
       }
     });
   }, { rootMargin:'-20% 0px -70% 0px' });
   sections.forEach(s => obs.observe(s));
-
   const revealObs = new IntersectionObserver(entries => {
     entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.05 });
