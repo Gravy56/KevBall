@@ -157,6 +157,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
@@ -182,6 +183,8 @@ const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 const ADMIN_EMAIL = "kgravy56@gmail.com";
+
+const isNative = !!(window.Capacitor?.isNativePlatform());
 
 function showLoading(msg='Loading...'){
   document.getElementById('loadingOverlay').classList.add('show');
@@ -243,27 +246,30 @@ async function ensureUserDoc(user, extraData={}){
   return userData;
 }
 
-// ── HANDLE GOOGLE REDIRECT RESULT ON PAGE LOAD ────────────
+// ── ON PAGE LOAD ──────────────────────────────────────────
 showLoading('Loading...');
 let redirectHandled = false;
-try {
-  const result = await getRedirectResult(auth);
-  if(result?.user){
-    redirectHandled = true;
-    await ensureUserDoc(result.user);
-    await goToApp(result.user.uid);
-  } else {
-    hideLoading();
-  }
-} catch(e){
-  hideLoading();
-  console.error('Redirect result error:', e);
-  if(e.code && e.code !== 'auth/cancelled-popup-request'){
-    toast('Google sign-in failed: ' + (e.message || e.code));
+
+// On native, check if we're returning from a Google redirect
+if(isNative){
+  try {
+    const result = await getRedirectResult(auth);
+    if(result?.user){
+      redirectHandled = true;
+      await ensureUserDoc(result.user);
+      await goToApp(result.user.uid);
+    }
+  } catch(e){
+    console.error('Redirect result error:', e);
+    if(e.code !== 'auth/no-auth-event'){
+      toast('Google sign-in failed. Try again.');
+    }
   }
 }
 
-// ── AUTO REDIRECT IF ALREADY LOGGED IN ────────────────────
+hideLoading();
+
+// Auto-redirect if already logged in
 if(!redirectHandled){
   const unsubscribe = onAuthStateChanged(auth, user => {
     unsubscribe();
@@ -294,14 +300,26 @@ window.handleSuAvatar = function(input){
 };
 
 // ── GOOGLE AUTH ───────────────────────────────────────────
+// Web: popup (fast, no page navigation)
+// Native iOS: redirect (popup doesn't work in WKWebView)
 window.doGoogleAuth = async function(){
   try {
-    showLoading('Redirecting to Google...');
-    await signInWithRedirect(auth, googleProvider);
+    if(isNative){
+      showLoading('Redirecting to Google...');
+      await signInWithRedirect(auth, googleProvider);
+      // Page navigates away — nothing runs after this line
+    } else {
+      showLoading('Opening Google sign-in...');
+      const result = await signInWithPopup(auth, googleProvider);
+      await ensureUserDoc(result.user);
+      await goToApp(result.user.uid);
+    }
   } catch(e){
     hideLoading();
     console.error('Google auth error:', e);
-    toast('Google sign-in failed. Try again.');
+    if(e.code !== 'auth/popup-closed-by-user'){
+      toast('Google sign-in failed. Try again.');
+    }
   }
 };
 
