@@ -136,7 +136,6 @@
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(26,26,24,0.98); color:#fff; padding:12px 24px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; z-index:1000; border-left:4px solid var(--gold); opacity:0; transition:all 0.3s; white-space:nowrap; }
   .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 </style>
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#c4622d">
   <meta name="mobile-web-app-capable" content="yes">
@@ -280,11 +279,11 @@ const firebaseConfig = {
   appId: "1:625931758016:web:21091bceb2adedca418025"
 };
 const app = initializeApp(firebaseConfig);
-// App Check — replace with your reCAPTCHA v3 site key from Firebase Console
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUser = null;
+let currentUid = null;          // ← referee's own uid — used as the match doc key
 let playersCache = [];
 let weeksCache = [];
 let teamSize = 1;
@@ -293,8 +292,13 @@ let matchState = {
   target:21, events:[], weekId:null, matchId:null,
   startTime:null, timerInterval:null
 };
-let tournamentData = null; // current tournament snapshot
+let tournamentData = null;
 let tournamentUnsub = null;
+
+// ── HELPER: this referee's Firestore doc ref ───────────────
+function myMatchRef() {
+  return doc(db, 'liveMatch', currentUid);
+}
 
 // ── AUTH GATE ──────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
@@ -303,6 +307,7 @@ onAuthStateChanged(auth, async user => {
   const data = snap.exists() ? snap.data() : {};
   if (!data.isReferee && !data.isAdmin) { showDenied(); return; }
   currentUser = data;
+  currentUid = user.uid;
   document.getElementById('authGate').classList.add('hidden');
   init();
 });
@@ -319,21 +324,21 @@ async function init() {
   renderMatchList();
   watchTournament();
 
-  // ── RESTORE active match if referee navigated away ──
-  const liveSnap = await getDoc(doc(db, 'liveMatch', 'current'));
+  // ── RESTORE active match if referee navigated away ──────
+  // Only look at THIS referee's own doc
+  const liveSnap = await getDoc(myMatchRef());
   if (liveSnap.exists()) {
     const live = liveSnap.data();
     if (live.active) {
+      const t1 = Array.isArray(live.team1) ? live.team1 : [live.p1||'Team 1'];
+      const t2 = Array.isArray(live.team2) ? live.team2 : [live.p2||'Team 2'];
       const resume = confirm(
         `Active match in progress:\n` +
-        `${(live.team1||[live.p1]).join(' & ')} vs ${(live.team2||[live.p2]).join(' & ')}\n` +
+        `${t1.join(' & ')} vs ${t2.join(' & ')}\n` +
         `Score: ${live.score1} — ${live.score2}\n\n` +
         `Resume this match?`
       );
-      if (resume) {
-        restoreMatch(live);
-        return;
-      }
+      if (resume) { restoreMatch(live); return; }
     }
   }
 }
@@ -342,24 +347,15 @@ function restoreMatch(live) {
   const team1 = Array.isArray(live.team1) ? live.team1 : [live.p1||'Team 1'];
   const team2 = Array.isArray(live.team2) ? live.team2 : [live.p2||'Team 2'];
   const size = Math.max(team1.length, team2.length, 1);
-
-  // Restore matchState
   matchState.team1 = team1;
   matchState.team2 = team2;
   matchState.score1 = live.score1 || 0;
   matchState.score2 = live.score2 || 0;
   matchState.target = live.target || 21;
   matchState.events = live.events || [];
-  // Approximate startTime from elapsed: use startedAt if available
-  if (live.startedAt?.seconds) {
-    matchState.startTime = live.startedAt.seconds * 1000;
-  } else {
-    matchState.startTime = Date.now();
-  }
+  matchState.startTime = live.startedAt?.seconds ? live.startedAt.seconds * 1000 : Date.now();
   teamSize = size;
   const fmt = size === 1 ? '1v1' : `${size}v${size}`;
-
-  // Update scoring UI
   document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
   document.getElementById('targetLabel').textContent = `First to ${matchState.target} wins · ${fmt}`;
   document.getElementById('t1Members').textContent = team1.join('\n');
@@ -400,22 +396,18 @@ window.setFormat = function(n, btn) {
 function renderTeamsGrid() {
   const opts = `<option value="">— Select player —</option>` +
     playersCache.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-
   const makeSlots = (team) => Array.from({length:teamSize}, (_,i) => `
     <div class="player-slot">
       <span class="slot-num">${i+1}</span>
       <select id="${team}p${i}">${opts}</select>
     </div>`).join('');
-
   document.getElementById('teamsGrid').innerHTML = `
     <div class="team-col">
-      <div class="team-label t1">Team 1</div>
-      ${makeSlots('t1')}
+      <div class="team-label t1">Team 1</div>${makeSlots('t1')}
     </div>
     <div class="vs-col"><div class="vs-mid">VS</div></div>
     <div class="team-col">
-      <div class="team-label t2">Team 2</div>
-      ${makeSlots('t2')}
+      <div class="team-label t2">Team 2</div>${makeSlots('t2')}
     </div>`;
 }
 
@@ -426,7 +418,6 @@ function getTeam(team) {
   }).filter(Boolean);
 }
 
-// ── RANDOMIZE ──────────────────────────────────────────────
 window.randomizeTeams = function() {
   const needed = teamSize * 2;
   if (playersCache.length < needed) { toast(`Need at least ${needed} players to randomize!`); return; }
@@ -436,7 +427,6 @@ window.randomizeTeams = function() {
   toast('Teams randomized! 🎲');
 };
 
-// ── MATCH LIST ─────────────────────────────────────────────
 function renderMatchList() {
   const list = document.getElementById('matchList');
   const all = [];
@@ -469,7 +459,6 @@ window.selectScheduledMatch = function(weekId, matchId) {
   document.querySelectorAll('.match-opt').forEach(el => el.classList.remove('selected'));
   document.getElementById(`mo-${matchId}`)?.classList.add('selected');
   matchState.weekId = weekId; matchState.matchId = matchId;
-
   const t1 = Array.isArray(m.team1) ? m.team1 : [m.p1].filter(Boolean);
   const t2 = Array.isArray(m.team2) ? m.team2 : [m.p2].filter(Boolean);
   const newSize = Math.max(t1.length, t2.length, 1);
@@ -496,10 +485,13 @@ window.startMatch = async function() {
   };
   const fmt = teamSize===1 ? '1v1' : `${teamSize}v${teamSize}`;
 
-  await setDoc(doc(db,'liveMatch','current'), {
+  // ── Write to liveMatch/{uid} — this referee's own doc ──
+  await setDoc(myMatchRef(), {
     team1, team2, score1:0, score2:0, target:matchState.target,
     format:fmt, active:true, startedAt:serverTimestamp(),
-    referee: currentUser.displayName||currentUser.firstName||'Referee', events:[]
+    referee: currentUser.displayName||currentUser.firstName||'Referee',
+    refereeUid: currentUid,
+    events:[]
   });
 
   document.getElementById('scoreLiveLabel').textContent = `${team1.join(' & ')} vs ${team2.join(' & ')}`;
@@ -540,7 +532,7 @@ window.removePoint = async function(team) {
 
 async function pushScore() {
   updateScoreUI();
-  await updateDoc(doc(db,'liveMatch','current'),{score1:matchState.score1,score2:matchState.score2});
+  await updateDoc(myMatchRef(), {score1:matchState.score1, score2:matchState.score2});
 }
 
 function updateScoreUI() {
@@ -571,7 +563,7 @@ window.logEvent = async function(icon, label, penaltyTeam) {
   }
   matchState.events.push({icon,text:label,time});
   renderEventLog();
-  await updateDoc(doc(db,'liveMatch','current'),{events:matchState.events});
+  await updateDoc(myMatchRef(), {events:matchState.events});
 };
 
 function renderEventLog() {
@@ -597,37 +589,26 @@ window.confirmCancelMatch = function() {
 
 async function cancelMatch() {
   if (matchState.timerInterval) clearInterval(matchState.timerInterval);
-
-  // Clear liveMatch in Firestore
   try {
-    await setDoc(doc(db, 'liveMatch', 'current'), {
+    await setDoc(myMatchRef(), {
       active: false, team1: [], team2: [], score1: 0, score2: 0,
-      cancelled: true, cancelledAt: serverTimestamp()
+      cancelled: true, cancelledAt: serverTimestamp(),
+      refereeUid: currentUid
     });
   } catch(e) { console.warn('cancelMatch Firestore error', e); }
-
-  // Reset state
-  matchState = {
-    team1:[], team2:[], score1:0, score2:0,
-    target:21, events:[], weekId:null, matchId:null,
-    startTime:null, timerInterval:null
-  };
-
+  matchState = {team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null};
   toast('Game cancelled.');
   showPhase('phaseSelect');
-  // Re-render so the setup form is fresh
   renderTeamsGrid();
   renderMatchList();
 }
 
-// ── TOURNAMENT INTEGRATION ───────────────────────────────
+// ── TOURNAMENT INTEGRATION ────────────────────────────────
 function watchTournament() {
   if (tournamentUnsub) tournamentUnsub();
   tournamentUnsub = onSnapshot(doc(db,'tournament','current'), snap => {
     if (!snap.exists() || snap.data().status === 'deleted') {
-      tournamentData = null;
-      renderTournamentBanner(null);
-      return;
+      tournamentData = null; renderTournamentBanner(null); return;
     }
     tournamentData = snap.data();
     renderTournamentBanner(tournamentData);
@@ -640,13 +621,10 @@ function renderTournamentBanner(t) {
     banner = document.createElement('div');
     banner.id = 'tournamentBanner';
     banner.style.cssText = 'background:rgba(212,168,67,0.10);border:1px solid rgba(212,168,67,0.25);padding:14px 18px;margin-bottom:18px;border-left:4px solid var(--gold);';
-    // Insert before phaseSelect
     const ps = document.getElementById('phaseSelect');
     if (ps) ps.parentNode.insertBefore(banner, ps);
   }
-  if (!t || !t.currentMatchId || t.winner) {
-    banner.style.display = 'none'; return;
-  }
+  if (!t || !t.currentMatchId || t.winner) { banner.style.display = 'none'; return; }
   const match = findTourneyMatch(t.rounds, t.currentMatchId);
   if (!match) { banner.style.display = 'none'; return; }
   banner.style.display = 'block';
@@ -673,88 +651,52 @@ window.loadTournamentMatch = function() {
   if (!tournamentData) return;
   const match = findTourneyMatch(tournamentData.rounds, tournamentData.currentMatchId);
   if (!match || !match.p1 || !match.p2) { toast('Match players not set yet'); return; }
-  // Pre-fill team slots
   const fmt = tournamentData.format || '1v1';
   const size = parseInt(fmt[0]) || 1;
   teamSize = size;
-  // Set format buttons
-  document.querySelectorAll('.format-btn').forEach(b => b.classList.toggle('active', b.dataset.size == size));
+  document.querySelectorAll('.fmt-btn').forEach((b,i) => b.classList.toggle('active', i===size-1));
   renderTeamsGrid();
-  // Fill slots
-  const t1slots = document.querySelectorAll('#team1Slots select');
-  const t2slots = document.querySelectorAll('#team2Slots select');
-  if (t1slots[0]) t1slots[0].value = match.p1;
-  if (t2slots[0]) t2slots[0].value = match.p2;
-  // Set target
+  const t1el = document.getElementById('t1p0'); if(t1el) t1el.value = match.p1;
+  const t2el = document.getElementById('t2p0'); if(t2el) t2el.value = match.p2;
   matchState.target = tournamentData.target || 21;
-  document.getElementById('winTarget').value = matchState.target;
-  // Store tournament match reference
+  document.getElementById('targetScore').value = matchState.target;
   matchState._tourneyMatchId = tournamentData.currentMatchId;
   toast('Tournament match loaded ✓');
 };
 
 async function advanceBracket(winnerName) {
   if (!tournamentData || !matchState._tourneyMatchId) return;
-  const rounds = JSON.parse(JSON.stringify(tournamentData.rounds)); // deep copy
+  const rounds = JSON.parse(JSON.stringify(tournamentData.rounds));
   const score1 = matchState.score1, score2 = matchState.score2;
-
-  // Mark match as played
   for (const round of rounds) {
     for (const m of round) {
-      if (m.id === matchState._tourneyMatchId) {
-        m.winner = winnerName;
-        m.score1 = score1;
-        m.score2 = score2;
-        m.played = true;
-      }
+      if (m.id === matchState._tourneyMatchId) { m.winner=winnerName; m.score1=score1; m.score2=score2; m.played=true; }
     }
   }
-
-  // Propagate winners into next round
   for (let r = 0; r < rounds.length - 1; r++) {
     for (let i = 0; i < rounds[r].length; i += 2) {
-      const m1 = rounds[r][i];
-      const m2 = rounds[r][i+1];
-      const nextMatch = rounds[r+1][Math.floor(i/2)];
+      const m1=rounds[r][i], m2=rounds[r][i+1];
+      const nextMatch=rounds[r+1][Math.floor(i/2)];
       if (nextMatch) {
-        nextMatch.p1 = m1.winner || nextMatch.p1;
-        nextMatch.p2 = m2?.winner || nextMatch.p2;
-        // auto-advance bye in next round
-        if (nextMatch.p1 && !nextMatch.p2) {
-          nextMatch.winner = nextMatch.p1; nextMatch.played = true; nextMatch.bye = true;
-        }
-        if (nextMatch.p2 && !nextMatch.p1) {
-          nextMatch.winner = nextMatch.p2; nextMatch.played = true; nextMatch.bye = true;
-        }
+        nextMatch.p1=m1.winner||nextMatch.p1; nextMatch.p2=m2?.winner||nextMatch.p2;
+        if(nextMatch.p1&&!nextMatch.p2){nextMatch.winner=nextMatch.p1;nextMatch.played=true;nextMatch.bye=true;}
+        if(nextMatch.p2&&!nextMatch.p1){nextMatch.winner=nextMatch.p2;nextMatch.played=true;nextMatch.bye=true;}
       }
     }
   }
-
-  // Find next unplayed match
   let nextMatchId = null;
   for (const round of rounds) {
-    for (const m of round) {
-      if (!m.played && !m.bye && m.p1 && m.p2) { nextMatchId = m.id; break; }
-    }
+    for (const m of round) { if (!m.played&&!m.bye&&m.p1&&m.p2) { nextMatchId=m.id; break; } }
     if (nextMatchId) break;
   }
-
-  // Check for tournament winner (final match played)
   const finalMatch = rounds[rounds.length-1][0];
   const tourneyWinner = finalMatch.played ? finalMatch.winner : null;
-
-  await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js").then(async ({updateDoc}) => {
-    const { getFirestore, doc } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
-  });
-
-  // Use already-imported db
   const { updateDoc: ud } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
   await ud(doc(db,'tournament','current'), {
     rounds, currentMatchId: nextMatchId,
     winner: tourneyWinner || null,
     status: tourneyWinner ? 'complete' : 'active'
   });
-
   matchState._tourneyMatchId = null;
   if (tourneyWinner) toast(`🏆 Tournament complete! ${tourneyWinner} wins!`);
   else toast('Bracket advanced ✓');
@@ -767,7 +709,8 @@ async function endMatch() {
   const winners = winTeam===1?team1:team2;
   const losers  = winTeam===1?team2:team1;
 
-  await updateDoc(doc(db,'liveMatch','current'),{active:false,score1,score2,winner:winners.join(' & '),endedAt:serverTimestamp()});
+  // Mark this referee's match doc as ended
+  await updateDoc(myMatchRef(), {active:false,score1,score2,winner:winners.join(' & '),endedAt:serverTimestamp()});
 
   if (weekId&&matchId) {
     const ws=await getDoc(doc(db,'weeks',weekId));
@@ -776,7 +719,6 @@ async function endMatch() {
       await updateDoc(doc(db,'weeks',weekId),{matches});
     }
   }
-
   for (const name of winners) {
     const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
     if(p){const w=(p.wins||0)+1,l=p.losses||0;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
@@ -785,17 +727,14 @@ async function endMatch() {
     const p=playersCache.find(x=>x.name.toLowerCase()===name.toLowerCase());
     if(p){const w=p.wins||0,l=(p.losses||0)+1;await updateDoc(doc(db,'players',p._id),{wins:w,losses:l,points:w*3-l});}
   }
-
   await setDoc(doc(collection(db,'matchHistory')),{
     team1,team2,score1,score2,format:`${teamSize}v${teamSize}`,
     winner:winners.join(' & '),target,events:matchState.events,
     referee:currentUser.displayName||currentUser.firstName||'Referee',
+    refereeUid: currentUid,
     playedAt:serverTimestamp()
   });
-
-  // Advance tournament bracket if this was a tournament match
   if (matchState._tourneyMatchId) await advanceBracket(winners.join(' & '));
-
   showCompleteScreen(winTeam);
 }
 
@@ -804,15 +743,11 @@ function showCompleteScreen(winTeam) {
   document.getElementById('completeWinner').textContent=`${(winTeam===1?team1:team2).join(' & ')} win!`;
   document.getElementById('finalScoreRow').innerHTML=`
     <div class="fsb ${winTeam===1?'winner-block':''}">
-      <div class="fn">Team 1</div>
-      <div class="fp">${team1.join('<br>')}</div>
-      <div class="fs">${score1}</div>
+      <div class="fn">Team 1</div><div class="fp">${team1.join('<br>')}</div><div class="fs">${score1}</div>
     </div>
     <div style="font-family:'Black Ops One',cursive;font-size:24px;color:rgba(255,255,255,0.15);align-self:center;padding-top:32px">—</div>
     <div class="fsb ${winTeam===2?'winner-block':''}">
-      <div class="fn">Team 2</div>
-      <div class="fp">${team2.join('<br>')}</div>
-      <div class="fs">${score2}</div>
+      <div class="fn">Team 2</div><div class="fp">${team2.join('<br>')}</div><div class="fs">${score2}</div>
     </div>`;
   showPhase('phaseComplete');
 }
@@ -821,8 +756,7 @@ window.resetToSelect = async function() {
   matchState={team1:[],team2:[],score1:0,score2:0,target:21,events:[],weekId:null,matchId:null,startTime:null,timerInterval:null,_tourneyMatchId:null};
   document.querySelectorAll('.match-opt').forEach(el=>el.classList.remove('selected'));
   await Promise.all([loadPlayers(),loadWeeks()]);
-  renderTeamsGrid();
-  renderMatchList();
+  renderTeamsGrid(); renderMatchList();
   showPhase('phaseSelect');
 };
 
