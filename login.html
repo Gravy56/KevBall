@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KEVBALL — Sign In</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{--clay:#c4622d;--clay-light:#d4794a;--clay-dark:#8b3a1a;--clay-bg:#f5e6d3;--ink:#1a1a18;--gold:#d4a843;--white:#fafaf8;}
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{height:100%;}
+  html,body{height:100%;height:-webkit-fill-available;}
   body{font-family:'DM Sans',sans-serif;background:#1a2e18;color:var(--white);min-height:100vh;display:flex;flex-direction:column;}
-  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:relative;z-index:10;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;position:relative;z-index:10;padding-top:calc(env(safe-area-inset-top) + 20px);}
   .logo{font-family:'Black Ops One',cursive;font-size:24px;letter-spacing:3px;color:var(--white);text-decoration:none;}
   .logo span{color:var(--gold);}
   .nav-back{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
@@ -43,7 +43,6 @@
   .submit-btn{width:100%;background:var(--gold);color:var(--ink);border:none;padding:15px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;font-weight:700;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
   .submit-btn:hover{background:#e8b84d;transform:translateY(-1px);}
   .submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-  /* GOOGLE BTN */
   .google-btn{width:100%;background:#fff;color:#3c3c3c;border:none;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:4px;}
   .google-btn:hover{background:#f1f1f1;transform:translateY(-1px);}
   .google-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
@@ -60,16 +59,8 @@
   .loading-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;}
   .toast{position:fixed;bottom:28px;right:28px;background:var(--ink);color:#fff;padding:13px 22px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;z-index:1000;transform:translateY(80px);opacity:0;transition:all 0.3s;border-left:4px solid var(--gold);}
   .toast.show{transform:translateY(0);opacity:1;}
-  @media(max-width:600px){nav{padding:16px 20px;}.form-card{padding:24px 20px;}.field-row{grid-template-columns:1fr;}}
+  @media(max-width:600px){nav{padding:16px 20px;padding-top:calc(env(safe-area-inset-top) + 16px);}.form-card{padding:24px 20px;}.field-row{grid-template-columns:1fr;}}
 </style>
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#c4622d">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kevball">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -162,8 +153,19 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-jcR19rj5MVf33fO-SMnZzyRbKH3uu88",
@@ -175,28 +177,38 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-// App Check — replace with your reCAPTCHA v3 site key from Firebase Console
-
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// ---- IMPORTANT: Set this to YOUR real Google account email ----
-// When you first sign in with Google using this email, you'll be auto-granted admin.
-const ADMIN_EMAIL = "kgravy56@gmail.com"; // <-- change to your actual email
+const ADMIN_EMAIL = "kgravy56@gmail.com";
 
-function showLoading(msg='Loading...'){document.getElementById('loadingOverlay').classList.add('show');document.getElementById('loadingText').textContent=msg;}
-function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
-function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
-function hideErr(id){document.getElementById(id).classList.remove('show');}
+function showLoading(msg='Loading...'){
+  document.getElementById('loadingOverlay').classList.add('show');
+  document.getElementById('loadingText').textContent = msg;
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideErr(id){
+  document.getElementById(id).classList.remove('show');
+}
 
-// Single navigation function — always goes straight to the right page.
-// Never call location.href anywhere else.
 async function goToApp(uid){
   showLoading('Loading...');
   try {
-    const snap = await getDoc(doc(db,'users',uid));
+    const snap = await getDoc(doc(db, 'users', uid));
     const data = snap.exists() ? snap.data() : {};
     location.href = data.isAdmin ? 'index.html' : 'profile.html';
   } catch(e){
@@ -205,45 +217,16 @@ async function goToApp(uid){
   }
 }
 
-// Auto-redirect ONLY if already logged in when the page first loads.
-// We use a one-time listener that unsubscribes immediately so it never
-// fires again after the user signs in (which would cause the loop).
-const unsubscribe = onAuthStateChanged(auth, user => {
-  unsubscribe(); // stop listening after the very first state check
-  if(user) goToApp(user.uid);
-  // If no user, just show the login form — do nothing
-});
-
-window.switchTab = function(tab){
-  document.getElementById('signinView').style.display = tab==='signin' ? 'block' : 'none';
-  document.getElementById('signupView').style.display = tab==='signup' ? 'block' : 'none';
-  document.getElementById('tabSignin').classList.toggle('active', tab==='signin');
-  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
-};
-if(location.search.includes('signup')) window.switchTab('signup');
-
-let suAvatarData = null;
-window.handleSuAvatar = function(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    suAvatarData=e.target.result;
-    document.getElementById('suAvatarPreview').innerHTML=`<img src="${suAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-  };
-  reader.readAsDataURL(file);
-};
-
-// Shared function to create/update a user doc after any auth method
 async function ensureUserDoc(user, extraData={}){
   const uid = user.uid;
-  const snap = await getDoc(doc(db,'users',uid));
-  if(snap.exists()) return snap.data(); // already exists, don't overwrite
+  const snap = await getDoc(doc(db, 'users', uid));
+  if(snap.exists()) return snap.data();
 
   const isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-  const nameParts = (user.displayName||'Player').split(' ');
+  const nameParts = (user.displayName || 'Player').split(' ');
   const firstName = extraData.firstName || nameParts[0] || 'Player';
   const lastName = extraData.lastName || nameParts.slice(1).join(' ') || '';
-  const displayName = firstName + (lastName ? ' '+lastName : '');
+  const displayName = firstName + (lastName ? ' ' + lastName : '');
   const avatar = extraData.avatar || user.photoURL || null;
 
   const userData = {
@@ -251,76 +234,131 @@ async function ensureUserDoc(user, extraData={}){
     firstName, lastName, displayName,
     nick: extraData.nick || '',
     style: extraData.style || '',
-    avatar,
-    isAdmin,
-    wins:0, losses:0, points:0,
+    avatar, isAdmin,
+    wins: 0, losses: 0, points: 0,
     createdAt: serverTimestamp()
   };
-  await setDoc(doc(db,'users',uid), userData);
-  await setDoc(doc(db,'players',uid), {uid, name:displayName, wins:0, losses:0, points:0, avatar});
+  await setDoc(doc(db, 'users', uid), userData);
+  await setDoc(doc(db, 'players', uid), {uid, name: displayName, wins: 0, losses: 0, points: 0, avatar});
   return userData;
 }
 
-window.doGoogleAuth = async function(){
-  showLoading('Opening Google sign-in...');
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
+// ── HANDLE GOOGLE REDIRECT RESULT ON PAGE LOAD ────────────
+showLoading('Loading...');
+let redirectHandled = false;
+try {
+  const result = await getRedirectResult(auth);
+  if(result?.user){
+    redirectHandled = true;
     await ensureUserDoc(result.user);
     await goToApp(result.user.uid);
+  } else {
+    hideLoading();
+  }
+} catch(e){
+  hideLoading();
+  console.error('Redirect result error:', e);
+  if(e.code && e.code !== 'auth/cancelled-popup-request'){
+    toast('Google sign-in failed: ' + (e.message || e.code));
+  }
+}
+
+// ── AUTO REDIRECT IF ALREADY LOGGED IN ────────────────────
+if(!redirectHandled){
+  const unsubscribe = onAuthStateChanged(auth, user => {
+    unsubscribe();
+    if(user) goToApp(user.uid);
+  });
+}
+
+// ── TABS ──────────────────────────────────────────────────
+window.switchTab = function(tab){
+  document.getElementById('signinView').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('signupView').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('tabSignin').classList.toggle('active', tab === 'signin');
+  document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+};
+if(location.search.includes('signup')) window.switchTab('signup');
+
+// ── AVATAR UPLOAD ─────────────────────────────────────────
+let suAvatarData = null;
+window.handleSuAvatar = function(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    suAvatarData = e.target.result;
+    document.getElementById('suAvatarPreview').innerHTML =
+      `<img src="${suAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  };
+  reader.readAsDataURL(file);
+};
+
+// ── GOOGLE AUTH ───────────────────────────────────────────
+window.doGoogleAuth = async function(){
+  try {
+    showLoading('Redirecting to Google...');
+    await signInWithRedirect(auth, googleProvider);
   } catch(e){
     hideLoading();
-    if(e.code !== 'auth/popup-closed-by-user') toast('Google sign-in failed. Try again.');
+    console.error('Google auth error:', e);
+    toast('Google sign-in failed. Try again.');
   }
 };
 
-window.doSignup = async function(){
-  hideErr('signupError');
-  const first=document.getElementById('suFirst').value.trim();
-  const last=document.getElementById('suLast').value.trim();
-  const email=document.getElementById('suEmail').value.trim();
-  const password=document.getElementById('suPassword').value;
-  const nick=document.getElementById('suNick').value.trim();
-  const style=document.getElementById('suStyle').value;
-  if(!first||!last){showErr('signupError','Please enter your full name.');return;}
-  if(!email){showErr('signupError','Please enter your email.');return;}
-  if(password.length<6){showErr('signupError','Password must be at least 6 characters.');return;}
-  const btn=document.getElementById('signupBtn');
-  btn.disabled=true; showLoading('Creating your account...');
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, {displayName: first+' '+last});
-    await ensureUserDoc(cred.user, {firstName:first, lastName:last, nick, style, avatar:suAvatarData||null});
-    await goToApp(cred.user.uid);
-  } catch(e){
-    hideLoading(); btn.disabled=false;
-    showErr('signupError', e.code==='auth/email-already-in-use' ? 'That email is already registered.' : e.message);
-  }
-};
-
+// ── EMAIL SIGN IN ─────────────────────────────────────────
 window.doSignin = async function(){
   hideErr('signinError');
-  const email=document.getElementById('siEmail').value.trim();
-  const password=document.getElementById('siPassword').value;
-  if(!email||!password){showErr('signinError','Please enter your email and password.');return;}
-  const btn=document.getElementById('signinBtn');
-  btn.disabled=true; showLoading('Signing in...');
+  const email = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  if(!email || !password){ showErr('signinError', 'Please enter your email and password.'); return; }
+  const btn = document.getElementById('signinBtn');
+  btn.disabled = true;
+  showLoading('Signing in...');
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     await goToApp(cred.user.uid);
   } catch(e){
     hideLoading();
-    btn.disabled=false;
-    showErr('signinError','Incorrect email or password.');
+    btn.disabled = false;
+    showErr('signinError', 'Incorrect email or password.');
+  }
+};
+
+// ── EMAIL SIGN UP ─────────────────────────────────────────
+window.doSignup = async function(){
+  hideErr('signupError');
+  const first = document.getElementById('suFirst').value.trim();
+  const last = document.getElementById('suLast').value.trim();
+  const email = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  const nick = document.getElementById('suNick').value.trim();
+  const style = document.getElementById('suStyle').value;
+  if(!first || !last){ showErr('signupError', 'Please enter your full name.'); return; }
+  if(!email){ showErr('signupError', 'Please enter your email.'); return; }
+  if(password.length < 6){ showErr('signupError', 'Password must be at least 6 characters.'); return; }
+  const btn = document.getElementById('signupBtn');
+  btn.disabled = true;
+  showLoading('Creating your account...');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, {displayName: first + ' ' + last});
+    await ensureUserDoc(cred.user, {firstName: first, lastName: last, nick, style, avatar: suAvatarData || null});
+    await goToApp(cred.user.uid);
+  } catch(e){
+    hideLoading();
+    btn.disabled = false;
+    showErr('signupError',
+      e.code === 'auth/email-already-in-use'
+        ? 'That email is already registered.'
+        : e.message
+    );
   }
 };
 </script>
-<div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)"><a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a><a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a></div>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed', e));
-      });
-    }
-  </script>
+
+<div style="background:#111;text-align:center;padding:16px;font-family:Space Mono,monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.25)">
+  <a href="privacy.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Privacy Policy</a>
+  <a href="tos.html" style="color:rgba(196,98,45,0.7);text-decoration:none;margin:0 12px">Terms of Service</a>
+</div>
 </body>
 </html>
