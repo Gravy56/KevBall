@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Home -->
+  <url>
+    <loc>https://kevball.online/</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Auth -->
+  <url>
+    <loc>https://kevball.online/login.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Player -->
+  <url>
+    <loc>https://kevball.online/profile.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Match History -->
+  <url>
+    <loc>https://kevball.online/history.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Tournament -->
+  <url>
+    <loc>https://kevball.online/tournament.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Live Scoreboard -->
+  <url>
+    <loc>https://kevball.online/scoreboard.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Stream Watch -->
+  <url>
+    <loc>https://kevball.online/stream-watch.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stream Broadcast (referee-facing, lower public priority) -->
+  <url>
+    <loc>https://kevball.online/stream-broadcast.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Referee -->
+  <url>
+    <loc>https://kevball.online/referee.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Shop -->
+  <url>
+    <loc>https://kevball.online/shop.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Legal -->
+  <url>
+    <loc>https://kevball.online/privacy.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://kevball.online/tos.html</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
